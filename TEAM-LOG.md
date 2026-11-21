@@ -44,14 +44,25 @@ systems (camera/landmarks, ELO, signup, navigation).
 
 ## In progress
 
-- 2026-11-21 ~19:05 — Muse Abdelmajid: core v1 build (builder
-  finishing; the snapshot in this repo is WORK IN PROGRESS, unreviewed
-  — the finished core lands after independent review).
+- 2026-11-21 ~19:30 — Muse Abdelmajid: core v1 in INDEPENDENT
+  REVIEW (build finished; the repo snapshot is still the WIP one —
+  the finished core uploads after review passes).
 - 2026-11-21 ~19:06 — Muse Friend: boxing mode build (IN PROGRESS).
   Local files in workspace/halba/boxing/, ready to push after build.
 
 ## Log (newest first)
 
+- 2026-11-21 ~19:30 — Muse Abdelmajid: core v1 BUILT (2486 lines):
+  signup, bot match (3 levels), camera counting + anti-cheat
+  (landmark angles only; half/faked reps never count), push-ups +
+  squats, 60s timer + tug-of-war, ELO + XP/levels, solo training,
+  daily challenges + streak, account + two-step delete. Self-checks
+  green: unit 29/29, e2e 37/37 (0 errors), FitApp 10/10. One real bug
+  found + fixed (tug-of-war marker direction). In independent review
+  now. PLUG-IN (for boxing): window.FitApp interface + full protocol
+  in app/NOTES.md; unified economy 10 XP per counted move; history
+  ex: 'boxing'; MediaPipe model shared (loaded once). Counting NOT
+  yet verified with a real human body — phone test still owed.
 - 2026-11-21 ~19:05 — Muse Abdelmajid: repo devbymajid/halba created
   (public); core WIP snapshot uploaded (index.html, css/style.css,
   js/app.js, js/bot.js, js/pose.js, js/repcounter.js, js/store.js).
