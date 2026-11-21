@@ -9,7 +9,7 @@
 <body>
 <header class="top">
   <h1><span class="pink">حلبة</span> <span class="cyan">— الملاكمة</span></h1>
-  <p>مباراة مصنّفة 1v1 بالكاميرا • تدريب فردي • سلّم الكومبو — الكاميرا تتحقق، والحركة النصفية لا تُحسب</p>
+  <p id="heroSub">مباراة مصنّفة 1v1 بالكاميرا • تدريب فردي • سلّم الكومبو — الكاميرا تتحقق، والحركة النصفية لا تُحسب</p>
 </header>
 
 <div class="profile-bar" id="profileBar">—</div>
@@ -25,6 +25,13 @@
 <main>
   <!-- الملف -->
   <section class="panel active" id="panel-profile">
+    <!-- التشجيع — يظهر وحده قبل التسجيل -->
+    <div class="card cheer" id="welcomeCheer">
+      <h2>أهلاً بك في الحلبة!</h2>
+      <p class="cheer-line">كل بطل بدا من أول خطوة — وخطوتك الأولى هي التسجيل.</p>
+      <p>سجّل اسمك وكودك وعمرك وشخصية الأنمي ديالك، وادخل الحلبة باش تبدا رحلتك: مباريات مصنّفة ضد البوت، تدريب فردي، وسلّم كومبو — والكاميرا كتحسب غير الحركات الحقيقية الكاملة.</p>
+      <p class="cheer-line"><strong>سجّل دابا، والحلبة كتسناك!</strong></p>
+    </div>
     <div class="card">
       <h2>التسجيل — ملف اللاعب</h2>
       <p class="muted">هذه النسخة مستقلة لوضع الملاكمة. عند الدمج مع القلب، يُستبدل هذا الملف بملف اللاعب الرئيسي (نفس الحقول). يُحفظ محلياً فقط.</p>
@@ -141,14 +148,34 @@
   var Moves = window.HalbaBoxingMoves, Profile = window.HalbaBoxingProfile;
 
   // ---- التنقل بين الألسنة ----
+  // قبل التسجيل: ألسنة المباراة/التدريب/الكومبو/الكاميرا مخفية أصلاً،
+  // وهذا الحارس يمنع الوصول إليها حتى لو ظهرت بأي طريقة.
   var activeTab = 'profile';
   document.querySelectorAll('nav.tabs button').forEach(function (btn) {
     btn.addEventListener('click', function () {
-      activeTab = btn.getAttribute('data-tab');
+      var tab = btn.getAttribute('data-tab');
+      if (tab !== 'profile' && !Profile.hasProfile(profile)) return;
+      activeTab = tab;
       document.querySelectorAll('nav.tabs button').forEach(function (b) { b.classList.toggle('active', b === btn); });
       document.querySelectorAll('section.panel').forEach(function (p) { p.classList.toggle('active', p.id === 'panel-' + activeTab); });
     });
   });
+
+  // ---- البوابة: قبل التسجيل يظهر التشجيع وحده ----
+  // مسجَّل = اسم + (كود الجلسة أو هاشه المحفوظ) — نفس hasProfile في الملف.
+  function updateGating() {
+    var registered = Profile.hasProfile(profile);
+    document.querySelectorAll('nav.tabs button').forEach(function (b) {
+      if (b.getAttribute('data-tab') !== 'profile') b.style.display = registered ? '' : 'none';
+    });
+    $('welcomeCheer').style.display = registered ? 'none' : '';
+    $('heroSub').style.display = registered ? '' : 'none';
+    if (!registered && activeTab !== 'profile') {
+      activeTab = 'profile';
+      document.querySelectorAll('nav.tabs button').forEach(function (b) { b.classList.toggle('active', b.getAttribute('data-tab') === 'profile'); });
+      document.querySelectorAll('section.panel').forEach(function (p) { p.classList.toggle('active', p.id === 'panel-profile'); });
+    }
+  }
 
   // ---- الملف ----
   var profile = Profile.loadProfile();
@@ -160,6 +187,7 @@
     $('fName').value = profile.name || ''; $('fCode').value = profile.code || '';
     $('fAge').value = profile.age || 18; $('fAnime').value = profile.anime || '';
     $('profileStats').innerHTML = '<span>ELO: <b>' + profile.elo + '</b></span><span>المستوى: <b>' + profile.level + '</b></span><span>XP: <b>' + profile.xp + '</b></span><span>مباريات: <b>' + profile.matches + '</b></span><span>فوز: <b>' + profile.wins + '</b></span><span>تعادل: <b>' + profile.draws + '</b></span><span>خسارة: <b>' + profile.losses + '</b></span>';
+    updateGating();
   }
   function escapeHtml(s) { return String(s || '').replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   $('btnSaveProfile').addEventListener('click', function () {
@@ -285,6 +313,7 @@
     return match.currentCommand;
   }
   function sim(full) {
+    if (!Profile.hasProfile(profile)) return; // المحاكاة بعد التسجيل فقط
     var eng = activeEngine(), mv = expectedMove();
     if (!mv) { alert('ابدأ أولاً (مباراة / تدريب / كومبو) حتى يكون هناك أمر نشط.'); return; }
     if (eng.trySimulatedMove) eng.trySimulatedMove(mv, full);
@@ -298,6 +327,7 @@
 
   var KEYMAP = { j: 'JAB', k: 'CROSS', h: 'HOOK', u: 'UPPERCUT', b: 'BODY', s: 'SLIP', d: 'DODGE', l: 'BLOCK' };
   document.addEventListener('keydown', function (e) {
+    if (!Profile.hasProfile(profile)) return; // لوحة المفاتيح بعد التسجيل فقط
     if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA')) return;
     var mv = KEYMAP[(e.key || '').toLowerCase()];
     if (!mv) return;

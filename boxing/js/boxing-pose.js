@@ -39,7 +39,6 @@
 (function (global) {
   'use strict';
   var POSE_CDN = 'https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/pose.js';
-  var CAMERA_CDN = 'https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3/camera_utils.js';
 
   function loadScript(src) {
     return new Promise(function (resolve, reject) {
@@ -56,7 +55,8 @@
     this.onLandmarks = opts.onLandmarks || function () {};
     this.onStatus = opts.onStatus || function () {};
     this.mode = 'idle'; // idle | camera | simulated | core-shared | core-pending
-    this.pose = null; this.camera = null; this.stream = null;
+    this.pose = null; this.stream = null;
+    this._gen = 0; // جيل التشغيل: stop() يزيده، فيلغي أي تشغيل قيد التنفيذ
     this.smoothed = null; this.video = null;
     this.sharedTracker = null;
     this._sharedUnsubscribe = null;
@@ -167,8 +167,24 @@
     }
     return this.smoothed;
   };
-  PoseTracker.prototype.initCamera = async function (videoEl) {
+  PoseTracker.prototype._initCameraInner = async function (videoEl) {
     this.video = videoEl;
+    // D3 + D5: إيقاف أثناء تشغيل قيد التنفيذ كان يترك الكاميرا مشغّلة،
+    // ثم تبيّن أن تنظيف البدء البالي يدمّر البث الحي: كان يعمل على
+    // this.stream وthis.mode المشتركين، لا على بث ذلك البدء. فبدء
+    // ملغى يتسوى متأخراً (بعد أن صار بدء جديد حياً) كان يعيد كتابة
+    // this.stream ببثه ثم يصفّره، أو يوقف بث البدء الحي من catch.
+    // القاعدة الآن: البث المُكتسب يبقى متغيراً محلياً (acquired)،
+    // وفحص الجيل يأتي قبل إسناده إلى this.stream، والتنظيف يوقف
+    // البث المحلي فقط، ولا يمسّ this.stream/mode إلا إن كانا ما
+    // زالا يخصّان هذا البدء (الجيل لم يتغيّر).
+    var gen = this._gen;
+    var self = this;
+    function stoppedMidStart(localStream) {
+      if (self._gen === gen) return false;
+      if (localStream) { try { localStream.getTracks().forEach(function (t) { t.stop(); }); } catch (e2) {} }
+      return true;
+    }
     // مثيل مشترك محقون من القلب: لا كاميرا ثانية — نستعمله هو.
     var shared = this.sharedTracker || PoseTracker._shared;
     if (shared) {
@@ -197,11 +213,19 @@
       this.onStatus('تتبع القلب (FitPose) موجود — احقن مثيله المشترك عبر PoseTracker.setSharedTracker قبل تشغيل الكاميرا');
       return false;
     }
+    // متصفحات داخل التطبيقات (متصفح داخل تطبيق، WebView) غالباً
+    // ما كتوفرش الكاميرا إطلاقاً — نكشفها قبل ما نطلب أي إذن،
+    // والرسالة كتوضّح الحل: فتح الصفحة في Safari/Chrome.
+    if (typeof navigator === 'undefined' || !navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
+      this.mode = 'simulated';
+      this.onStatus('هاد المتصفح ما كيدعمش الكاميرا — حل الصفحة في Safari (ولا Chrome) وعاود؛ انتقلنا لوضع المحاكاة بلا كاميرا');
+      return false;
+    }
+    var acquired = null; // البث الذي حصل عليه هذا البدء وحده (D5)
     try {
       await loadScript(POSE_CDN);
-      await loadScript(CAMERA_CDN);
+      if (stoppedMidStart(null)) return false;
       if (!window.Pose) throw new Error('MediaPipe Pose غير متاح');
-      var self = this;
       this.pose = new window.Pose({ locateFile: function (f) { return 'https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/' + f; } });
       this.pose.setOptions({ modelComplexity: 0, smoothLandmarks: true, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
       this.pose.onResults(function (res) {
@@ -209,31 +233,85 @@
           self.onLandmarks(self._smooth(res.poseLandmarks), Date.now());
         }
       });
-      this.stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 }, audio: false });
+      // طلب إذن واحد فقط، بكاميرا أمامية، وحلقة requestAnimationFrame
+      // بدل Camera من camera_utils (لي كان كيطلب إذناً ثانياً وكيسبب
+      // الفشل في iOS). الفيديو muted + playsInline باش iOS يقبل التشغيل.
+      acquired = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }, audio: false });
+      // فحص الجيل قبل الإسناد: بدء ملغى يتسوى متأخراً لا يعيد كتابة
+      // this.stream (قد يكون بث بدء جديد حي) ولا يصفّره.
+      if (stoppedMidStart(acquired)) return false;
+      this.stream = acquired;
       videoEl.srcObject = this.stream;
+      try { videoEl.muted = true; videoEl.playsInline = true; } catch (e) {}
       await videoEl.play();
-      this.camera = new window.Camera(videoEl, {
-        onFrame: async function () { try { await self.pose.send({ image: videoEl }); } catch (e) {} },
-        width: 640, height: 480
-      });
-      this.camera.start();
+      if (stoppedMidStart(acquired)) return false;
+      var loop = async function () {
+        if (!self.stream) return;
+        try { await self.pose.send({ image: videoEl }); } catch (e) {}
+        if (self.stream) self._raf = requestAnimationFrame(loop);
+      };
+      this._raf = requestAnimationFrame(loop);
       this.mode = 'camera';
       this.onStatus('الكاميرا شغالة — قف في وضع الحارس');
       return true;
     } catch (e) {
-      this.mode = 'simulated';
-      this.onStatus('تعذّرت الكاميرا (' + e.message + ') — انتقلنا لوضع المحاكاة بلا كاميرا');
+      // نظّف بث هذا البدء وحده. وإن كان الجيل تغيّر (بدء جديد صار
+      // حياً)، لا تمسّ this.stream/mode إطلاقاً: فشل play() المتأخر
+      // لبدء بالٍ كان يقتل الكاميرا الحية ويقلب الوضع إلى محاكاة.
+      if (acquired) { try { acquired.getTracks().forEach(function (t) { t.stop(); }); } catch (e2) {} }
+      if (self._gen === gen) {
+        if (self.stream === acquired) self.stream = null;
+        self.mode = 'simulated';
+        self.onStatus(cameraErrorMessage(e) + ' — انتقلنا لوضع المحاكاة بلا كاميرا');
+      }
       return false;
     }
   };
+  /**
+   * حارس إعادة الدخول: نقرة مزدوجة على زر التشغيل (واردة على الهاتف)
+   * أو استدعاءان متزامنان كانا يفتحان بثين — الأول يُعاد كتابته في
+   * this.stream بلا إيقاف. إن كانت الكاميرا شغالة نعيد true فوراً،
+   * وإن كان تشغيل قيد التنفيذ نعيد نفس الوعد، فلا يُطلب الإذن مرتين.
+   */
+  PoseTracker.prototype.initCamera = function (videoEl) {
+    var self = this;
+    if (self.mode === 'camera' && self.stream) {
+      self.onStatus('الكاميرا شغالة — قف في وضع الحارس');
+      return Promise.resolve(true);
+    }
+    if (self._starting) return self._starting;
+    // D4: الـ .then كان يصفّر _starting بلا شرط، فيمحو وعد بدء أحدث
+    // (بدء A ← إيقاف ← بدء B ← تسوية A تمحو وعد B ← بدء C يفتح بثاً
+    // ثالثاً ويترك بث B يتيماً). نصفّره فقط إن كان ما زال وعد هذا البدء.
+    // ونعيد الوعد الخام نفسه لكل المتصلين (لا مشتقاً جديداً في كل
+    // استدعاء)، مع ربط التنظيف عليه منفصلاً.
+    var p = self._starting = self._initCameraInner(videoEl);
+    p.then(function () { if (self._starting === p) self._starting = null; }, function () { if (self._starting === p) self._starting = null; });
+    return p;
+  };
+  /** رسالة واضحة حسب سبب فشل الكاميرا، بدل رسالة تقنية مبهمة. */
+  function cameraErrorMessage(e) {
+    var name = (e && e.name) || '';
+    if (name === 'NotAllowedError' || name === 'PermissionDeniedError') return 'ما تعطاتش الإذن للكاميرا — عطي الإذن من إعدادات المتصفح وعاود';
+    if (name === 'NotFoundError' || name === 'DevicesNotFoundError') return 'ما لقيناش كاميرا فهاد الجهاز';
+    if (name === 'NotReadableError' || name === 'TrackStartError') return 'الكاميرا مستعملة من تطبيق آخر — سكّر التطبيقات لي مستعملة الكاميرا وعاود';
+    if (name === 'OverconstrainedError') return 'الكاميرا ما كتدعمش هاد الإعدادات';
+    return 'تعذّرت الكاميرا (' + (e && e.message ? e.message : 'خطأ غير معروف') + ')';
+  }
   PoseTracker.prototype.stop = function () {
+    // يلغي أي تشغيل قيد التنفيذ: _initCameraInner يتحقق من الجيل بعد
+    // كل await ويوقف أي بث حصل عليه بعد الضغطة.
+    this._gen = (this._gen || 0) + 1;
+    this._starting = null;
     // المثيل المشترك يملكه القلب — لا نوقفه من هنا، فقط نلغي اشتراكنا.
     if (this.mode === 'core-shared') {
       if (typeof this._sharedUnsubscribe === 'function') { try { this._sharedUnsubscribe(); } catch (e) {} }
       this._sharedUnsubscribe = null;
       this.mode = 'idle'; this.smoothed = null; this.onStatus('توقفت عن الاستماع للمثيل المشترك (الكاميرا بيد القلب)'); return; }
-    try { if (this.camera) this.camera.stop(); } catch (e) {}
+    try { if (this._raf) cancelAnimationFrame(this._raf); } catch (e) {}
+    this._raf = null;
     try { if (this.stream) this.stream.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {}
+    this.stream = null;
     if (this.video) { try { this.video.srcObject = null; } catch (e) {} }
     this.mode = 'idle'; this.smoothed = null;
     this.onStatus('الكاميرا متوقفة');
@@ -241,6 +319,14 @@
   /** محاكاة حركة كاملة/نصفية عبر نفس إطارات النقاط التي يستخدمها الاختبار. */
   PoseTracker.prototype.simulateMove = function (moveId, full) {
     var self = this;
+    // المحاكاة أثناء تشغيل الكاميرا كانت تتداخل نقاطها مع نقاط الكاميرا
+    // الحقيقية بلا إيقاف البث — ممنوعة الآن حتى يوقف المستخدم الكاميرا.
+    // وتشمل بدءاً قيد التنفيذ (الوضع ما زال idle) حتى لا تبدأ المحاكاة
+    // في ثانية البدء ثم تختلط بنقاط الكاميرا بعد اكتمالها.
+    if (this.mode === 'camera' || this.mode === 'core-shared' || this._starting) {
+      this.onStatus('المحاكاة معطلة أثناء تشغيل الكاميرا — أوقف الكاميرا أولاً');
+      return Promise.resolve(false);
+    }
     var Moves = global.HalbaBoxingMoves;
     if (!Moves) return Promise.resolve(false);
     this.mode = 'simulated';
@@ -249,6 +335,10 @@
     return new Promise(function (resolve) {
       var i = 0;
       (function step() {
+        // P8: محاكاة بدأت قبل تشغيل الكاميرا كانت تستمر في إرسال
+        // إطاراتها بعد أن تصبح الكاميرا حية، فتختلط بنقاطها. نتحقق
+        // في كل خطوة: إن تغيّر الوضع (الكاميرا شغالة) نتوقف فوراً.
+        if (self.mode !== 'simulated') { self.onStatus('توقفت المحاكاة — الكاميرا شغالة'); return resolve(false); }
         if (i >= frames.length) { self.onStatus('انتهت محاكاة ' + (Moves.MOVE_NAMES_AR[moveId] || moveId)); return resolve(true); }
         self.onLandmarks(frames[i].lm, Date.now());
         i++;
@@ -273,7 +363,7 @@
     lm.forEach(function (p) { ctx.beginPath(); ctx.arc(p.x * canvas.width, p.y * canvas.height, 3, 0, Math.PI * 2); ctx.fill(); });
   };
 
-  var api = { PoseTracker: PoseTracker, createPoseTracker: createPoseTracker, createSharedCallbacks: PoseTracker.createSharedCallbacks, POSE_CDN: POSE_CDN, CAMERA_CDN: CAMERA_CDN };
+  var api = { PoseTracker: PoseTracker, createPoseTracker: createPoseTracker, createSharedCallbacks: PoseTracker.createSharedCallbacks, POSE_CDN: POSE_CDN };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   global.HalbaBoxingPose = api;
 })(typeof window !== 'undefined' ? window : globalThis);

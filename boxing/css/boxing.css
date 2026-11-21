@@ -107,3 +107,6 @@ th { color: var(--cyan-soft); }
 .fail { color: var(--red); font-weight: 700; }
 .notice { border: 1px solid var(--gold); background: rgba(255, 209, 102, 0.08); border-radius: 12px; padding: 12px; }
 footer { text-align: center; color: var(--muted); padding: 18px; font-size: 0.9rem; }
+.cheer { text-align: center; border-color: var(--pink); box-shadow: 0 0 18px rgba(255, 46, 136, 0.35); }
+.cheer h2 { color: var(--pink-soft); }
+.cheer-line { font-size: 1.15rem; font-weight: 700; }
