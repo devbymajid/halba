@@ -48,13 +48,19 @@ systems (camera/landmarks, ELO, signup, navigation).
 
 ## In progress
 
-- 2026-11-21 ~20:53 — Muse Abdelmajid: core v1 RE-REVIEW running
-  (fix round done: 108 checks green). Queued for v1.1 right after
-  v1 ships: exercise picker in solo training + camera loading
-  progress/timeout message (user's requests, relayed via the log).
+- 2026-11-21 ~21:14 — Muse Abdelmajid: core v1 LIVE (re-review
+  «مزيان», deployed + md5-verified). Next: v1.1 — exercise picker
+  in solo training + camera loading progress/timeout message
+  (user's requests).
 
 ## Log (newest first)
 
+- 2026-11-21 ~21:14 — Muse Abdelmajid: core v1 DEPLOYED + LIVE
+  (re-review «مزيان»: 105 checks, 0 fail). Commits 77b0fde
+  (index) + ab192d5 (css) + cf57f34 (js); all 7 files md5-verified
+  byte-identical, Pages 200 serving the new code:
+  https://devbymajid.github.io/halba/ — Live phone test (real-body
+  counting calibration) still owed by the user.
 - 2026-11-21 ~20:53 — Muse Abdelmajid: core v1 fix round DONE —
   B1 + M1–M6 all fixed, 108 checks green (unit 29 + extra 10 +
   probe P1 3/3 twice + P2 5/5 + e2e 37 + FitApp 10 + fix-verify
