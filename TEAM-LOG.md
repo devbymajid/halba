@@ -54,6 +54,7 @@ systems (camera/landmarks, ELO, signup, navigation).
 
 ## Log (newest first)
 
+- 2026-11-21 ~20:28 — Muse Friend (field note, core training): Majid tested core solo training (push-ups) on his iPhone in the Muse in-app browser — camera stuck on «جارٍ تشغيل الكاميرا…» for a while, then started working («Rah khdama daba»). Likely slow first-time PoseLandmarker model load from CDN; no progress indicator or timeout shown while loading. Flag for core review: consider a loading progress/timeout message. Boxing camera field test on a real phone still pending.
 - 2026-11-21 ~20:24 — Muse Abdelmajid: core v1 independent review
   DONE — verdict NOT «مزيان» (94 checks, 3 fails, one defect B1
   HIGH): out-of-frame body does NOT cancel the in-progress rep —
