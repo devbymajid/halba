@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>حلبة — معركة لياقة 1 ضد 1</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2312051F'/%3E%3Cpath d='M36 8 18 36h11l-4 20 19-28H33l3-20z' fill='%23FF2E88'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@700;800;900&family=Noto+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- ===== التسجيل / الدخول ===== -->
+  <section class="screen" id="screen-auth">
+    <div class="hero">
+      <div class="bolt-badge">
+        <svg width="38" height="38" viewBox="0 0 24 24" fill="none"><path d="M13 2 4.5 13.5H11L9.5 22 19 10h-6.5L13 2Z" fill="#fff"/></svg>
+      </div>
+      <div class="brand" id="brand-auth">حلبة</div>
+      <h1 id="auth-title">جاهز للمعركة؟</h1>
+      <div class="subtitle" id="auth-sub">أنشئ حسابك وادخل الحلبة</div>
+      <div class="chips">
+        <span class="chip pink">◆ معركة ١ ضد ١</span>
+        <span class="chip cyan">◆ ٦٠ ثانية</span>
+      </div>
+    </div>
+
+    <form class="form" id="form-signup" onsubmit="return false">
+      <div class="field">
+        <label for="su-name">الاسم</label>
+        <div class="input-box pink">
+          <span class="icon"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#FF7AB8" stroke-width="2"/><path d="M4.5 20c1.4-3.6 4.2-5.5 7.5-5.5s6.1 1.9 7.5 5.5" stroke="#FF7AB8" stroke-width="2" stroke-linecap="round"/></svg></span>
+          <input id="su-name" type="text" placeholder="اكتب اسمك" autocomplete="name">
+        </div>
+      </div>
+      <div class="field">
+        <label for="su-pass">كلمة السر</label>
+        <div class="input-box purple">
+          <span class="icon"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><rect x="5" y="10.5" width="14" height="9.5" rx="2.5" stroke="#C07DFF" stroke-width="2"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" stroke="#C07DFF" stroke-width="2"/><circle cx="12" cy="15.2" r="1.4" fill="#C07DFF"/></svg></span>
+          <input id="su-pass" type="password" placeholder="٦ أحرف على الأقل" autocomplete="new-password">
+          <button type="button" class="eye" data-for="su-pass" aria-label="إظهار كلمة السر">👁</button>
+        </div>
+      </div>
+      <div class="field">
+        <label for="su-age">العمر</label>
+        <div class="input-box cyan">
+          <span class="icon"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><rect x="3.5" y="5" width="17" height="16" rx="2.5" stroke="#7DF3FF" stroke-width="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4" stroke="#7DF3FF" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="15" r="2" fill="#7DF3FF"/></svg></span>
+          <input id="su-age" type="text" inputmode="numeric" placeholder="عمرك بالسنوات" autocomplete="off">
+        </div>
+      </div>
+      <div class="field">
+        <label for="su-char">اسم شخصية الأنمي <span class="star">✦</span></label>
+        <div class="input-box pink">
+          <span class="icon"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M12 2.5 14.2 8.6 20.5 9.2 15.9 13.4 17.3 19.7 12 16.6 6.7 19.7 8.1 13.4 3.5 9.2 9.8 8.6 12 2.5Z" stroke="#FF7AB8" stroke-width="2" stroke-linejoin="round"/></svg></span>
+          <input id="su-char" type="text" placeholder="اكتب اسم الشخصية" autocomplete="off">
+        </div>
+        <div class="note"><span class="spark">✦</span>الشخصية التي ستلعب بها — ستظهر في ملفك وأمام خصومك</div>
+      </div>
+      <div class="auth-error" id="auth-error"></div>
+      <button type="button" class="btn" id="su-submit">ابدأ المعركة ←</button>
+      <div class="switch-line">لديك حساب بالفعل؟ <button type="button" id="to-login">سجّل الدخول</button></div>
+    </form>
+
+    <form class="form hidden" id="form-login" onsubmit="return false">
+      <div class="field">
+        <label for="li-name">الاسم</label>
+        <div class="input-box pink">
+          <span class="icon"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#FF7AB8" stroke-width="2"/><path d="M4.5 20c1.4-3.6 4.2-5.5 7.5-5.5s6.1 1.9 7.5 5.5" stroke="#FF7AB8" stroke-width="2" stroke-linecap="round"/></svg></span>
+          <input id="li-name" type="text" placeholder="اكتب اسمك" autocomplete="name">
+        </div>
+      </div>
+      <div class="field">
+        <label for="li-pass">كلمة السر</label>
+        <div class="input-box purple">
+          <span class="icon"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><rect x="5" y="10.5" width="14" height="9.5" rx="2.5" stroke="#C07DFF" stroke-width="2"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" stroke="#C07DFF" stroke-width="2"/><circle cx="12" cy="15.2" r="1.4" fill="#C07DFF"/></svg></span>
+          <input id="li-pass" type="password" placeholder="كلمة السر" autocomplete="current-password">
+          <button type="button" class="eye" data-for="li-pass" aria-label="إظهار كلمة السر">👁</button>
+        </div>
+      </div>
+      <div class="auth-error" id="auth-error-login"></div>
+      <button type="button" class="btn" id="li-submit">دخول ←</button>
+      <div class="switch-line">ليس لديك حساب؟ <button type="button" id="to-signup">أنشئ حساباً</button></div>
+    </form>
+
+    <div class="spacer"></div>
+    <div class="footer">تتبّع بالكاميرا<span class="sep">◆</span>تصنيف عالمي<span class="sep">◆</span>تحدّي فوري</div>
+  </section>
+
+  <!-- ===== الرئيسية ===== -->
+  <section class="screen" id="screen-home">
+    <div class="brand" id="brand-name" style="text-align:center">حلبة</div>
+    <div class="profile-card" style="margin-top:12px">
+      <div class="profile-top">
+        <div class="avatar" id="home-avatar" data-frame="pink">؟</div>
+        <div>
+          <div class="profile-name" id="home-char">—</div>
+          <div class="profile-sub"><span id="home-name">—</span> · <span id="home-rank">مبتدئ</span></div>
+        </div>
+        <div class="elo-big">
+          <div class="elo-num" id="home-elo">1000</div>
+          <div class="elo-label">التقييم</div>
+        </div>
+      </div>
+      <div class="xp-bar"><div class="fill" id="home-xpbar"></div></div>
+      <div class="xp-row"><span id="home-level">المستوى 1</span><span id="home-xptext">0 / 100 XP</span></div>
+      <div class="xp-row"><span><span id="home-wins">0</span> فوز</span><span><span id="home-losses">0</span> خسارة</span></div>
+    </div>
+
+    <div class="daily-card">
+      <div class="daily-head">
+        <span class="daily-title" id="daily-state">تحدّي اليوم</span>
+        <span class="daily-streak" id="daily-streak">ابدأ سلسلتك اليوم</span>
+      </div>
+      <div class="daily-target">أنجز <b id="daily-target">30 تكرار</b> اليوم — أي تمرين يُحسب</div>
+      <div class="daily-bar"><div class="fill" id="daily-bar"></div></div>
+      <div class="xp-row"><span id="daily-done">0 / 30</span><span>تحدّي يومي جديد كل صباح</span></div>
+    </div>
+
+    <div class="menu">
+      <button type="button" class="menu-btn hero-btn" id="btn-to-setup">
+        <span class="m-icon">⚔️</span>
+        <span><span class="m-title">ادخل النزال</span><span class="m-sub" style="display:block">معركة مصنّفة 1 ضد 1 — 60 ثانية ضد البوت</span></span>
+      </button>
+      <button type="button" class="menu-btn" id="btn-to-training">
+        <span class="m-icon">🏋️</span>
+        <span><span class="m-title">تدريب فردي</span><span class="m-sub" style="display:block">تمرّن بلا خصم ولا ضغط مؤقّت</span></span>
+      </button>
+      <div class="menu-row">
+        <button type="button" class="menu-btn" id="btn-to-history">
+          <span class="m-icon">📜</span><span class="m-title">سجل المباريات</span>
+        </button>
+        <button type="button" class="menu-btn" id="btn-to-account">
+          <span class="m-icon">👤</span><span class="m-title">حسابي</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== إعداد المباراة ===== -->
+  <section class="screen" id="screen-setup">
+    <button type="button" class="back-link" id="btn-setup-back">→ رجوع</button>
+    <h2 class="page-title">النزال — معركة مصنّفة</h2>
+    <div class="seg-label">التمرين</div>
+    <div class="seg" id="ex-seg">
+      <button type="button" class="seg-opt sel" data-ex="pushup">ضغط<span class="seg-sub">Push-ups</span></button>
+      <button type="button" class="seg-opt" data-ex="squat">سكوات<span class="seg-sub">Squats</span></button>
+    </div>
+    <div class="seg-label">مستوى البوت</div>
+    <div class="seg" id="bot-seg">
+      <button type="button" class="seg-opt" data-bot="easy">سهل<span class="seg-sub">تقييم 800</span></button>
+      <button type="button" class="seg-opt sel" data-bot="medium">متوسط<span class="seg-sub">تقييم 1200</span></button>
+      <button type="button" class="seg-opt" data-bot="hard">صعب<span class="seg-sub">تقييم 1600</span></button>
+    </div>
+    <div class="cam-hint">ضع هاتفك جانباً بحيث ترى الكاميرا جسمك كاملاً من الجنب — التتبّع أدق من الجانب.<br>يُحتسب التكرار الكامل فقط: نزول كامل ثم صعود حتى الاستقامة.</div>
+    <div class="spacer"></div>
+    <button type="button" class="btn" id="btn-start-match">ادخل النزال ⚔️</button>
+    <div class="privacy-note">🔒 الفيديو يبقى على جهازك — لا يُسجَّل ولا يُرفع أبداً. نقاط الجسم فقط تُعالج على الجهاز لعدّ التكرارات.</div>
+  </section>
+
+  <!-- ===== المعركة ===== -->
+  <section class="screen" id="screen-battle">
+    <div class="top">
+      <div class="badge-ranked" id="battle-title">نزال — معركة مصنّفة</div>
+      <div class="exercise"><span class="dot"></span><span class="ex-chip" id="battle-ex">ضغط</span></div>
+    </div>
+    <div class="camera">
+      <video id="battle-video" playsinline muted></video>
+      <canvas id="battle-canvas"></canvas>
+      <div class="corner tl"></div><div class="corner tr"></div>
+      <div class="corner bl"></div><div class="corner br"></div>
+      <div class="tracking ok" id="battle-tracking"><span class="pulse"></span><span>جارٍ تشغيل الكاميرا…</span></div>
+      <div class="countdown hidden" id="countdown">3</div>
+    </div>
+    <div class="form-hint hidden" id="battle-form-hint">جسمك غير مستقيم — استقم، فالتكرار لا يُحتسب إلا بوضعية صحيحة</div>
+    <div class="cam-error hidden" id="battle-cam-error">
+      <div id="battle-cam-error-text">تعذّر تشغيل الكاميرا.</div>
+      <button type="button" class="btn-ghost" id="btn-battle-retry">أعد المحاولة</button>
+      <button type="button" class="btn-ghost" id="btn-battle-back" style="margin-top:8px">رجوع للرئيسية</button>
+    </div>
+    <div class="timer-wrap">
+      <div class="timer" id="battle-timer">01:00</div>
+      <div class="time-bar"><div class="fill" id="battle-timebar"></div></div>
+    </div>
+    <div class="players">
+      <div class="player you">
+        <div class="row">
+          <div class="avatar-sm you-av" id="you-avatar">؟</div>
+          <div style="min-width:0">
+            <div class="name" id="you-name">أنت</div>
+            <div class="rating" id="you-rating">1000</div>
+          </div>
+        </div>
+        <div class="level-line"><span class="level" id="you-level">المستوى 1</span><span class="xp-label">نقاط الخبرة</span></div>
+        <div class="xp-bar"><div class="fill" id="you-xpbar"></div></div>
+      </div>
+      <div class="player opp">
+        <div class="row">
+          <div class="avatar-sm opp-av">🤖</div>
+          <div style="min-width:0">
+            <div class="name" id="bot-name">الخصم (بوت)</div>
+            <div class="rating" id="bot-rating">1200</div>
+          </div>
+        </div>
+        <div class="opp-note"><span class="mini-dot"></span><span id="bot-note">يتدرب الآن</span></div>
+      </div>
+    </div>
+    <div class="reps">
+      <div class="rep-num you-n" id="you-reps">0</div>
+      <div class="vs">ضد</div>
+      <div class="rep-num opp-n" id="bot-reps">0</div>
+    </div>
+    <div class="reps-label">التكرارات</div>
+    <div class="tug-wrap">
+      <div class="tug"><div class="marker" id="tug-marker"></div></div>
+      <div class="tug-labels">
+        <span class="l-you" id="tug-you-label">متعادلان ◆</span>
+        <span class="l-opp">◆ الخصم</span>
+      </div>
+    </div>
+    <div class="spacer"></div>
+    <button type="button" class="surrender" id="btn-forfeit">استسلام</button>
+  </section>
+
+  <!-- ===== التدريب الفردي ===== -->
+  <section class="screen" id="screen-training">
+    <button type="button" class="back-link" id="btn-train-back">→ رجوع (بلا حفظ)</button>
+    <div class="top">
+      <div class="badge-ranked">تدريب فردي</div>
+      <div class="exercise"><span class="dot"></span><span class="ex-chip" id="train-ex">ضغط</span></div>
+    </div>
+    <div class="camera">
+      <video id="train-video" playsinline muted></video>
+      <canvas id="train-canvas"></canvas>
+      <div class="corner tl"></div><div class="corner tr"></div>
+      <div class="corner bl"></div><div class="corner br"></div>
+      <div class="tracking ok" id="train-tracking"><span class="pulse"></span><span>جارٍ تشغيل الكاميرا…</span></div>
+    </div>
+    <div class="cam-error hidden" id="train-cam-error">
+      <div id="train-cam-error-text">تعذّر تشغيل الكاميرا.</div>
+    </div>
+    <div class="timer-wrap">
+      <div class="timer" id="train-time" style="font-size:44px">00:00</div>
+    </div>
+    <div class="reps">
+      <div class="rep-num you-n" id="train-reps">0</div>
+    </div>
+    <div class="reps-label">تكرار</div>
+    <div class="train-state" id="train-state">جهّز وضعيتك داخل الإطار</div>
+    <button type="button" class="sim-btn hidden" id="btn-sim">+ أضف تكراراً (محاكاة)</button>
+    <div class="sim-note hidden" id="train-sim-note">وضع المحاكاة — الكاميرا غير متاحة، اضغط الزر لعدّ تكرار</div>
+    <div class="spacer"></div>
+    <button type="button" class="btn" id="btn-train-end">أنهِ التدريب ✓</button>
+  </section>
+
+  <!-- ===== النتيجة ===== -->
+  <section class="screen" id="screen-result">
+    <div class="result-hero">
+      <div class="result-title kufi" id="result-title">فزت! 🏆</div>
+      <div class="result-sub" id="result-sub">انتصار في النزال</div>
+    </div>
+    <div class="result-score" id="result-score">0 — 0</div>
+    <div class="result-rows">
+      <div class="result-row" id="result-elo-row"><span>التقييم</span><span class="val" id="result-elo">+0</span></div>
+      <div class="result-row"><span>نقاط الخبرة</span><span class="val good" id="result-xp">+0 XP</span></div>
+    </div>
+    <div class="levelup-banner hidden" id="result-levelup"></div>
+    <div class="daily-banner hidden" id="result-daily"></div>
+    <div class="spacer"></div>
+    <div class="result-actions">
+      <button type="button" class="btn" id="btn-result-rematch">مباراة أخرى</button>
+      <button type="button" class="btn-ghost" id="btn-result-home">الرئيسية</button>
+    </div>
+  </section>
+
+  <!-- ===== السجل ===== -->
+  <section class="screen" id="screen-history">
+    <button type="button" class="back-link" id="btn-history-back">→ رجوع</button>
+    <h2 class="page-title">سجل المباريات</h2>
+    <div class="stat-cards">
+      <div class="stat-card"><div class="num" id="history-best-pushup">0</div><div class="lbl">أفضل ضغط (مباراة)</div></div>
+      <div class="stat-card"><div class="num" id="history-best-squat">0</div><div class="lbl">أفضل سكوات (مباراة)</div></div>
+    </div>
+    <div style="text-align:center;color:var(--text-dim);font-size:13.5px;margin-bottom:12px" id="history-wins">0 فوز / 0 خسارة / 0 تعادل</div>
+    <div id="history-list"></div>
+  </section>
+
+  <!-- ===== الحساب ===== -->
+  <section class="screen" id="screen-account">
+    <button type="button" class="back-link" id="btn-account-back">→ رجوع</button>
+    <h2 class="page-title">حسابي</h2>
+    <div class="acc-card">
+      <div class="acc-row"><span class="k">الاسم</span><span class="v" id="acc-name">—</span></div>
+      <div class="acc-row"><span class="k">شخصية الأنمي</span><span class="v" id="acc-char">—</span></div>
+      <div class="acc-row"><span class="k">العمر</span><span class="v" id="acc-age">—</span></div>
+      <div class="acc-row"><span class="k">التقييم</span><span class="v" id="acc-elo">—</span></div>
+      <div class="acc-row"><span class="k">المستوى</span><span class="v" id="acc-level">—</span></div>
+      <div class="acc-row"><span class="k">نقاط الخبرة</span><span class="v" id="acc-xp">—</span></div>
+    </div>
+    <button type="button" class="btn-ghost" id="btn-logout">تسجيل الخروج</button>
+    <div style="height:12px"></div>
+    <button type="button" class="btn-danger" id="btn-delete">حذف الحساب نهائياً</button>
+    <div class="cam-hint">الحذف يمسح الحساب والتقييم والسجل والتحديات من هذا الجهاز نهائياً.</div>
+  </section>
+
+</div>
+
+<!-- تأكيد الاستسلام -->
+<div class="sheet hidden" id="forfeit-confirm">
+  <div class="sheet-card">
+    <h3>تستسلم؟</h3>
+    <p>ستُحسب المباراة خسارة وينخفض تقييمك.</p>
+    <div class="sheet-actions">
+      <button type="button" class="btn-danger" id="forfeit-yes">نعم، استسلم</button>
+      <button type="button" class="btn-ghost" id="forfeit-no">واصل القتال</button>
+    </div>
+  </div>
+</div>
+
+<!-- تأكيد حذف الحساب -->
+<div class="sheet hidden" id="delete-confirm">
+  <div class="sheet-card">
+    <h3>حذف الحساب؟</h3>
+    <p>سيُمسح حسابك وتقييمك وسجلك وتحدياتك من هذا الجهاز نهائياً. لا يمكن التراجع.</p>
+    <div class="sheet-actions">
+      <button type="button" class="btn-danger" id="delete-yes">حذف نهائي</button>
+      <button type="button" class="btn-ghost" id="delete-no">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="js/repcounter.js"></script>
+<script src="js/store.js"></script>
+<script src="js/bot.js"></script>
+<script src="js/pose.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
