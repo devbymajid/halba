@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>حلبة — محاكي النقاط: اختبار مانع الغش</title>
+<link rel="stylesheet" href="../css/boxing.css">
+</head>
+<body>
+<header class="top"><h1><span class="pink">حلبة</span> <span class="cyan">— محاكي النقاط</span></h1>
+<p>يغذي تسلسلات نقاط اصطناعية (حارس → ذروة → حارس) ويتحقق أن الكاملة تُحسب والنصفية تُرفض — بلا كاميرا.</p></header>
+<main>
+  <div class="card">
+    <h2>النتيجة</h2>
+    <p id="summary" class="muted">جارٍ التشغيل…</p>
+    <table id="results"><thead><tr><th>الحركة</th><th>كاملة</th><th>نصفية (45%)</th><th>الحكم</th></tr></thead><tbody></tbody></table>
+    <button class="btn" id="btnRun">إعادة التشغيل</button>
+    <p class="muted small">القاعدة: حركة كاملة صحيحة = حارس → مدى كامل → عودة للحارس. نصفية = بدأت ولم تصل للمدى الكامل ثم عادت → تُرفض. البلوك استثناء: يُقاس بالثبات (≥500ms) لا بالمدى، فنصفيته هنا تعني ثباتاً قصيراً فيُرفض.</p>
+  </div>
+  <div class="card">
+    <h2>تفاصيل كل حركة</h2>
+    <div id="details" class="muted small"></div>
+  </div>
+</main>
+<script src="../js/boxing-moves.js"></script>
+<script>
+(function () {
+  var Moves = window.HalbaBoxingMoves;
+  var ORDER = ['JAB', 'CROSS', 'HOOK', 'UPPERCUT', 'SLIP', 'DODGE', 'BODY', 'BLOCK'];
+  function run() {
+    var tbody = document.querySelector('#results tbody');
+    tbody.innerHTML = '';
+    var details = [];
+    var allPass = true;
+    ORDER.forEach(function (mv) {
+      var full = Moves.validateSequence(Moves.generateMoveFrames(mv, true), mv);
+      var half = Moves.validateSequence(Moves.generateMoveFrames(mv, false), mv);
+      var pass = full.valid && !half.valid;
+      if (!pass) allPass = false;
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td>' + Moves.MOVE_NAMES_AR[mv] + ' (' + mv + ')</td>' +
+        '<td class="' + (full.valid ? 'pass' : 'fail') + '">' + (full.valid ? 'تُحسب ✓' : 'مرفوضة ✗') + '</td>' +
+        '<td class="' + (!half.valid ? 'pass' : 'fail') + '">' + (!half.valid ? 'تُرفض ✓' : 'تُحسب ✗') + '</td>' +
+        '<td class="' + (pass ? 'pass' : 'fail') + '">' + (pass ? 'PASS' : 'FAIL') + '</td>';
+      tbody.appendChild(tr);
+      details.push('<p><b>' + Moves.MOVE_NAMES_AR[mv] + ':</b> كاملة — ' + full.reason + ' | نصفية — ' + half.reason + '</p>');
+    });
+    // حالة إضافية: بلا حارس أولاً يجب أن تُرفض.
+    var noGuard = Moves.validateSequence([{ lm: Moves.peakLandmarks('JAB'), t: 0 }], 'JAB');
+    details.push('<p><b>بلا حارس أولاً:</b> ' + (noGuard.valid ? 'تُحسب ✗ (خطأ)' : 'تُرفض ✓ — ' + noGuard.reason) + '</p>');
+    if (noGuard.valid) allPass = false;
+    document.getElementById('details').innerHTML = details.join('');
+    document.getElementById('summary').textContent = allPass
+      ? 'كل الاختبارات ناجحة: الحركات الكاملة تُحسب، والنصفية وبلا-حارس تُرفض.'
+      : 'يوجد فشل — راجع التفاصيل أعلاه.';
+    document.getElementById('summary').className = allPass ? 'pass' : 'fail';
+  }
+  document.getElementById('btnRun').addEventListener('click', run);
+  run();
+})();
+</script>
+</body>
+</html>

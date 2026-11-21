@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>حلبة — وضع الملاكمة</title>
+<link rel="stylesheet" href="css/boxing.css">
+</head>
+<body>
+<header class="top">
+  <h1><span class="pink">حلبة</span> <span class="cyan">— الملاكمة</span></h1>
+  <p>مباراة مصنّفة 1v1 بالكاميرا • تدريب فردي • سلّم الكومبو — الكاميرا تتحقق، والحركة النصفية لا تُحسب</p>
+</header>
+
+<div class="profile-bar" id="profileBar">—</div>
+
+<nav class="tabs" aria-label="التنقل">
+  <button data-tab="profile" class="active">الملف والتسجيل</button>
+  <button data-tab="match">المباراة</button>
+  <button data-tab="training">التدريب</button>
+  <button data-tab="combos">الكومبو</button>
+  <button data-tab="camera">الكاميرا والاختبار</button>
+</nav>
+
+<main>
+  <!-- الملف -->
+  <section class="panel active" id="panel-profile">
+    <div class="card">
+      <h2>التسجيل — ملف اللاعب</h2>
+      <p class="muted">هذه النسخة مستقلة لوضع الملاكمة. عند الدمج مع القلب، يُستبدل هذا الملف بملف اللاعب الرئيسي (نفس الحقول). يُحفظ محلياً فقط.</p>
+      <div class="form-grid">
+        <div><label for="fName">الاسم</label><input id="fName" type="text" placeholder="مثال: مجيد"></div>
+        <div><label for="fCode">الكود</label><input id="fCode" type="text" placeholder="كود اللاعب"></div>
+        <div><label for="fAge">العمر</label><input id="fAge" type="number" min="10" max="99" value="18"></div>
+        <div><label for="fAnime">اسم شخصية الأنمي</label><input id="fAnime" type="text" placeholder="مثال: كايتو"></div>
+      </div>
+      <button class="btn" id="btnSaveProfile">حفظ الملف</button>
+      <p class="muted small" id="profileSaved"></p>
+      <div class="stats" id="profileStats"></div>
+    </div>
+    <div class="card notice">
+      <strong>خصوصية:</strong> الفيديو لا يُسجَّل ولا يُرفَع أبداً. المعالجة كلها في متصفحك، والكاميرا تتوقف نهائياً عند إيقافها.
+    </div>
+  </section>
+
+  <!-- المباراة -->
+  <section class="panel" id="panel-match">
+    <div class="card">
+      <h2>مباراة ملاكمة مصنّفة — 60 ثانية</h2>
+      <div class="timer" id="matchTimer">60</div>
+      <div class="hp-row">
+        <div class="hp"><label><span>أنت</span><span id="hpPlayerText">100</span></label><div class="hp-bar player"><i id="hpPlayer" style="width:100%"></i></div></div>
+        <div class="hp"><label><span id="botName">البوت</span><span id="hpBotText">100</span></label><div class="hp-bar bot"><i id="hpBot" style="width:100%"></i></div></div>
+      </div>
+      <div class="command" id="matchCommand">اضغط «ابدأ المباراة»<span class="sub">قف في وضع الحارس: قبضتان عند الذقن</span></div>
+      <div class="stage">
+        <div class="video-wrap"><video id="matchVideo" autoplay playsinline muted></video><canvas id="matchCanvas" width="640" height="480"></canvas></div>
+        <div>
+          <div class="feedback" id="matchFeedback">جاهز؟ شغّل الكاميرا أولاً، أو استعمل المحاكاة / لوحة المفاتيح للاختبار بلا كاميرا.</div>
+          <p class="stats"><span>إصابات ناجحة: <b id="matchHits">0</b></span><span>نصفية مرفوضة: <b id="matchHalf">0</b></span><span>تفادٍ ناجح: <b id="matchDodges">0</b></span></p>
+          <button class="btn" id="btnStartMatch">ابدأ المباراة</button>
+          <button class="btn ghost" id="btnStopMatch">إيقاف</button>
+          <button class="btn cyan" id="btnSimFullMatch">محاكاة الأمر كاملاً</button>
+          <button class="btn ghost" id="btnSimHalfMatch">محاكاة نصفية (يجب أن تُرفض)</button>
+        </div>
+      </div>
+      <p class="muted small">الأوامر: جاب، هوك، أبركت، انزلاق، تفادٍ. كل أمر له 3 ثوانٍ. البوت يهاجم دورياً — انزلاق أو تفادٍ صحيح في وقته يلغي هجومه، مهما كان الأمر الحالي. المباراة المصنفة تتطلب ملفاً (اسم + كود)، والانسحاب منها = خسارة.</p>
+    </div>
+  </section>
+
+  <!-- التدريب -->
+  <section class="panel" id="panel-training">
+    <div class="card">
+      <h2>تدريب فردي — بلا خصم</h2>
+      <div class="form-grid">
+        <div><label for="trainMove">الحركة</label><select id="trainMove">
+          <option value="JAB">جاب (1)</option><option value="CROSS">كروس (2)</option>
+          <option value="HOOK">هوك (3)</option><option value="UPPERCUT">أبركت (5)</option>
+          <option value="BODY">لكمة للجسم (B)</option><option value="SLIP">انزلاق</option>
+          <option value="DODGE">تفادٍ</option><option value="BLOCK">بلوك</option>
+        </select></div>
+        <div><label for="trainTarget">هدف التكرارات</label><input id="trainTarget" type="number" min="1" max="100" value="10"></div>
+      </div>
+      <div class="command" id="trainCommand">جاب<span class="sub">0 / 10</span></div>
+      <div class="feedback" id="trainFeedback">اختر حركة وابدأ.</div>
+      <p class="stats"><span>صحيحة: <b id="trainCount">0</b></span><span>نصفية: <b id="trainHalf">0</b></span><span>دقة: <b id="trainAcc">100%</b></span><span>أفضل سلسلة: <b id="trainStreak">0</b></span></p>
+      <button class="btn" id="btnStartTraining">ابدأ التدريب</button>
+      <button class="btn ghost" id="btnStopTraining">إيقاف</button>
+      <button class="btn cyan" id="btnSimFullTrain">محاكاة كاملة</button>
+      <button class="btn ghost" id="btnSimHalfTrain">محاكاة نصفية</button>
+    </div>
+  </section>
+
+  <!-- الكومبو -->
+  <section class="panel" id="panel-combos">
+    <div class="card">
+      <h2>سلّم الكومبو التدريجي</h2>
+      <p class="muted">11 ← 112 ← 1121 ← 11212 ← 112123 ← 1121235B — ‏1=جاب، 2=كروس، 3=هوك، 5=أبركت، B=لكمة للجسم. كل صف نظيف يفتح الذي بعده. بطيء ونظيف أولاً، ثم السرعة تزيد (مهلة اللكمة تنقص من 3 ثوانٍ إلى 1.5 ثانية).</p>
+      <div class="combo-list" id="comboList"></div>
+      <div class="combo-steps" id="comboSteps"></div>
+      <div class="command" id="comboCommand">اختر كومبو وابدأ<span class="sub">اللكمة التالية تظهر هنا</span></div>
+      <div class="feedback" id="comboFeedback">خطأ أو نصفية واحدة تعيد الصف الحالي من البداية — المستوى المفتوح لا يضيع.</div>
+      <button class="btn" id="btnStartCombo">ابدأ الكومبو</button>
+      <button class="btn cyan" id="btnSimFullCombo">محاكاة اللكمة التالية كاملة</button>
+      <button class="btn ghost" id="btnSimHalfCombo">محاكاة نصفية (تعيد الصف)</button>
+    </div>
+  </section>
+
+  <!-- الكاميرا والاختبار -->
+  <section class="panel" id="panel-camera">
+    <div class="card">
+      <h2>الكاميرا والاختبار</h2>
+      <p class="muted" id="cameraStatus">الكاميرا متوقفة. شغّلها للعب الحقيقي، أو استعمل المحاكاة ولوحة المفاتيح بلا كاميرا.</p>
+      <button class="btn" id="btnStartCamera">تشغيل الكاميرا</button>
+      <button class="btn ghost" id="btnStopCamera">إيقاف الكاميرا</button>
+      <h3>لوحة المفاتيح — للاختبار بلا كاميرا (تمرّ بنفس التحقق)</h3>
+      <div class="keys">
+        <kbd>J = جاب</kbd><kbd>K = كروس</kbd><kbd>H = هوك</kbd><kbd>U = أبركت</kbd>
+        <kbd>B = لكمة للجسم</kbd><kbd>S = انزلاق</kbd><kbd>D = تفادٍ</kbd><kbd>L = بلوك</kbd>
+      </div>
+      <h3>اختبار مانع الغش</h3>
+      <p class="muted">صفحة مستقلة تغذي تسلسلات نقاط اصطناعية (كاملة مقابل نصفية) وتثبت أن النصفية لا تُحسب:</p>
+      <p><a href="test/pose-simulator.html">فتح test/pose-simulator.html — محاكي النقاط</a></p>
+      <p class="muted small">افتح الصفحة من خادم محلي (انظر README) لأن فتحها مباشرة قد يمنع تحميل بعض الملفات في بعض المتصفحات.</p>
+    </div>
+  </section>
+</main>
+
+<footer>حلبة — وضع الملاكمة • 100% أصلي • الفيديو لا يُسجَّل ولا يُرفَع أبداً • MediaPipe Pose مجاني في المتصفح</footer>
+
+<script src="js/boxing-moves.js"></script>
+<script src="js/boxing-profile.js"></script>
+<script src="js/boxing-pose.js"></script>
+<script src="js/boxing-match.js"></script>
+<script src="js/boxing-training.js"></script>
+<script src="js/boxing-combos.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var Moves = window.HalbaBoxingMoves, Profile = window.HalbaBoxingProfile;
+
+  // ---- التنقل بين الألسنة ----
+  var activeTab = 'profile';
+  document.querySelectorAll('nav.tabs button').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      activeTab = btn.getAttribute('data-tab');
+      document.querySelectorAll('nav.tabs button').forEach(function (b) { b.classList.toggle('active', b === btn); });
+      document.querySelectorAll('section.panel').forEach(function (p) { p.classList.toggle('active', p.id === 'panel-' + activeTab); });
+    });
+  });
+
+  // ---- الملف ----
+  var profile = Profile.loadProfile();
+  function renderProfile() {
+    profile = Profile.loadProfile();
+    $('profileBar').innerHTML = profile.name
+      ? 'اللاعب: <b>' + escapeHtml(profile.name) + '</b> • الشخصية: <b>' + escapeHtml(profile.anime || '—') + '</b> • ELO: <b>' + profile.elo + '</b> • المستوى ' + profile.level + ' • XP ' + profile.xp + ' • فوز ' + profile.wins + ' / خسارة ' + profile.losses
+      : 'لا يوجد ملف بعد — سجّل اسمك وكودك وعمرك وشخصية الأنمي.';
+    $('fName').value = profile.name || ''; $('fCode').value = profile.code || '';
+    $('fAge').value = profile.age || 18; $('fAnime').value = profile.anime || '';
+    $('profileStats').innerHTML = '<span>ELO: <b>' + profile.elo + '</b></span><span>المستوى: <b>' + profile.level + '</b></span><span>XP: <b>' + profile.xp + '</b></span><span>مباريات: <b>' + profile.matches + '</b></span><span>فوز: <b>' + profile.wins + '</b></span><span>تعادل: <b>' + profile.draws + '</b></span><span>خسارة: <b>' + profile.losses + '</b></span>';
+  }
+  function escapeHtml(s) { return String(s || '').replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  $('btnSaveProfile').addEventListener('click', function () {
+    profile.name = $('fName').value.trim(); profile.code = $('fCode').value.trim();
+    profile.age = parseInt($('fAge').value, 10) || 18; profile.anime = $('fAnime').value.trim();
+    Profile.saveProfile(profile);
+    $('profileSaved').textContent = 'تم حفظ الملف محلياً. (الكود يُحفظ كهاش فقط، لا نصاً عادياً — أعد إدخاله بعد تحديث الصفحة.)';
+    var savedCode = profile.code; // الكود يبقى في الذاكرة للجلسة فقط
+    renderProfile();
+    $('fCode').value = savedCode; // renderProfile يعيد تحميل الملف من التخزين (بلا كود نصي)
+  });
+  renderProfile();
+
+  // ---- الكاميرا ----
+  // مصنع المتعقب: يستعمل مثيل القلب المشترك (FitPose) إن حُقن، وإلا المحلي.
+  var trackerCallbacks = {
+    onStatus: function (msg) { $('cameraStatus').textContent = msg; },
+    onLandmarks: function (lm, t) {
+      tracker.drawSkeleton($('matchCanvas'), lm);
+      if (activeTab === 'match') match.feedLandmarks(lm, t);
+      else if (activeTab === 'training') training.feedLandmarks(lm, t);
+      else if (activeTab === 'combos') combos.feedLandmarks(lm, t);
+    }
+  };
+  var tracker = window.HalbaBoxingPose.createPoseTracker
+    ? window.HalbaBoxingPose.createPoseTracker(trackerCallbacks)
+    : new window.HalbaBoxingPose.PoseTracker(trackerCallbacks);
+  $('btnStartCamera').addEventListener('click', function () { tracker.initCamera($('matchVideo')); });
+  $('btnStopCamera').addEventListener('click', function () { tracker.stop(); });
+
+  // ---- المباراة ----
+  var match = new window.HalbaBoxingMatch.BoxingMatch({
+    onUpdate: function (s) {
+      $('matchTimer').textContent = Math.ceil(s.timeLeftMs / 1000);
+      $('hpPlayer').style.width = s.playerHp + '%'; $('hpBot').style.width = s.botHp + '%';
+      $('hpPlayerText').textContent = s.playerHp; $('hpBotText').textContent = s.botHp;
+      $('botName').textContent = s.botName + ' (ELO ' + s.botElo + ')';
+      $('matchHits').textContent = s.hits; $('matchHalf').textContent = s.halfAttempts; $('matchDodges').textContent = s.dodges;
+      if (s.state === 'over') $('matchCommand').innerHTML = 'انتهت المباراة<span class="sub">النتيجة في الأسفل — ابدأ مباراة جديدة متى شئت</span>';
+    },
+    onCommand: function (move) {
+      $('matchCommand').innerHTML = escapeHtml(Moves.MOVE_NAMES_AR[move]) + '<span class="sub">نفّذها كاملة ثم عُد للحارس — 3 ثوانٍ</span>';
+    },
+    onFeedback: function (msg) {
+      var el = $('matchFeedback'); el.textContent = msg;
+      el.className = 'feedback ' + (/صحيح|ناجح|✓/.test(msg) ? 'good' : /نصفية|أصابك|انتهى/.test(msg) ? 'bad' : '');
+    },
+    onEnd: function (r) {
+      var label = r.result === 'win' ? 'فزت! 🏆' : r.result === 'loss' ? 'خسرت — درّب أكثر' : 'تعادل';
+      $('matchFeedback').textContent = label + ' — إصابات: ' + r.hits + '، ELO الجديد: ' + (r.elo ? r.elo.newElo + ' (' + (r.elo.delta >= 0 ? '+' : '') + r.elo.delta + ')' : '—');
+      renderProfile();
+    }
+  });
+  $('btnStartMatch').addEventListener('click', function () { match.start(); });
+  $('btnStopMatch').addEventListener('click', function () { match.stop('quit'); }); // الانسحاب = خسارة، لا تعادل
+
+  // ---- التدريب ----
+  var training = new window.HalbaBoxingTraining.BoxingTraining({
+    onUpdate: function (s) {
+      $('trainCommand').innerHTML = escapeHtml(Moves.MOVE_NAMES_AR[s.move]) + '<span class="sub">' + s.count + ' / ' + s.target + '</span>';
+      $('trainCount').textContent = s.count; $('trainHalf').textContent = s.halfAttempts;
+      $('trainAcc').textContent = s.accuracy + '%'; $('trainStreak').textContent = s.bestStreak;
+    },
+    onFeedback: function (msg) {
+      var el = $('trainFeedback'); el.textContent = msg;
+      el.className = 'feedback ' + (msg.indexOf('✓') === 0 ? 'good' : msg.indexOf('✗') === 0 ? 'bad' : '');
+    }
+  });
+  $('trainMove').addEventListener('change', function () { training.setMove($('trainMove').value); });
+  $('trainTarget').addEventListener('change', function () { training.setTarget(parseInt($('trainTarget').value, 10)); });
+  $('btnStartTraining').addEventListener('click', function () { training.setMove($('trainMove').value); training.setTarget(parseInt($('trainTarget').value, 10)); training.start(); });
+  $('btnStopTraining').addEventListener('click', function () { training.stop(); });
+
+  // ---- الكومبو ----
+  var combos = new window.HalbaBoxingCombos.ComboEngine({
+    onUpdate: function (s) {
+      renderComboList();
+      var steps = $('comboSteps'); steps.innerHTML = '';
+      s.combo.seq.forEach(function (mv, i) {
+        var sp = document.createElement('span');
+        sp.textContent = Moves.MOVE_DIGITS[mv] || mv;
+        sp.title = Moves.MOVE_NAMES_AR[mv];
+        if (i < s.position) sp.className = 'done';
+        else if (i === s.position && s.state === 'running') sp.className = 'current';
+        steps.appendChild(sp);
+      });
+      if (s.state === 'running' && s.nextMove) {
+        $('comboCommand').innerHTML = escapeHtml(Moves.MOVE_NAMES_AR[s.nextMove]) + '<span class="sub">الكومبو ' + s.combo.code + ' — ' + (s.position + 1) + '/' + s.combo.seq.length + ' — مهلة ' + (s.combo.timePerPunchMs / 1000) + ' ثانية</span>';
+      } else {
+        $('comboCommand').innerHTML = 'الكومبو ' + s.combo.code + '<span class="sub">اختر كومبو وابدأ</span>';
+      }
+    },
+    onFeedback: function (msg) {
+      var el = $('comboFeedback'); el.textContent = msg;
+      el.className = 'feedback ' + (msg.indexOf('✓') === 0 ? 'good' : msg.indexOf('✗') === 0 ? 'bad' : '');
+    }
+  });
+  function renderComboList() {
+    var list = $('comboList'); list.innerHTML = '';
+    window.HalbaBoxingCombos.COMBO_LADDER.forEach(function (c, i) {
+      var b = document.createElement('button');
+      b.textContent = c.code + ' — ' + c.seq.map(function (m) { return Moves.MOVE_NAMES_AR[m]; }).join(' ← ') + (i > combos.unlocked ? ' 🔒' : '');
+      b.className = (i > combos.unlocked ? 'locked ' : '') + (i === combos.level ? 'selected' : '');
+      b.disabled = i > combos.unlocked;
+      b.addEventListener('click', function () { combos.selectLevel(i); });
+      list.appendChild(b);
+    });
+  }
+  $('btnStartCombo').addEventListener('click', function () { combos.start(); });
+  renderComboList(); combos._emit();
+
+  // ---- محاكاة / لوحة مفاتيح (بلا كاميرا — نفس التحقق) ----
+  function activeEngine() {
+    if (activeTab === 'match') return match;
+    if (activeTab === 'training') return training;
+    if (activeTab === 'combos') return combos;
+    return match;
+  }
+  function expectedMove() {
+    if (activeTab === 'match') return match.currentCommand;
+    if (activeTab === 'training') return training.move;
+    if (activeTab === 'combos') return combos._combo().seq[combos.position];
+    return match.currentCommand;
+  }
+  function sim(full) {
+    var eng = activeEngine(), mv = expectedMove();
+    if (!mv) { alert('ابدأ أولاً (مباراة / تدريب / كومبو) حتى يكون هناك أمر نشط.'); return; }
+    if (eng.trySimulatedMove) eng.trySimulatedMove(mv, full);
+  }
+  $('btnSimFullMatch').addEventListener('click', function () { activeTab = 'match'; sim(true); });
+  $('btnSimHalfMatch').addEventListener('click', function () { activeTab = 'match'; sim(false); });
+  $('btnSimFullTrain').addEventListener('click', function () { activeTab = 'training'; sim(true); });
+  $('btnSimHalfTrain').addEventListener('click', function () { activeTab = 'training'; sim(false); });
+  $('btnSimFullCombo').addEventListener('click', function () { activeTab = 'combos'; sim(true); });
+  $('btnSimHalfCombo').addEventListener('click', function () { activeTab = 'combos'; sim(false); });
+
+  var KEYMAP = { j: 'JAB', k: 'CROSS', h: 'HOOK', u: 'UPPERCUT', b: 'BODY', s: 'SLIP', d: 'DODGE', l: 'BLOCK' };
+  document.addEventListener('keydown', function (e) {
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA')) return;
+    var mv = KEYMAP[(e.key || '').toLowerCase()];
+    if (!mv) return;
+    var eng = activeEngine();
+    if (eng.trySimulatedMove) eng.trySimulatedMove(mv, true);
+  });
+})();
+</script>
+</body>
+</html>
