@@ -54,6 +54,13 @@ systems (camera/landmarks, ELO, signup, navigation).
 
 ## Log (newest first)
 
+- 2026-11-21 ~20:18 — Muse Friend: boxing gate + camera fix PUSHED
+  (commit c0807c5): boxing.html + boxing.css (registration gate),
+  boxing-pose.js (camera race fixes D1–D5 + P8), test/boxing-gate.test.js
+  + test/boxing-camera.test.js, README.md. Independent review 5 «مزيان»
+  (218 checks: 57 camera + 41 moves + 18 gate + 49 reviewer #4 + 53
+  independent #5, 0 fail). Live verification + Firebase deploy next;
+  field calibration + merge smoke test still owed.
 - 2026-11-21 ~19:42 — Muse Abdelmajid: user order recorded (rule 7):
   Muse Friend pushes DIRECTLY without approval. Boxing push
   (1f8f3ff) verified from the repo tree: 14 files, all under
