@@ -65,6 +65,12 @@
         <div>
           <div class="feedback" id="matchFeedback">جاهز؟ شغّل الكاميرا أولاً، أو استعمل المحاكاة / لوحة المفاتيح للاختبار بلا كاميرا.</div>
           <p class="stats"><span>إصابات ناجحة: <b id="matchHits">0</b></span><span>نصفية مرفوضة: <b id="matchHalf">0</b></span><span>تفادٍ ناجح: <b id="matchDodges">0</b></span></p>
+          <div class="lvl-seg" id="botLevelSeg">
+            <span class="lvl-label">مستوى البوت</span>
+            <button type="button" class="lvl-opt" id="lvl-easy" data-level="easy">سهل <span class="lvl-sub">ELO 800</span></button>
+            <button type="button" class="lvl-opt sel" id="lvl-medium" data-level="medium">متوسط <span class="lvl-sub">ELO 1200</span></button>
+            <button type="button" class="lvl-opt" id="lvl-hard" data-level="hard">صعب <span class="lvl-sub">ELO 1600</span></button>
+          </div>
           <button class="btn" id="btnStartMatch">ابدأ المباراة</button>
           <button class="btn ghost" id="btnStopMatch">إيقاف</button>
           <button class="btn cyan" id="btnSimFullMatch">محاكاة الأمر كاملاً</button>
@@ -242,6 +248,18 @@
     }
   });
   $('btnStartMatch').addEventListener('click', function () { match.start(); });
+  // مستوى البوت: اختيار قبل البدء فقط — أثناء المباراة يُرفض.
+  // زامن الأزرار مع مستوى المباراة عند التحميل (حتى لا يختلف الشكل عن الحالة).
+  ['easy', 'medium', 'hard'].forEach(function (l2) { var x = $('lvl-' + l2); if (x) x.classList.toggle('sel', l2 === match.botLevel); });
+  ['easy', 'medium', 'hard'].forEach(function (lvl) {
+    var b = $('lvl-' + lvl);
+    if (!b) return;
+    b.addEventListener('click', function () {
+      if (match.setBotLevel(lvl)) {
+        ['easy', 'medium', 'hard'].forEach(function (l2) { var x = $('lvl-' + l2); if (x) x.classList.toggle('sel', l2 === lvl); });
+      }
+    });
+  });
   $('btnStopMatch').addEventListener('click', function () { match.stop('quit'); }); // الانسحاب = خسارة، لا تعادل
 
   // ---- التدريب ----

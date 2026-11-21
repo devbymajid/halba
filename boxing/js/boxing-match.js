@@ -7,6 +7,8 @@
  * قد يكون مأموراً بلكمة حين يهاجم البوت. الفوز/الخسارة/التعادل
  * يحدّث ELO وXP. الانسحاب من مباراة مصنفة = خسارة (لا تعادل).
  * المباراة المصنفة تتطلب ملفاً (اسم + كود) قبل البدء.
+ * مستوى البوت (سهل 800 / متوسط 1200 / صعب 1600 — مثل القلب):
+ * يغيّر توقيت الهجوم وضرره ونافذة التفادي. متوسط = قيم v1 الأصلية تماماً.
  */
 (function (global) {
   'use strict';
@@ -16,6 +18,13 @@
   var COMMAND_POOL = ['JAB', 'HOOK', 'UPPERCUT', 'SLIP', 'DODGE'];
   var DAMAGE = { JAB: 7, CROSS: 9, HOOK: 10, UPPERCUT: 13, BODY: 11, SLIP: 0, DODGE: 0, BLOCK: 0 };
   var BOT_NAMES = ['بوت الحلبة', 'بوت الظل', 'بوت النيون'];
+  // مستويات البوت — ELO وتوقيت الهجوم وضرره ونافذة التفادي.
+  // متوسط = قيم v1 الأصلية تماماً (لا تغيير في سلوك المباراة الحالية).
+  var BOT_LEVELS = {
+    easy: { elo: 800, label: 'سهل', firstAttackMs: 7000, attackGapMin: 5000, attackGapRand: 2000, attackWindowMs: 1800, attackDamage: 5, timeoutDamage: 3 },
+    medium: { elo: 1200, label: 'متوسط', firstAttackMs: 5000, attackGapMin: 3500, attackGapRand: 2000, attackWindowMs: 1400, attackDamage: 8, timeoutDamage: 5 },
+    hard: { elo: 1600, label: 'صعب', firstAttackMs: 3500, attackGapMin: 2500, attackGapRand: 1500, attackWindowMs: 1100, attackDamage: 12, timeoutDamage: 8 }
+  };
 
   function BoxingMatch(opts) {
     opts = opts || {};
@@ -24,7 +33,10 @@
     this.onFeedback = opts.onFeedback || function () {};
     this.onEnd = opts.onEnd || function () {};
     this.durationMs = opts.durationMs || 60000;
-    this.botElo = opts.botElo || 1000;
+    // مستوى البوت: يحدد ELO + توقيت الهجوم وضرره. متوسط = سلوك v1.
+    this.botLevel = BOT_LEVELS[opts.botLevel] ? opts.botLevel : 'medium';
+    this.levelParams = BOT_LEVELS[this.botLevel];
+    this.botElo = opts.botElo || this.levelParams.elo;
     this.botName = opts.botName || BOT_NAMES[Math.floor(Math.random() * BOT_NAMES.length)];
     // ملف يُحقن من الخارج (اختبار / قلب) يقدَّم على التخزين المحلي.
     this.profileOverride = opts.profile || null;
@@ -41,9 +53,20 @@
     this.timerId = null; this.startedAt = 0; this.lastTick = 0;
     this.profile = this.profileOverride ? Object.assign({}, this.profileOverride) : (Profile ? Profile.loadProfile() : null);
   };
+  /** تغيير مستوى البوت — قبل البدء فقط؛ أثناء المباراة يُرفض. */
+  BoxingMatch.prototype.setBotLevel = function (level) {
+    if (this.state === 'running') return false;
+    if (!BOT_LEVELS[level]) level = 'medium';
+    this.botLevel = level;
+    this.levelParams = BOT_LEVELS[level];
+    this.botElo = this.levelParams.elo;
+    this._emit();
+    return true;
+  };
   BoxingMatch.prototype._emit = function () {
     this.onUpdate({
       state: this.state, playerHp: this.playerHp, botHp: this.botHp,
+      botLevel: this.botLevel,
       timeLeftMs: Math.max(0, this.timeLeftMs), hits: this.hits, halfAttempts: this.halfAttempts,
       dodges: this.dodges, command: this.currentCommand, botAttackActive: this.botAttackActive,
       botName: this.botName, botElo: this.botElo, profile: this.profile
@@ -67,7 +90,7 @@
       return false;
     }
     this.state = 'running'; this.startedAt = Date.now(); this.lastTick = Date.now();
-    this.botAttackAt = Date.now() + 5000;
+    this.botAttackAt = Date.now() + this.levelParams.firstAttackMs;
     var self = this;
     this._nextCommand();
     this.timerId = setInterval(function () { self._tick(); }, 100);
@@ -90,14 +113,14 @@
     if (this.timeLeftMs <= 0) { this.timeLeftMs = 0; this.state = 'over'; this._finish(this.playerHp === this.botHp ? 'draw' : this.playerHp > this.botHp ? 'win' : 'loss'); return; }
     // انتهاء الأمر بلا تنفيذ: البوت يردّ بضربة خفيفة.
     if (this.currentCommand && now > this.commandExpiresAt) {
-      this.playerHp = Math.max(0, this.playerHp - 5);
-      this.onFeedback('انتهى وقت الأمر — البوت ردّ عليك (−5)');
+      this.playerHp = Math.max(0, this.playerHp - this.levelParams.timeoutDamage);
+      this.onFeedback('انتهى وقت الأمر — البوت ردّ عليك (−' + this.levelParams.timeoutDamage + ')');
       if (this.playerHp <= 0) { this.state = 'over'; this._finish('loss'); return; }
       this._nextCommand();
     }
     // هجوم البوت الدوري.
     if (!this.botAttackActive && now >= this.botAttackAt) {
-      this.botAttackActive = true; this.botAttackExpiresAt = now + 1400;
+      this.botAttackActive = true; this.botAttackExpiresAt = now + this.levelParams.attackWindowMs;
       this._armDefense();
       this.onFeedback('⚠ هجوم البوت! نفّذ SLIP أو DODGE الآن لتتفاداه');
       this._emit();
@@ -105,9 +128,9 @@
     if (this.botAttackActive && now > this.botAttackExpiresAt) {
       this.botAttackActive = false;
       this._clearDefense();
-      this.playerHp = Math.max(0, this.playerHp - 8);
-      this.onFeedback('البوت أصابك (−8) — تفادَ في المرة القادمة');
-      this.botAttackAt = now + 3500 + Math.random() * 2000;
+      this.playerHp = Math.max(0, this.playerHp - this.levelParams.attackDamage);
+      this.onFeedback('البوت أصابك (−' + this.levelParams.attackDamage + ') — تفادَ في المرة القادمة');
+      this.botAttackAt = now + this.levelParams.attackGapMin + Math.random() * this.levelParams.attackGapRand;
       if (this.playerHp <= 0) { this.state = 'over'; this._finish('loss'); return; }
     }
     this._emit();
@@ -152,7 +175,7 @@
     this.botAttackActive = false;
     this._clearDefense();
     this.dodges++;
-    this.botAttackAt = Date.now() + 3500 + Math.random() * 2000;
+    this.botAttackAt = Date.now() + this.levelParams.attackGapMin + Math.random() * this.levelParams.attackGapRand;
     this.onFeedback('تفادٍ ناجح! لم يصبك البوت');
     return true;
   };
@@ -235,7 +258,7 @@
     return { ok: true, reason: 'حركة كاملة صحيحة' };
   };
 
-  var api = { BoxingMatch: BoxingMatch, COMMAND_POOL: COMMAND_POOL, DAMAGE: DAMAGE };
+  var api = { BoxingMatch: BoxingMatch, COMMAND_POOL: COMMAND_POOL, DAMAGE: DAMAGE, BOT_LEVELS: BOT_LEVELS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   global.HalbaBoxingMatch = api;
 })(typeof window !== 'undefined' ? window : globalThis);

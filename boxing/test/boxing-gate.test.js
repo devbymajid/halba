@@ -33,7 +33,7 @@ function makeEl(id) {
 const IDS = ['profileBar', 'fName', 'fCode', 'fAge', 'fAnime', 'btnSaveProfile', 'profileSaved', 'profileStats',
   'welcomeCheer', 'heroSub', 'matchTimer', 'hpPlayer', 'hpBot', 'hpPlayerText', 'hpBotText', 'botName',
   'matchHits', 'matchHalf', 'matchDodges', 'matchCommand', 'matchFeedback', 'matchVideo', 'matchCanvas',
-  'btnStartMatch', 'btnStopMatch', 'btnSimFullMatch', 'btnSimHalfMatch',
+  'btnStartMatch', 'btnStopMatch', 'btnSimFullMatch', 'btnSimHalfMatch', 'lvl-easy', 'lvl-medium', 'lvl-hard',
   'trainMove', 'trainTarget', 'trainCommand', 'trainFeedback', 'trainCount', 'trainHalf', 'trainAcc', 'trainStreak',
   'btnStartTraining', 'btnStopTraining', 'btnSimFullTrain', 'btnSimHalfTrain',
   'comboList', 'comboSteps', 'comboCommand', 'comboFeedback', 'btnStartCombo', 'btnSimFullCombo', 'btnSimHalfCombo',
@@ -121,6 +121,16 @@ check('post-reg: camera tab visible', tabByName('camera').style.display === '');
 check('post-reg: cheer hidden', els.welcomeCheer.style.display === 'none');
 check('post-reg: hero subtitle visible', els.heroSub.style.display === '');
 check('post-reg: code stored as hash only', (store.halba_boxing_profile_v1 || '').indexOf('secret123') === -1);
+
+// --- 2b. Bot level picker (match tab) ---
+check('bot level: medium selected by default', els['lvl-medium'].classList.contains('sel') && !els['lvl-easy'].classList.contains('sel') && !els['lvl-hard'].classList.contains('sel'));
+els['lvl-easy'].click();
+check('bot level: click easy selects it', els['lvl-easy'].classList.contains('sel') && !els['lvl-medium'].classList.contains('sel'));
+check('bot level: easy shows bot ELO 800', (els.botName.textContent || '').indexOf('ELO 800') !== -1);
+els['lvl-hard'].click();
+check('bot level: click hard selects it + ELO 1600', els['lvl-hard'].classList.contains('sel') && (els.botName.textContent || '').indexOf('ELO 1600') !== -1);
+els['lvl-medium'].click();
+check('bot level: back to medium ELO 1200', els['lvl-medium'].classList.contains('sel') && (els.botName.textContent || '').indexOf('ELO 1200') !== -1);
 
 // --- 3. Tabs work after registration ---
 tabByName('training').click();
