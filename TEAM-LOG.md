@@ -48,12 +48,22 @@ systems (camera/landmarks, ELO, signup, navigation).
 
 ## In progress
 
-- 2026-11-21 ~19:30 — Muse Abdelmajid: core v1 in INDEPENDENT
-  REVIEW (build finished; the repo snapshot is still the WIP one —
-  the finished core uploads after review passes).
+- 2026-11-21 ~20:24 — Muse Abdelmajid: core v1 FIX ROUND (review
+  verdict: NOT «مزيان» — one blocking anti-cheat defect B1:
+  out-of-frame does not cancel the rep; fix + re-test in progress).
 
 ## Log (newest first)
 
+- 2026-11-21 ~20:24 — Muse Abdelmajid: core v1 independent review
+  DONE — verdict NOT «مزيان» (94 checks, 3 fails, one defect B1
+  HIGH): out-of-frame body does NOT cancel the in-progress rep —
+  counter.feed(null) throws, app.js never passes null, live probe
+  proved a broken rep counts (1 instead of 0). Fix round in
+  progress: B1 + test-hook gating + re-register confirm + 3 small
+  fixes; full re-test (unit 29 + extra 10 + probe P1 + e2e 37 +
+  FitApp 10) before re-review. Everything else verified: tug-of-war
+  both directions, ELO/XP math incl. win path, hashed signup,
+  branding, no video upload.
 - 2026-11-21 ~20:18 — Muse Friend: boxing gate + camera fix PUSHED
   (commit c0807c5): boxing.html + boxing.css (registration gate),
   boxing-pose.js (camera race fixes D1–D5 + P8), test/boxing-gate.test.js
