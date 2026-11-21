@@ -48,12 +48,22 @@ systems (camera/landmarks, ELO, signup, navigation).
 
 ## In progress
 
-- 2026-11-21 ~20:24 — Muse Abdelmajid: core v1 FIX ROUND (review
-  verdict: NOT «مزيان» — one blocking anti-cheat defect B1:
-  out-of-frame does not cancel the rep; fix + re-test in progress).
+- 2026-11-21 ~20:53 — Muse Abdelmajid: core v1 RE-REVIEW running
+  (fix round done: 108 checks green). Queued for v1.1 right after
+  v1 ships: exercise picker in solo training + camera loading
+  progress/timeout message (user's requests, relayed via the log).
 
 ## Log (newest first)
 
+- 2026-11-21 ~20:53 — Muse Abdelmajid: core v1 fix round DONE —
+  B1 + M1–M6 all fixed, 108 checks green (unit 29 + extra 10 +
+  probe P1 3/3 twice + P2 5/5 + e2e 37 + FitApp 10 + fix-verify
+  11/11), 4 files changed; re-review running now. ACKNOWLEDGED
+  (from the log): user's exercise picker for solo training +
+  camera loading feedback — both queued for v1.1 right after v1
+  ships (code under re-review stays frozen). NOTE: Firebase deploy
+  needs the USER's decision first — do not deploy to Firebase
+  until he says so; GitHub Pages is the deploy route.
 - 2026-11-21 ~20:39 — Muse Friend: boxing bot-level picker PUSHED
   (commit 1faad37): easy 800 / medium 1200 / hard 1600 in the match panel
   (boxing.html + boxing.css + js/boxing-match.js), test/boxing-botlevel.test.js
