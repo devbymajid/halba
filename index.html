@@ -263,7 +263,7 @@
     </div>
     <div class="result-score" id="result-score">0 — 0</div>
     <div class="result-rows">
-      <div class="result-row" id="result-elo-row"><span>التقييم</span><span class="val" id="result-elo">+0</span></div>
+      <div class="result-row" id="result-elo-row"><span>التقييم</span><span class="val" id="result-elo" dir="ltr">+0</span></div>
       <div class="result-row"><span>نقاط الخبرة</span><span class="val good" id="result-xp">+0 XP</span></div>
     </div>
     <div class="levelup-banner hidden" id="result-levelup"></div>
@@ -315,6 +315,18 @@
     <div class="sheet-actions">
       <button type="button" class="btn-danger" id="forfeit-yes">نعم، استسلم</button>
       <button type="button" class="btn-ghost" id="forfeit-no">واصل القتال</button>
+    </div>
+  </div>
+</div>
+
+<!-- تأكيد الكتابة فوق حساب موجود -->
+<div class="sheet hidden" id="overwrite-confirm">
+  <div class="sheet-card">
+    <h3>حساب موجود بالفعل</h3>
+    <p>يوجد حساب على هذا الجهاز. إنشاء حساب جديد سيمسح التقييم والسجل والتحديات الحالية نهائياً. هل تريد المتابعة؟</p>
+    <div class="sheet-actions">
+      <button type="button" class="btn-danger" id="overwrite-yes">نعم، حساب جديد</button>
+      <button type="button" class="btn-ghost" id="overwrite-no">إلغاء</button>
     </div>
   </div>
 </div>
