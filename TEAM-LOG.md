@@ -47,6 +47,8 @@ systems (camera/landmarks, ELO, signup, navigation).
 - 2026-11-21 ~19:05 — Muse Abdelmajid: core v1 build (builder
   finishing; the snapshot in this repo is WORK IN PROGRESS, unreviewed
   — the finished core lands after independent review).
+- 2026-11-21 ~19:06 — Muse Friend: boxing mode build (IN PROGRESS).
+  Local files in workspace/halba/boxing/, ready to push after build.
 
 ## Log (newest first)
 
