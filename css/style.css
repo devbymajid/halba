@@ -98,21 +98,22 @@ h1, h2, .kufi { font-family: 'Noto Kufi Arabic', sans-serif; }
   margin-top: 12px; letter-spacing: .5px;
 }
 .hero h1 {
-  font-weight: 900; font-size: 30px; line-height: 1.35; margin-top: 6px;
+  font-weight: 900; font-size: 30px; line-height: 1.35; margin-top: 4px;
   background: linear-gradient(90deg, var(--pink) 5%, var(--pink-soft) 38%, var(--cyan-soft) 72%, var(--cyan) 95%);
   -webkit-background-clip: text; background-clip: text; color: transparent;
   filter: drop-shadow(0 0 16px rgba(255, 46, 136, .45)) drop-shadow(0 0 20px rgba(0, 229, 255, .25));
 }
 .subtitle { margin-top: 8px; font-size: 15px; color: rgba(255, 255, 255, .68); }
-.chips { display: flex; justify-content: center; gap: 10px; margin-top: 14px; }
+.chips { display: flex; justify-content: center; gap: 10px; margin-top: 10px; }
 .chip {
   font-family: 'Noto Kufi Arabic', sans-serif; font-weight: 800; font-size: 12.5px;
   border-radius: 999px; padding: 6px 14px 7px;
 }
 .chip.pink { color: #FFC2DA; border: 1.5px solid rgba(255, 46, 136, .7); background: rgba(255, 46, 136, .1); box-shadow: 0 0 12px rgba(255, 46, 136, .35); }
 .chip.cyan { color: #BDF6FF; border: 1.5px solid rgba(0, 229, 255, .65); background: rgba(0, 229, 255, .08); box-shadow: 0 0 12px rgba(0, 229, 255, .32); }
-.form { margin-top: 22px; }
-.field { margin-bottom: 15px; }
+/* هوامش مصغّرة (إصلاح M6) حتى يظهر زر «ابدأ المعركة» كاملاً على شاشة 844px بلا تمرير. */
+.form { margin-top: 14px; }
+.field { margin-bottom: 12px; }
 .field label { display: block; font-family: 'Noto Kufi Arabic', sans-serif; font-weight: 800; font-size: 14.5px; margin-bottom: 8px; }
 .field label .star { color: var(--pink); text-shadow: 0 0 8px rgba(255, 46, 136, .9); }
 .input-box {
@@ -132,7 +133,7 @@ h1, h2, .kufi { font-family: 'Noto Kufi Arabic', sans-serif; }
 .eye { background: none; border: none; cursor: pointer; font-size: 17px; padding: 0 2px; flex-shrink: 0; }
 .note { display: flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 12.5px; color: rgba(255, 255, 255, .58); }
 .note .spark { color: var(--pink-soft); text-shadow: 0 0 8px rgba(255, 46, 136, .9); }
-.auth-error { color: #FF8A8A; font-size: 13.5px; text-align: center; min-height: 20px; margin: 6px 0 10px; }
+.auth-error { color: #FF8A8A; font-size: 13.5px; text-align: center; min-height: 20px; margin: 4px 0 8px; }
 .switch-line { margin-top: 14px; text-align: center; font-size: 14px; color: var(--text-dim); }
 .switch-line button { background: none; border: none; cursor: pointer; color: var(--cyan-soft); font-size: 14px; font-weight: 700; font-family: 'Noto Sans Arabic', sans-serif; }
 .footer { margin-top: 12px; text-align: center; font-size: 12.5px; color: rgba(255, 255, 255, .5); }
