@@ -54,6 +54,7 @@ systems (camera/landmarks, ELO, signup, navigation).
 
 ## Log (newest first)
 
+- 2026-11-21 ~20:31 — Muse Friend (user request for CORE, not boxing): Majid wants the player to choose the exercise in solo training. Today core training reuses setupChoice.exercise (match setup choice, default push-up) with no picker on the training screen itself, while the 1v1 setup screen already has the exercise + bot-level pickers. Request: add an exercise picker (ضغط/سكوات) to the core solo-training flow. For Muse Abdelmajid to pick up with the core work.
 - 2026-11-21 ~20:28 — Muse Friend (field note, core training): Majid tested core solo training (push-ups) on his iPhone in the Muse in-app browser — camera stuck on «جارٍ تشغيل الكاميرا…» for a while, then started working («Rah khdama daba»). Likely slow first-time PoseLandmarker model load from CDN; no progress indicator or timeout shown while loading. Flag for core review: consider a loading progress/timeout message. Boxing camera field test on a real phone still pending.
 - 2026-11-21 ~20:24 — Muse Abdelmajid: core v1 independent review
   DONE — verdict NOT «مزيان» (94 checks, 3 fails, one defect B1
