@@ -31,6 +31,7 @@ function makeEl(id) {
 }
 
 const IDS = ['profileBar', 'fName', 'fCode', 'fAge', 'fAnime', 'btnSaveProfile', 'profileSaved', 'profileStats',
+  'lName', 'lCode', 'btnLogin', 'loginMsg', 'cloudStatus',
   'welcomeCheer', 'heroSub', 'matchTimer', 'hpPlayer', 'hpBot', 'hpPlayerText', 'hpBotText', 'botName',
   'matchHits', 'matchHalf', 'matchDodges', 'matchCommand', 'matchFeedback', 'matchVideo', 'matchCanvas',
   'btnStartMatch', 'btnStopMatch', 'btnSimFullMatch', 'btnSimHalfMatch', 'lvl-easy', 'lvl-medium', 'lvl-hard',
@@ -72,6 +73,7 @@ const sandbox = {
     },
     addEventListener: () => {},
     createElement: (tag) => makeEl('created-' + tag),
+    head: { appendChild: () => {} },
   },
 };
 sandbox.window = sandbox;
@@ -81,7 +83,7 @@ vm.createContext(sandbox);
 function load(file) {
   vm.runInContext(fs.readFileSync(path.join(DIR, file), 'utf8'), sandbox, { filename: file });
 }
-['js/boxing-moves.js', 'js/boxing-profile.js', 'js/boxing-pose.js', 'js/boxing-match.js', 'js/boxing-training.js', 'js/boxing-combos.js'].forEach(load);
+['js/boxing-moves.js', 'js/boxing-profile.js', 'js/firebase-config.js', 'js/boxing-firebase.js', 'js/boxing-pose.js', 'js/boxing-match.js', 'js/boxing-training.js', 'js/boxing-combos.js'].forEach(load);
 
 const html = fs.readFileSync(path.join(DIR, 'boxing.html'), 'utf8');
 const inline = html.match(/<script>\n([\s\S]*?)<\/script>/)[1];
@@ -132,11 +134,54 @@ check('bot level: click hard selects it + ELO 1600', els['lvl-hard'].classList.c
 els['lvl-medium'].click();
 check('bot level: back to medium ELO 1200', els['lvl-medium'].classList.contains('sel') && (els.botName.textContent || '').indexOf('ELO 1200') !== -1);
 
-// --- 3. Tabs work after registration ---
-tabByName('training').click();
-check('post-reg: training panel opens', panels[2].classList.contains('active'));
-tabByName('match').click();
-check('post-reg: match panel opens', panels[1].classList.contains('active'));
+// --- 2c. Cloud login (Firestore وهمي محقون) — غير متزامن ---
+(async function () {
+  vm.runInContext(`
+    (function () {
+      var store2 = new Map();
+      var db = { collection: function (name) { return { doc: function (id) { var key = name + '/' + id; return {
+        get: async function () { return { exists: store2.has(key), data: function () { return store2.get(key) || null; } }; },
+        create: async function (data) { if (store2.has(key)) { var e = new Error('already exists'); e.code = 'already-exists'; throw e; } store2.set(key, Object.assign({}, data)); },
+        set: async function (data, opts) { if (opts && opts.merge) store2.set(key, Object.assign({}, store2.get(key) || {}, data)); else store2.set(key, Object.assign({}, data)); }
+      }; } }; } };
+      var doc = HalbaBoxingCloud.toCloudDoc({ name: 'سليم', age: 20, anime: 'كايتو', elo: 1100, xp: 50, level: 1, wins: 1, losses: 0, draws: 0, matches: 1 }, 'PIN7777');
+      store2.set('boxing_profiles/سليم', doc);
+      HalbaBoxingCloud.setFirestore(db);
+    })();
+  `, sandbox, { filename: 'gate-cloud-setup.js' });
+  const tick = () => new Promise((r) => setTimeout(r, 0));
 
-console.log(fail === 0 ? 'ALL GATE TESTS PASS' : 'GATE TESTS FAILED: ' + fail);
-process.exit(fail === 0 ? 0 : 1);
+  // كود خاطئ: يبقى الملف الحالي، وتظهر رسالة خطأ
+  els.lName.value = 'سليم';
+  els.lCode.value = 'غلط';
+  els.btnLogin.click();
+  check('login: button disabled during attempt', els.btnLogin.disabled === true);
+  await tick(); await tick();
+  check('login: button re-enabled after failure', els.btnLogin.disabled === false);
+  check('login: wrong code shows error', (els.loginMsg.textContent || '').indexOf('غير صحيح') !== -1);
+  check('login: wrong code keeps current profile', (els.profileBar.innerHTML || '').indexOf('مجيد') !== -1);
+
+  // دخول صحيح: يبدّل الملف ويفتح الألسنة
+  els.lCode.value = 'PIN7777';
+  els.btnLogin.click();
+  await tick(); await tick();
+  check('login: success message', (els.loginMsg.textContent || '').indexOf('أهلاً بعودتك') !== -1);
+  check('login: profile bar shows cloud name', (els.profileBar.innerHTML || '').indexOf('سليم') !== -1);
+  check('login: profile bar shows cloud ELO', (els.profileBar.innerHTML || '').indexOf('1100') !== -1);
+  check('login: match tab visible after login', tabByName('match').style.display === '');
+  check('login: code stored as hash only', (store.halba_boxing_profile_v1 || '').indexOf('PIN7777') === -1);
+
+  // --- 3. Tabs work after registration ---
+  tabByName('training').click();
+  check('post-reg: training panel opens', panels[2].classList.contains('active'));
+  tabByName('match').click();
+  check('post-reg: match panel opens', panels[1].classList.contains('active'));
+
+  // حفظ بكود قصير: يُحفظ محلياً لكن السحابة ترفض — رسالة واضحة.
+  els.fCode.value = '123';
+  els.btnSaveProfile.click();
+  check('save: short code warns (6 chars min)', (els.profileSaved.textContent || '').indexOf('6 أحرف') !== -1);
+
+  console.log(fail === 0 ? 'ALL GATE TESTS PASS' : 'GATE TESTS FAILED: ' + fail);
+  process.exit(fail === 0 ? 0 : 1);
+})().catch((e) => { console.error('GATE TEST CRASH', e); process.exit(1); });

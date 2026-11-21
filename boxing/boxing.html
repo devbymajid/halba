@@ -34,16 +34,27 @@
     </div>
     <div class="card">
       <h2>التسجيل — ملف اللاعب</h2>
-      <p class="muted">هذه النسخة مستقلة لوضع الملاكمة. عند الدمج مع القلب، يُستبدل هذا الملف بملف اللاعب الرئيسي (نفس الحقول). يُحفظ محلياً فقط.</p>
+      <p class="muted">هذه النسخة مستقلة لوضع الملاكمة. عند الدمج مع القلب، يُستبدل هذا الملف بملف اللاعب الرئيسي (نفس الحقول). يُحفظ محلياً، ويُزامَن مع حسابك على Firebase عند التسجيل — تقدر تدخل بيه من أي جهاز.</p>
       <div class="form-grid">
         <div><label for="fName">الاسم</label><input id="fName" type="text" placeholder="مثال: مجيد"></div>
-        <div><label for="fCode">الكود</label><input id="fCode" type="text" placeholder="كود اللاعب"></div>
+        <div><label for="fCode">الكود</label><input id="fCode" type="text" placeholder="كود اللاعب — 6 أحرف على الأقل"></div>
         <div><label for="fAge">العمر</label><input id="fAge" type="number" min="10" max="99" value="18"></div>
         <div><label for="fAnime">اسم شخصية الأنمي</label><input id="fAnime" type="text" placeholder="مثال: كايتو"></div>
       </div>
       <button class="btn" id="btnSaveProfile">حفظ الملف</button>
       <p class="muted small" id="profileSaved"></p>
       <div class="stats" id="profileStats"></div>
+    </div>
+    <div class="card">
+      <h2>دخول — عندي حساب</h2>
+      <p class="muted">سجّلت من قبل من جهاز آخر؟ ادخل باسمك وكودك واسترجع ملفك (ELO وXP والمباريات).</p>
+      <div class="form-grid">
+        <div><label for="lName">الاسم</label><input id="lName" type="text" placeholder="اسمك المسجّل"></div>
+        <div><label for="lCode">الكود</label><input id="lCode" type="text" placeholder="كودك"></div>
+      </div>
+      <button class="btn cyan" id="btnLogin">دخول</button>
+      <p class="muted small" id="loginMsg"></p>
+      <p class="muted small" id="cloudStatus"></p>
     </div>
     <div class="card notice">
       <strong>خصوصية:</strong> الفيديو لا يُسجَّل ولا يُرفَع أبداً. المعالجة كلها في متصفحك، والكاميرا تتوقف نهائياً عند إيقافها.
@@ -143,6 +154,8 @@
 
 <script src="js/boxing-moves.js"></script>
 <script src="js/boxing-profile.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/boxing-firebase.js"></script>
 <script src="js/boxing-pose.js"></script>
 <script src="js/boxing-match.js"></script>
 <script src="js/boxing-training.js"></script>
@@ -199,11 +212,63 @@
   $('btnSaveProfile').addEventListener('click', function () {
     profile.name = $('fName').value.trim(); profile.code = $('fCode').value.trim();
     profile.age = parseInt($('fAge').value, 10) || 18; profile.anime = $('fAnime').value.trim();
+    var savedCode = profile.code; // الكود يبقى في الذاكرة للجلسة فقط
+    var prevLink = Cloud ? Cloud.getCloudLink() : '';
     Profile.saveProfile(profile);
     $('profileSaved').textContent = 'تم حفظ الملف محلياً. (الكود يُحفظ كهاش فقط، لا نصاً عادياً — أعد إدخاله بعد تحديث الصفحة.)';
-    var savedCode = profile.code; // الكود يبقى في الذاكرة للجلسة فقط
     renderProfile();
     $('fCode').value = savedCode; // renderProfile يعيد تحميل الملف من التخزين (بلا كود نصي)
+    if (!Cloud || !Cloud.isConfigured()) return;
+    // غيّر الاسم؟ الرابط السحابي يخص الاسم القديم — نمسحه.
+    if (prevLink && Cloud.normalizeName(profile.name) !== prevLink) Cloud.clearCloudLink();
+    if (!savedCode) {
+      $('profileSaved').textContent = 'تم حفظ الملف محلياً. بلا كود، الحساب السحابي غير مربوط — دخل كودك (6 أحرف على الأقل) باش تربطو.';
+      return;
+    }
+    if (savedCode.length < Cloud.CODE_MIN) {
+      $('profileSaved').textContent = 'تم حفظ الملف محلياً. الكود قصير — خاصو 6 أحرف على الأقل باش يتسجل في السحابة.';
+      return;
+    }
+    // تسجيل سحابي (أفضل جهد، بلا حظر): إن كان الاسم مسجَّلاً من قبل نكتفي بالمحلي ونرشد للدخول.
+    Cloud.registerCloud(profile, savedCode).then(function () {
+      $('profileSaved').textContent = 'تم حفظ الملف — وتسجيل حسابك على Firebase، تقدر تدخل بيه من أي جهاز.';
+    }).catch(function (e) {
+      if (e && e.code === 'taken') $('profileSaved').textContent = 'تم حفظ الملف محلياً. هذا الاسم مسجَّل في السحابة من قبل — استعمل «دخول» لاسترجاعه.';
+      else if (e && e.code === 'not-configured') $('profileSaved').textContent = 'تم حفظ الملف محلياً. الدخول السحابي غير مهيأ في هذه النسخة.';
+      // غير ذلك (انقطاع): يبقى الملف محلياً، ونزامنه عند نهاية المباراة التالية.
+    });
+  });
+
+  // ---- الدخول السحابي (اسم + كود — من أي جهاز) ----
+  var Cloud = window.HalbaBoxingCloud || null;
+  var cloudStatusEl = $('cloudStatus');
+  if (cloudStatusEl) cloudStatusEl.textContent = (Cloud && Cloud.isConfigured()) ? 'الدخول السحابي جاهز — تقدر تدخل من أي جهاز.' : 'الدخول السحابي غير مهيأ في هذه النسخة.';
+  var btnLogin = $('btnLogin');
+  if (btnLogin) btnLogin.addEventListener('click', function () {
+    var name = $('lName').value.trim(), code = $('lCode').value.trim();
+    if (!name || !code) { $('loginMsg').textContent = 'ادخل الاسم والكود.'; return; }
+    if (!Cloud) { $('loginMsg').textContent = 'الدخول السحابي غير متاح في هذه النسخة.'; return; }
+    btnLogin.disabled = true;
+    $('loginMsg').textContent = 'جارٍ الدخول…';
+    Cloud.loginCloud(name, code).then(function (cloudProfile) {
+      btnLogin.disabled = false;
+      // إن كان الملف المحلي لنفس الاسم وعنده تقدّم أكثر، نحافظ عليه وندفعه للسحابة.
+      var merged = Cloud.mergeProfiles(Profile.loadProfile(), cloudProfile);
+      profile = merged.profile; profile.code = code; // الكود في الذاكرة للجلسة فقط
+      Profile.saveProfile(profile);
+      $('loginMsg').textContent = merged.keptLocal
+        ? 'تم الدخول — لقينا تقدّم محلي أجدد، حافظنا عليه وزامَنّاه.'
+        : 'تم الدخول — أهلاً بعودتك يا ' + cloudProfile.name + '!';
+      renderProfile();
+      $('fCode').value = code;
+      if (merged.keptLocal) Cloud.syncCloud(profile);
+    }).catch(function (e) {
+      btnLogin.disabled = false;
+      if (e && e.code === 'not-found') $('loginMsg').textContent = 'لا يوجد حساب بهذا الاسم — سجّل أولاً.';
+      else if (e && e.code === 'wrong-code') $('loginMsg').textContent = 'الكود غير صحيح — جرّب مرة أخرى.';
+      else if (e && e.code === 'not-configured') $('loginMsg').textContent = 'الدخول السحابي غير مهيأ في هذه النسخة.';
+      else $('loginMsg').textContent = 'تعذّر الدخول (لا يوجد اتصال؟) — جرّب لاحقاً.';
+    });
   });
   renderProfile();
 
@@ -245,6 +310,7 @@
       var label = r.result === 'win' ? 'فزت! 🏆' : r.result === 'loss' ? 'خسرت — درّب أكثر' : 'تعادل';
       $('matchFeedback').textContent = label + ' — إصابات: ' + r.hits + '، ELO الجديد: ' + (r.elo ? r.elo.newElo + ' (' + (r.elo.delta >= 0 ? '+' : '') + r.elo.delta + ')' : '—');
       renderProfile();
+      if (Cloud) Cloud.syncCloud(profile); // مزامنة ELO/XP مع السحابة (أفضل جهد، بلا حظر)
     }
   });
   $('btnStartMatch').addEventListener('click', function () { match.start(); });

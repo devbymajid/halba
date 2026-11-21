@@ -1,0 +1,39 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ملفات لاعبي الملاكمة: المستند = الاسم بعد التطبيع (trim + lowercase).
+    // الكود رمز لعبة (PIN) وليس كلمة سر بنكية: قراءة الهاش متاحة لمن يعرف
+    // الاسم (لازمة للتحقق من جهة العميل). القواعد هنا تمنع الحذف، وتقيّد
+    // الحقول بالضبط، وتجمّد codeHash وsalt وcreatedAt وname عند التحديث —
+    // فلا يستطيع أحد الاستيلاء على حساب بتغيير هاشه. كتابة متعمّدة عبر
+    // API مباشرة (مثلاً حجز اسم أو رفع ELO) تبقى ممكنة حتى يجي Firebase
+    // Auth مع الدمج مع القلب — وهذا موثّق ومقبول مؤقتاً للعبة.
+    match /boxing_profiles/{username} {
+      function validProfile(d) {
+        return d.keys().hasOnly(['name', 'displayName', 'codeHash', 'salt',
+              'age', 'anime', 'elo', 'xp', 'level', 'wins', 'losses',
+              'draws', 'matches', 'createdAt', 'updatedAt'])
+          && d.name is string && d.name.size() >= 2 && d.name.size() <= 30
+          && d.name == username
+          && d.displayName is string && d.displayName.size() >= 2 && d.displayName.size() <= 30
+          && d.codeHash is string && d.codeHash.size() == 64
+          && d.salt is string && d.salt.size() == 32
+          && d.elo is int && d.elo >= 100 && d.elo <= 3000
+          && d.xp is int && d.xp >= 0
+          && d.level is int && d.level >= 1 && d.level <= 100
+          && d.wins is int && d.wins >= 0
+          && d.losses is int && d.losses >= 0
+          && d.draws is int && d.draws >= 0
+          && d.matches is int && d.matches >= 0;
+      }
+      allow read: if true;
+      allow create: if validProfile(request.resource.data);
+      allow update: if validProfile(request.resource.data)
+        && request.resource.data.codeHash == resource.data.codeHash
+        && request.resource.data.salt == resource.data.salt
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.name == resource.data.name;
+      allow delete: if false;
+    }
+  }
+}

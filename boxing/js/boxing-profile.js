@@ -1,6 +1,8 @@
 /**
  * Halba — Boxing Profile / الملف و ELO
- * ملف مستقل لوضع الملاكمة. يخزّن محلياً فقط (localStorage) — لا رفع أبداً.
+ * ملف مستقل لوضع الملاكمة. محلي أولاً (localStorage) — ويُزامَن مع Firestore
+ * عند التسجيل/الدخول ونهاية المباراة (js/boxing-firebase.js)؛ إن انقطع
+ * الاتصال يبقى اللعب المحلي شغالاً بلا أي توقف.
  * نقطة الربط المتوقعة مع القلب لاحقاً:
  *   القلب سيملك ملف اللاعب الرئيسي (js/app.js / js/store.js في halba).
  *   عند الدمج: استبدل loadProfile/saveProfile هنا بقراءة/كتابة ملف القلب،
@@ -77,7 +79,17 @@
       return rnd;
     } catch (e) { return 'halba-local-salt'; }
   }
-  function hashCode(code) { return sha256HexSync(getSalt() + ':' + String(code || '')); }
+  // ---- الهاش: SHA-256 مكرر 1000 مرة (يبطّئ التخمين أوفلاين) ----
+  // الهاش والملح مقروءان لمن يعرف الاسم (لازمة للتحقق من جهة العميل)،
+  // فالتكرار + طول الكود الأدنى (6 أحرف، يُفرض في التسجيل) هما الحماية.
+  // بلا لاعبين بعد ولا حسابات قديمة — تغيير الدالة آمن الآن.
+  var HASH_ROUNDS = 1000;
+  function hashCodeWithSalt(code, salt) {
+    var h = sha256HexSync(String(salt || '') + ':' + String(code || ''));
+    for (var i = 1; i < HASH_ROUNDS; i++) h = sha256HexSync(h);
+    return h;
+  }
+  function hashCode(code) { return hashCodeWithSalt(code, getSalt()); }
 
   function defaultProfile() {
     return { name: '', code: '', codeHash: '', age: 18, anime: '', elo: 1000, xp: 0, level: 1, wins: 0, losses: 0, draws: 0, matches: 0, createdAt: new Date().toISOString() };
@@ -160,7 +172,7 @@
     return { elo: elo, xp: xp, profile: p };
   }
 
-  var api = { KEY: KEY, KEY_SALT: KEY_SALT, K_FACTOR: K_FACTOR, defaultProfile: defaultProfile, loadProfile: loadProfile, saveProfile: saveProfile, hasProfile: hasProfile, verifyCode: verifyCode, sha256HexSync: sha256HexSync, hashCode: hashCode, getSalt: getSalt, levelForXp: levelForXp, levelForXpLocal: levelForXpLocal, xpForLevel: xpForLevel, xpToNextLevel: xpToNextLevel, addXp: addXp, expectedScore: expectedScore, updateElo: updateElo, recordMatch: recordMatch };
+  var api = { KEY: KEY, KEY_SALT: KEY_SALT, K_FACTOR: K_FACTOR, HASH_ROUNDS: HASH_ROUNDS, defaultProfile: defaultProfile, loadProfile: loadProfile, saveProfile: saveProfile, hasProfile: hasProfile, verifyCode: verifyCode, sha256HexSync: sha256HexSync, hashCode: hashCode, hashCodeWithSalt: hashCodeWithSalt, getSalt: getSalt, levelForXp: levelForXp, levelForXpLocal: levelForXpLocal, xpForLevel: xpForLevel, xpToNextLevel: xpToNextLevel, addXp: addXp, expectedScore: expectedScore, updateElo: updateElo, recordMatch: recordMatch };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   global.HalbaBoxingProfile = api;
 })(typeof window !== 'undefined' ? window : globalThis);
