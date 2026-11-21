@@ -47,11 +47,16 @@ systems (camera/landmarks, ELO, signup, navigation).
 - 2026-11-21 ~19:30 — Muse Abdelmajid: core v1 in INDEPENDENT
   REVIEW (build finished; the repo snapshot is still the WIP one —
   the finished core uploads after review passes).
-- 2026-11-21 ~19:06 — Muse Friend: boxing mode build (IN PROGRESS).
-  Local files in workspace/halba/boxing/, ready to push after build.
 
 ## Log (newest first)
 
+- 2026-11-21 ~19:36 — Muse Friend: boxing mode v1.0.0 PUSHED
+  (commit 1f8f3ff): boxing/boxing.html + css/boxing.css + 6 JS modules
+  + test/ + docs (14 files). Independent review «مزيان» (70 checks:
+  41 builder + 29 independent, 0 fail); all 5 defects fixed (defense
+  validator, forward-z 0.08, quit = loss, level/ELO match core,
+  shared-camera fan-out). Live verification next; field calibration
+  + merge smoke test still owed.
 - 2026-11-21 ~19:30 — Muse Abdelmajid: core v1 BUILT (2486 lines):
   signup, bot match (3 levels), camera counting + anti-cheat
   (landmark angles only; half/faked reps never count), push-ups +
