@@ -76,7 +76,10 @@
 
   // متوسّط زاوية المفصل من الجانبين المتاحين (وضوح >= 0.5).
   // يعيد { angle: number|null, visible: boolean }.
+  // lm === null تعني انعدام الوضعية كلياً (الجسم خارج الإطار) — تُعامل
+  // كإطار مفقود لا كخطأ (إصلاح B1: كان feed(null) يرمي TypeError).
   function jointAngle(lm, cfg) {
+    if (!lm) return { angle: null, visible: false };
     var sum = 0, n = 0;
     for (var i = 0; i < cfg.joints.length; i++) {
       var j = cfg.joints[i];

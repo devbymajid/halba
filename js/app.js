@@ -47,6 +47,12 @@
   var training = null;     // { exercise, reps, startedAt, raf, simMode }
   var setupChoice = { exercise: 'pushup', bot: 'medium' };
 
+  // نقاط توصيل الأوضاع الخارجية (الملاكمة): سجلات تملؤها وحدات مستقلة
+  // عبر window.FitApp بلا تعديل هذا الملف.
+  var rematchHandlers = {}; // وضع -> دالة «مباراة أخرى»
+  var exerciseLabels = {};  // رمز تمرين خارجي -> تسمية عربية (للسجل)
+  var historyHooks = [];    // دوال تُستدعى بعد رسم السجل (أرقام أوضاع خارجية)
+
   function showScreen(id) {
     var screens = document.querySelectorAll('.screen');
     for (var i = 0; i < screens.length; i++) screens[i].classList.remove('on');
@@ -126,12 +132,27 @@
     if (isNaN(age) || age < 5 || age > 120) return authError('اكتب عمراً صحيحاً.');
     if (MIN_AGE > 0 && age < MIN_AGE) return authError('هذه اللعبة لمن هم فوق ' + MIN_AGE + ' سنة.');
     if (character.length < 2) return authError('اكتب اسم شخصية الأنمي التي ستلعب بها.');
+    var data = { name: name, pass: pass, age: age, character: character };
+    // إصلاح M2: حساب موجود على الجهاز — لا تكتب فوقه بصمت؛ اطلب تأكيداً
+    // لأن إنشاء حساب جديد يمسح التقييم والسجل والتحديات نهائياً.
+    if (Store.getAccount()) {
+      pendingSignup = data;
+      $('overwrite-confirm').classList.remove('hidden');
+      return;
+    }
+    createSignupAccount(data);
+  }
+
+  var pendingSignup = null; // بيانات تسجيل بانتظار تأكيد الكتابة فوق حساب موجود
+
+  function createSignupAccount(data) {
     $('su-submit').disabled = true;
-    Store.createAccount({ name: name, pass: pass, age: age, character: character }).then(function () {
+    Store.createAccount(data).then(function () {
       $('su-submit').disabled = false;
+      pendingSignup = null;
       renderHome();
       showScreen('screen-home');
-      toast('أهلاً بك في الحلبة، ' + character + '!');
+      toast('أهلاً بك في الحلبة، ' + data.character + '!');
     }).catch(function () {
       $('su-submit').disabled = false;
       authError('حدث خطأ — أعد المحاولة.');
@@ -223,7 +244,9 @@
       {
         onLandmarks: function (lm) {
           if (!match || match.phase !== 'live' || !counter) return;
-          if (!lm) { setTracking(false); setFormHint(false); return; }
+          // إصلاح B1: مرّر null للعدّاد أيضاً — وإلا ظلّ التكرار الجاري
+          // حياً أثناء خروج الجسم من الإطار واحتُسب عند عودته.
+          if (!lm) { setTracking(false); setFormHint(false); counter.feed(null); return; }
           setTracking(true);
           var r = counter.feed(lm);
           setFormHint(r.plankOk === false);
@@ -311,7 +334,12 @@
   function updateTug() {
     if (!match) return;
     var diff = match.youReps - match.botReps;
-    var pct = 50 + Math.max(-40, Math.min(40, diff * 4));
+    // العلامة تتحرك نحو جهة المتقدّم: جهتك (الوردي) على اليمين وجهة
+    // الخصم (السماوي) على اليسار، وright% صغيرة تعني قرب اليمين —
+    // لذا الإشارة سالبة: تقدّمك يقلّص right% (نحو جهتك)، وتقدّم
+    // الخصم يزيدها (نحو جهته). (أُصلح اتجاه معكوس اكتُشف في مراجعة
+    // لقطة المعركة: كانت العلامة تذهب لجهة المتأخر.)
+    var pct = 50 - Math.max(-40, Math.min(40, diff * 4));
     $('tug-marker').style.right = pct + '%';
     var label = $('tug-you-label');
     if (diff > 0) label.textContent = 'أنت متقدّم ◆';
@@ -382,7 +410,8 @@
       {
         onLandmarks: function (lm) {
           if (!training || !counter) return;
-          if (!lm) { setTrainTracking(false); return; }
+          // إصلاح B1: مرّر null للعدّاد أيضاً (كالمعركة أعلاه).
+          if (!lm) { setTrainTracking(false); counter.feed(null); return; }
           setTrainTracking(true);
           var r = counter.feed(lm);
           $('train-state').textContent = r.plankOk === false ? 'جسمك غير مستقيم — استقم، فالتكرار لا يُحتسب' : (r.state === 'down' ? 'أسفل ✓ — اصعد الآن' : (r.state === 'up' ? 'في الأعلى — انزل بالكامل' : 'واصل النزول...'));
@@ -469,8 +498,14 @@
       else if (r.result === 'forfeit') { title.textContent = 'استسلمت'; sub.textContent = 'خسارة محسوبة — عُد أقوى'; }
       else { title.textContent = 'خسرت هذه المرة'; sub.textContent = 'البوت كان أسرع — حاول مجدداً'; }
       var d = r.eloDelta;
-      $('result-elo').textContent = (d > 0 ? '+' : '') + d + ' (الآن ' + profile.elo + ')';
-      $('result-elo').className = d >= 0 ? 'good' : 'bad';
+      // إصلاح M4: علامة السالب U+2212 (لا الواصلة) + dir=ltr على العنصر،
+      // حتى لا تظهر "-8" كـ "8-" في السياق العربي.
+      $('result-elo').textContent = (d > 0 ? '+' : d < 0 ? '−' : '') + Math.abs(d) + ' (الآن ' + profile.elo + ')';
+      // إصلاح M3: classList بدل تعيين className — حتى لا يُمسح صنف val
+      // (خط Kufi ‏900) من قيمة التقييم.
+      var eloEl = $('result-elo');
+      eloEl.classList.remove('good', 'bad');
+      eloEl.classList.add(d >= 0 ? 'good' : 'bad');
     }
     $('result-xp').textContent = '+' + r.xpGain + ' XP';
     var lv = $('result-levelup');
@@ -506,14 +541,21 @@
         var resCls = h.res === 'win' ? 'good' : (h.res === 'draw' ? '' : 'bad');
         var d = new Date(h.d);
         var dateTxt = d.getDate() + '/' + (d.getMonth() + 1);
+        // تسمية التمرين: تمارين القلب من EXERCISES، والأوضاع الخارجية
+        // من سجل التسميات (registerExerciseLabel)، وإلا الرمز نفسه.
+        var exLabel = window.FitRep.EXERCISES[h.ex] ? window.FitRep.EXERCISES[h.ex].label : (exerciseLabels[h.ex] || h.ex);
+        // إصلاح M5: سقوط احتياطي لمستوى بوت غير معروف — إدخال فاسد واحد
+        // لا يعطّل شاشة السجل كلها.
+        var botLabel = (window.FitBot.LEVELS[h.bot] || {}).label || 'بوت';
         row.innerHTML = '<span class="hist-res ' + resCls + '">' + resTxt + '</span>' +
-          '<span class="hist-mid">' + window.FitRep.EXERCISES[h.ex].label + ' ضد بوت ' +
-          window.FitBot.LEVELS[h.bot].label + '</span>' +
+          '<span class="hist-mid">' + exLabel + ' ضد بوت ' +
+          botLabel + '</span>' +
           '<span class="hist-score">' + h.you + ' — ' + h.botReps + '</span>' +
           '<span class="hist-date">' + dateTxt + '</span>';
         list.appendChild(row);
       });
     }
+    historyHooks.forEach(function (fn) { try { fn(profile); } catch (e) {} });
     showScreen('screen-history');
   }
 
@@ -536,6 +578,14 @@
     $('brand-name').textContent = GAME_NAME;
 
     $('su-submit').addEventListener('click', doSignup);
+    $('overwrite-yes').addEventListener('click', function () {
+      $('overwrite-confirm').classList.add('hidden');
+      if (pendingSignup) createSignupAccount(pendingSignup);
+    });
+    $('overwrite-no').addEventListener('click', function () {
+      $('overwrite-confirm').classList.add('hidden');
+      pendingSignup = null;
+    });
     $('li-submit').addEventListener('click', doLogin);
     $('to-login').addEventListener('click', function () { showAuth('login'); });
     $('to-signup').addEventListener('click', function () { showAuth('signup'); });
@@ -597,7 +647,9 @@
     });
 
     $('btn-result-rematch').addEventListener('click', function () {
-      if (this.dataset.mode === 'training') startTraining();
+      var mode = this.dataset.mode;
+      if (rematchHandlers[mode]) { rematchHandlers[mode](); return; }
+      if (mode === 'training') startTraining();
       else renderSetup();
     });
     $('btn-result-home').addEventListener('click', function () {
@@ -632,6 +684,10 @@
   }
 
   // ---------- خطافات الاختبار ----------
+  // تُفعَّل فقط مع ?test=1 — حتى لا تبقى أدوات الحقن وتمديد المؤقّت
+  // متاحة في بناء الإنتاج (مراجعة مستقلة M1). الفحص الحي والاختبارات
+  // تفتح التطبيق بـ ?test=1.
+  if (/[?&]test=1(?:&|$)/.test(location.search)) {
   window.__fit = {
     version: VERSION,
     gameName: GAME_NAME,
@@ -670,6 +726,36 @@
       setupChoice.bot = botLevel || 'medium';
       startMatch();
     }
+  };
+  }
+
+  // ---------- واجهة عامة للأوضاع الإضافية (الملاكمة وغيرها) ----------
+  // وحدة مستقلة (ملف JS منفصل يُحمَّل بعد app.js) توصّل نفسها بالقلب
+  // عبر window.FitApp + الوحدات العامة (FitStore / FitPose / FitRep / FitBot)
+  // بلا تعديل ملفات القلب. البروتوكول الكامل في NOTES.md («كيف يوصّل
+  // وضع جديد نفسه بالقلب»). ملاحظة مهمة: showResult يقرأ ELO والسلسلة
+  // من نسخة الملف الشخصي الداخلية — بعد حفظ ملف محدَّث استدعِ
+  // refreshProfile() أولاً حتى تعرض النتيجة الأرقام الجديدة.
+  window.FitApp = {
+    version: VERSION,
+    gameName: GAME_NAME,
+    arenaName: ARENA_NAME,
+    xpPerRep: XP_PER_REP, // اقتصاد موحّد: 10 XP لكل حركة/تكرار محسوب
+    showScreen: showScreen,
+    renderHome: renderHome,
+    refreshProfile: function () { profile = Store.getProfile(); },
+    toast: toast,
+    vibrate: vibrate,
+    flashRep: flashRep,
+    fmtTime: fmtTime,
+    stopSession: stopSession,
+    showResult: showResult,
+    // تسجيل دالة «مباراة أخرى» لوضع خارجي (مثلاً 'boxing').
+    registerRematch: function (mode, fn) { rematchHandlers[mode] = fn; },
+    // تسجيل التسمية العربية لرمز تمرين خارجي في السجل (مثلاً 'boxing' -> 'ملاكمة').
+    registerExerciseLabel: function (ex, label) { exerciseLabels[ex] = label; },
+    // تسجيل دالة تُستدعى بعد رسم السجل (لتحديث أرقام الوضع الخارجي فيه).
+    registerHistoryHook: function (fn) { historyHooks.push(fn); }
   };
 
   // ---------- الإقلاع ----------

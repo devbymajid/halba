@@ -77,6 +77,7 @@
       var d = defaultProfile();
       for (var k in d) if (p[k] === undefined) p[k] = d[k];
       if (!p.best) p.best = d.best;
+      else for (var bk in d.best) if (p.best[bk] === undefined) p.best[bk] = d.best[bk];
       if (!p.daily) p.daily = d.daily;
       if (!Array.isArray(p.history)) p.history = [];
       return p;
