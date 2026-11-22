@@ -1,7 +1,7 @@
 // Boxing gate test — run: node test/boxing-gate.test.js
 // Loads the real boxing JS files + the inline script from boxing.html,
-// then asserts: pre-registration only cheer shows, tabs hidden;
-// after saving a profile, all tabs show and cheer hides.
+// then asserts: pre-login only the login screen shows (no nav, no profile bar, no notice);
+// after login/register, all tabs show, the login card hides, and logout returns to the login screen.
 'use strict';
 const fs = require('fs');
 const vm = require('vm');
@@ -30,9 +30,11 @@ function makeEl(id) {
   };
 }
 
-const IDS = ['profileBar', 'fName', 'fCode', 'fAge', 'fAnime', 'btnSaveProfile', 'profileSaved', 'profileStats',
+const IDS = ['profileBar', 'fName', 'fCode', 'fAge', 'fAnime', 'btnSaveProfile', 'profileSaved',
   'lName', 'lCode', 'btnLogin', 'loginMsg', 'cloudStatus',
-  'welcomeCheer', 'heroSub', 'matchTimer', 'hpPlayer', 'hpBot', 'hpPlayerText', 'hpBotText', 'botName',
+  'loginCard', 'registerCard', 'linkShowRegister', 'linkShowLogin', 'showRegisterWrap', 'showLoginWrap',
+  'mainTabs', 'noticeCard', 'logoutWrap', 'btnLogout',
+  'heroSub', 'matchTimer', 'hpPlayer', 'hpBot', 'hpPlayerText', 'hpBotText', 'botName',
   'matchHits', 'matchHalf', 'matchDodges', 'matchCommand', 'matchFeedback', 'matchVideo', 'matchCanvas',
   'btnStartMatch', 'btnStopMatch', 'btnSimFullMatch', 'btnSimHalfMatch', 'lvl-easy', 'lvl-medium', 'lvl-hard',
   'trainMove', 'trainTarget', 'trainCommand', 'trainFeedback', 'trainCount', 'trainHalf', 'trainAcc', 'trainStreak',
@@ -102,7 +104,11 @@ check('pre-reg: training tab hidden', tabByName('training').style.display === 'n
 check('pre-reg: combos tab hidden', tabByName('combos').style.display === 'none');
 check('pre-reg: camera tab hidden', tabByName('camera').style.display === 'none');
 check('pre-reg: profile tab visible', tabByName('profile').style.display !== 'none');
-check('pre-reg: cheer visible', els.welcomeCheer.style.display === '');
+check('pre-reg: nav hidden (login screen only)', els.mainTabs.style.display === 'none');
+check('pre-reg: profile bar hidden', els.profileBar.style.display === 'none');
+check('pre-reg: notice hidden', els.noticeCard.style.display === 'none');
+check('pre-reg: logout hidden', els.logoutWrap.style.display === 'none');
+check('pre-reg: login card visible', els.loginCard.style.display === '');
 check('pre-reg: hero subtitle hidden', els.heroSub.style.display === 'none');
 check('pre-reg: profile panel active', panels[0].classList.contains('active'));
 
@@ -110,7 +116,18 @@ check('pre-reg: profile panel active', panels[0].classList.contains('active'));
 tabByName('match').click();
 check('pre-reg: clicking match tab does not switch panel', panels[0].classList.contains('active') && !panels[1].classList.contains('active'));
 
+// --- 1b. Login first: register hidden behind a link ---
+check('toggle: register hidden by default', els.registerCard.style.display === 'none');
+check('toggle: register link visible by default', els.showRegisterWrap.style.display !== 'none');
+els.linkShowRegister.click();
+check('toggle: click register link shows form', els.registerCard.style.display === '' && els.showRegisterWrap.style.display === 'none');
+check('toggle: click register link hides login card', els.loginCard.style.display === 'none');
+els.linkShowLogin.click();
+check('toggle: back to login hides form again', els.registerCard.style.display === 'none' && els.showRegisterWrap.style.display === '');
+check('toggle: back to login shows login card again', els.loginCard.style.display === '');
+
 // --- 2. Register ---
+els.linkShowRegister.click(); // التسجيل وراء رابط — نظهره أولاً
 els.fName.value = 'مجيد';
 els.fCode.value = 'secret123';
 els.fAge.value = '25';
@@ -120,7 +137,14 @@ check('post-reg: match tab visible', tabByName('match').style.display === '');
 check('post-reg: training tab visible', tabByName('training').style.display === '');
 check('post-reg: combos tab visible', tabByName('combos').style.display === '');
 check('post-reg: camera tab visible', tabByName('camera').style.display === '');
-check('post-reg: cheer hidden', els.welcomeCheer.style.display === 'none');
+check('post-reg: nav visible', els.mainTabs.style.display === '');
+check('post-reg: profile bar visible', els.profileBar.style.display === '');
+check('post-reg: notice visible', els.noticeCard.style.display === '');
+check('post-reg: logout visible', els.logoutWrap.style.display === '');
+check('post-reg: profile form visible (editor)', els.registerCard.style.display === '');
+check('post-reg: login card hidden', els.loginCard.style.display === 'none');
+check('post-reg: register link hidden', els.showRegisterWrap.style.display === 'none');
+check('post-reg: back-to-login link hidden', els.showLoginWrap.style.display === 'none');
 check('post-reg: hero subtitle visible', els.heroSub.style.display === '');
 check('post-reg: code stored as hash only', (store.halba_boxing_profile_v1 || '').indexOf('secret123') === -1);
 
@@ -161,10 +185,15 @@ check('bot level: back to medium ELO 1200', els['lvl-medium'].classList.contains
   check('login: wrong code shows error', (els.loginMsg.textContent || '').indexOf('غير صحيح') !== -1);
   check('login: wrong code keeps current profile', (els.profileBar.innerHTML || '').indexOf('مجيد') !== -1);
 
-  // دخول صحيح: يبدّل الملف ويفتح الألسنة
+  // دخول صحيح: يبدّل الملف ويفتح الألسنة (ونموذج التسجيل مفتوح — يجب أن ينغلق)
+  els.linkShowRegister.click();
+  check('login: register form open before login', els.registerCard.style.display === '');
   els.lCode.value = 'PIN7777';
   els.btnLogin.click();
   await tick(); await tick();
+  check('login: login card hidden after login', els.loginCard.style.display === 'none');
+  check('login: back-to-login link hidden after login', els.showLoginWrap.style.display === 'none');
+  check('login: profile form visible after login', els.registerCard.style.display === '');
   check('login: success message', (els.loginMsg.textContent || '').indexOf('أهلاً بعودتك') !== -1);
   check('login: profile bar shows cloud name', (els.profileBar.innerHTML || '').indexOf('سليم') !== -1);
   check('login: profile bar shows cloud ELO', (els.profileBar.innerHTML || '').indexOf('1100') !== -1);
@@ -181,6 +210,19 @@ check('bot level: back to medium ELO 1200', els['lvl-medium'].classList.contains
   els.fCode.value = '123';
   els.btnSaveProfile.click();
   check('save: short code warns (6 chars min)', (els.profileSaved.textContent || '').indexOf('6 أحرف') !== -1);
+
+  // --- 4. Logout: back to the clean login screen ---
+  els.btnLogout.click();
+  check('logout: nav hidden', els.mainTabs.style.display === 'none');
+  check('logout: profile bar hidden', els.profileBar.style.display === 'none');
+  check('logout: notice hidden', els.noticeCard.style.display === 'none');
+  check('logout: logout hidden', els.logoutWrap.style.display === 'none');
+  check('logout: login card visible', els.loginCard.style.display === '');
+  check('logout: register hidden', els.registerCard.style.display === 'none');
+  check('logout: register link visible', els.showRegisterWrap.style.display === '');
+  check('logout: match tab hidden', tabByName('match').style.display === 'none');
+  check('logout: profile cleared', (store.halba_boxing_profile_v1 || '').indexOf('سليم') === -1);
+  check('logout: cloud link cleared', !store.halba_boxing_cloud_link_v1);
 
   console.log(fail === 0 ? 'ALL GATE TESTS PASS' : 'GATE TESTS FAILED: ' + fail);
   process.exit(fail === 0 ? 0 : 1);

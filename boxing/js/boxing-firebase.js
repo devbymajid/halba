@@ -277,6 +277,22 @@
     }
   }
 
+  // ---- الترتيب العام: كل اللاعبين مرتبين حسب XP ثم ELO ثم الاسم ----
+  // يُستعمل لعرض منصة التتويج (الأول والثاني والثالث) ثم باقي اللاعبين.
+  async function listProfiles() {
+    var db = await ensureReady();
+    var snap = await db.collection(COLLECTION).get();
+    var out = [];
+    snap.forEach(function (d) {
+      var p = fromCloudDoc(d.data());
+      if (p && p.name) out.push(p);
+    });
+    out.sort(function (a, b) {
+      return (b.xp - a.xp) || (b.elo - a.elo) || String(a.name).localeCompare(String(b.name), 'ar');
+    });
+    return out;
+  }
+
   var api = {
     COLLECTION: COLLECTION, LINK_KEY: LINK_KEY, SDK_VERSION: SDK_VERSION,
     CODE_MIN: CODE_MIN, NAME_MIN: NAME_MIN, NAME_MAX: NAME_MAX,
@@ -287,7 +303,7 @@
     toCloudDoc: toCloudDoc, fromCloudDoc: fromCloudDoc, verifyCloudCode: verifyCloudCode,
     mergeProfiles: mergeProfiles,
     ensureReady: ensureReady, setFirestore: setFirestore,
-    registerCloud: registerCloud, loginCloud: loginCloud, syncCloud: syncCloud
+    registerCloud: registerCloud, loginCloud: loginCloud, syncCloud: syncCloud, listProfiles: listProfiles
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   global.HalbaBoxingCloud = api;

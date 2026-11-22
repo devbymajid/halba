@@ -14,38 +14,19 @@
 
 <div class="profile-bar" id="profileBar">—</div>
 
-<nav class="tabs" aria-label="التنقل">
+<nav class="tabs" id="mainTabs" aria-label="التنقل">
   <button data-tab="profile" class="active">الملف والتسجيل</button>
   <button data-tab="match">المباراة</button>
   <button data-tab="training">التدريب</button>
   <button data-tab="combos">الكومبو</button>
   <button data-tab="camera">الكاميرا والاختبار</button>
+  <button data-tab="leaderboard">الترتيب</button>
 </nav>
 
 <main>
   <!-- الملف -->
   <section class="panel active" id="panel-profile">
-    <!-- التشجيع — يظهر وحده قبل التسجيل -->
-    <div class="card cheer" id="welcomeCheer">
-      <h2>أهلاً بك في الحلبة!</h2>
-      <p class="cheer-line">كل بطل بدا من أول خطوة — وخطوتك الأولى هي التسجيل.</p>
-      <p>سجّل اسمك وكودك وعمرك وشخصية الأنمي ديالك، وادخل الحلبة باش تبدا رحلتك: مباريات مصنّفة ضد البوت، تدريب فردي، وسلّم كومبو — والكاميرا كتحسب غير الحركات الحقيقية الكاملة.</p>
-      <p class="cheer-line"><strong>سجّل دابا، والحلبة كتسناك!</strong></p>
-    </div>
-    <div class="card">
-      <h2>التسجيل — ملف اللاعب</h2>
-      <p class="muted">هذه النسخة مستقلة لوضع الملاكمة. عند الدمج مع القلب، يُستبدل هذا الملف بملف اللاعب الرئيسي (نفس الحقول). يُحفظ محلياً، ويُزامَن مع حسابك على Firebase عند التسجيل — تقدر تدخل بيه من أي جهاز.</p>
-      <div class="form-grid">
-        <div><label for="fName">الاسم</label><input id="fName" type="text" placeholder="مثال: مجيد"></div>
-        <div><label for="fCode">الكود</label><input id="fCode" type="text" placeholder="كود اللاعب — 6 أحرف على الأقل"></div>
-        <div><label for="fAge">العمر</label><input id="fAge" type="number" min="10" max="99" value="18"></div>
-        <div><label for="fAnime">اسم شخصية الأنمي</label><input id="fAnime" type="text" placeholder="مثال: كايتو"></div>
-      </div>
-      <button class="btn" id="btnSaveProfile">حفظ الملف</button>
-      <p class="muted small" id="profileSaved"></p>
-      <div class="stats" id="profileStats"></div>
-    </div>
-    <div class="card">
+    <div class="card" id="loginCard">
       <h2>دخول — عندي حساب</h2>
       <p class="muted">سجّلت من قبل من جهاز آخر؟ ادخل باسمك وكودك واسترجع ملفك (ELO وXP والمباريات).</p>
       <div class="form-grid">
@@ -56,7 +37,22 @@
       <p class="muted small" id="loginMsg"></p>
       <p class="muted small" id="cloudStatus"></p>
     </div>
-    <div class="card notice">
+    <p class="muted" id="showRegisterWrap">ما عندكش حساب؟ <button class="linklike" id="linkShowRegister" type="button">سجّل دابا</button></p>
+    <div class="card" id="registerCard" style="display:none">
+      <h2>التسجيل — ملف اللاعب</h2>
+      <p class="muted">حساب جديد: اسمك وكودك وعمرك وشخصية الأنمي — تقدمك يتحفظ، وتقدر تدخل من أي جهاز.</p>
+      <div class="form-grid">
+        <div><label for="fName">الاسم</label><input id="fName" type="text" placeholder="مثال: مجيد"></div>
+        <div><label for="fCode">الكود</label><input id="fCode" type="text" placeholder="كود اللاعب — 6 أحرف على الأقل"></div>
+        <div><label for="fAge">العمر</label><input id="fAge" type="number" min="10" max="99" value="18"></div>
+        <div><label for="fAnime">اسم شخصية الأنمي</label><input id="fAnime" type="text" placeholder="مثال: كايتو"></div>
+      </div>
+      <button class="btn" id="btnSaveProfile">حفظ الملف</button>
+      <p class="muted small" id="profileSaved"></p>
+      <p class="muted" id="showLoginWrap">عندي حساب — <button class="linklike" id="linkShowLogin" type="button">رجوع للدخول</button></p>
+    </div>
+    <p class="muted" id="logoutWrap" style="display:none"><button class="linklike" id="btnLogout" type="button">تسجيل الخروج</button></p>
+    <div class="card notice" id="noticeCard">
       <strong>خصوصية:</strong> الفيديو لا يُسجَّل ولا يُرفَع أبداً. المعالجة كلها في متصفحك، والكاميرا تتوقف نهائياً عند إيقافها.
     </div>
   </section>
@@ -96,6 +92,13 @@
   <section class="panel" id="panel-training">
     <div class="card">
       <h2>تدريب فردي — بلا خصم</h2>
+      <div class="card consent" id="cameraConsentCard" style="display:none">
+        <h3>قبل أن تبدأ — الكاميرا هي الحكم</h3>
+        <p>الكاميرا تشاهد حركاتك وتحتسب فقط الحركات الكاملة والصحيحة بنسبة 100%، ولا تحتسب الحركة النصفية. وُضع هذا النظام لمنع الغش، ولضمان أن يكون مستواك ونقاطك وتقدّمك حقيقيين وعادلين — لأن الترتيب العام لجميع اللاعبين يتصدّره صاحب أعلى النقاط وأعلى مستوى.</p>
+        <p>الفيديو لا يُسجَّل ولا يُرفَع أبداً؛ كل المعالجة تتم داخل جهازك. بالضغط على «أوافق»، فأنت توافق على تشغيل الكاميرا وفق هذه القواعد.</p>
+        <button class="btn cyan" id="btnConsentCamera" type="button">أوافق على تشغيل الكاميرا</button>
+        <button class="btn ghost" id="btnConsentLater" type="button">ليس الآن</button>
+      </div>
       <div class="form-grid">
         <div><label for="trainMove">الحركة</label><select id="trainMove">
           <option value="JAB">جاب (1)</option><option value="CROSS">كروس (2)</option>
@@ -148,6 +151,17 @@
       <p class="muted small">افتح الصفحة من خادم محلي (انظر README) لأن فتحها مباشرة قد يمنع تحميل بعض الملفات في بعض المتصفحات.</p>
     </div>
   </section>
+
+  <!-- الترتيب -->
+  <section class="panel" id="panel-leaderboard">
+    <div class="card">
+      <h2>الترتيب العام — أفضل اللاعبين</h2>
+      <p class="muted">الأول هو صاحب أعلى النقاط وأعلى مستوى — بلا غش: الكاميرا تتحقق من كل حركة.</p>
+      <div id="leaderboardBody"><p class="muted">اضغط «تحديث الترتيب» لعرض اللاعبين.</p></div>
+      <button class="btn cyan" id="btnRefreshLeaderboard">تحديث الترتيب</button>
+      <p class="muted small" id="leaderboardMsg"></p>
+    </div>
+  </section>
 </main>
 
 <footer>حلبة — وضع الملاكمة • 100% أصلي • الفيديو لا يُسجَّل ولا يُرفَع أبداً • MediaPipe Pose مجاني في المتصفح</footer>
@@ -177,18 +191,46 @@
       activeTab = tab;
       document.querySelectorAll('nav.tabs button').forEach(function (b) { b.classList.toggle('active', b === btn); });
       document.querySelectorAll('section.panel').forEach(function (p) { p.classList.toggle('active', p.id === 'panel-' + activeTab); });
+      if (tab === 'training') showCameraConsent();
+      if (tab === 'leaderboard') loadLeaderboard();
     });
   });
 
-  // ---- البوابة: قبل التسجيل يظهر التشجيع وحده ----
+  // ---- موافقة الكاميرا في التدريب (أول مرة فقط) ----
+  // رسالة تشرح أن الكاميرا هي الحكم: تحسب فقط الحركات الكاملة 100%
+  // لمنع الغش، لأن الترتيب العام يتصدره صاحب أعلى النقاط وأعلى مستوى.
+  var CONSENT_KEY = 'halba_boxing_camera_consent_v1';
+  function hasCameraConsent() { try { return localStorage.getItem(CONSENT_KEY) === '1'; } catch (e) { return false; } }
+  function showCameraConsent() {
+    var c = $('cameraConsentCard'); if (c) c.style.display = hasCameraConsent() ? 'none' : '';
+  }
+  var btnConsentCamera = $('btnConsentCamera');
+  if (btnConsentCamera) btnConsentCamera.addEventListener('click', function () {
+    try { localStorage.setItem(CONSENT_KEY, '1'); } catch (e) {}
+    showCameraConsent();
+  });
+  var btnConsentLater = $('btnConsentLater');
+  if (btnConsentLater) btnConsentLater.addEventListener('click', function () { var c = $('cameraConsentCard'); if (c) c.style.display = 'none'; });
+
+  // ---- البوابة: قبل الدخول تظهر شاشة الدخول وحدها (بلا بطونات وبلا تكرار) ----
   // مسجَّل = اسم + (كود الجلسة أو هاشه المحفوظ) — نفس hasProfile في الملف.
   function updateGating() {
     var registered = Profile.hasProfile(profile);
     document.querySelectorAll('nav.tabs button').forEach(function (b) {
       if (b.getAttribute('data-tab') !== 'profile') b.style.display = registered ? '' : 'none';
     });
-    $('welcomeCheer').style.display = registered ? 'none' : '';
+    var nav = $('mainTabs'); if (nav) nav.style.display = registered ? '' : 'none';
+    var bar = $('profileBar'); if (bar) bar.style.display = registered ? '' : 'none';
+    var notice = $('noticeCard'); if (notice) notice.style.display = registered ? '' : 'none';
+    var logout = $('logoutWrap'); if (logout) logout.style.display = registered ? '' : 'none';
     $('heroSub').style.display = registered ? '' : 'none';
+    if (registered) {
+      // مسجّل: بطاقة الملف وحدها — بلا بطاقة دخول وبلا رابط تسجيل وبلا رابط «رجوع للدخول»
+      var lc = $('loginCard'); if (lc) lc.style.display = 'none';
+      var w1 = $('showRegisterWrap'); if (w1) w1.style.display = 'none';
+      var w2 = $('showLoginWrap'); if (w2) w2.style.display = 'none';
+      var rc = $('registerCard'); if (rc) rc.style.display = '';
+    }
     if (!registered && activeTab !== 'profile') {
       activeTab = 'profile';
       document.querySelectorAll('nav.tabs button').forEach(function (b) { b.classList.toggle('active', b.getAttribute('data-tab') === 'profile'); });
@@ -202,10 +244,9 @@
     profile = Profile.loadProfile();
     $('profileBar').innerHTML = profile.name
       ? 'اللاعب: <b>' + escapeHtml(profile.name) + '</b> • الشخصية: <b>' + escapeHtml(profile.anime || '—') + '</b> • ELO: <b>' + profile.elo + '</b> • المستوى ' + profile.level + ' • XP ' + profile.xp + ' • فوز ' + profile.wins + ' / خسارة ' + profile.losses
-      : 'لا يوجد ملف بعد — سجّل اسمك وكودك وعمرك وشخصية الأنمي.';
+      : 'لا يوجد ملف بعد — ادخل بحسابك أو سجّل حساباً جديداً.';
     $('fName').value = profile.name || ''; $('fCode').value = profile.code || '';
     $('fAge').value = profile.age || 18; $('fAnime').value = profile.anime || '';
-    $('profileStats').innerHTML = '<span>ELO: <b>' + profile.elo + '</b></span><span>المستوى: <b>' + profile.level + '</b></span><span>XP: <b>' + profile.xp + '</b></span><span>مباريات: <b>' + profile.matches + '</b></span><span>فوز: <b>' + profile.wins + '</b></span><span>تعادل: <b>' + profile.draws + '</b></span><span>خسارة: <b>' + profile.losses + '</b></span>';
     updateGating();
   }
   function escapeHtml(s) { return String(s || '').replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -217,6 +258,7 @@
     Profile.saveProfile(profile);
     $('profileSaved').textContent = 'تم حفظ الملف محلياً. (الكود يُحفظ كهاش فقط، لا نصاً عادياً — أعد إدخاله بعد تحديث الصفحة.)';
     renderProfile();
+    showRegisterForm(false); // بعد التسجيل نرجع للدخول أولاً
     $('fCode').value = savedCode; // renderProfile يعيد تحميل الملف من التخزين (بلا كود نصي)
     if (!Cloud || !Cloud.isConfigured()) return;
     // غيّر الاسم؟ الرابط السحابي يخص الاسم القديم — نمسحه.
@@ -243,6 +285,20 @@
   var Cloud = window.HalbaBoxingCloud || null;
   var cloudStatusEl = $('cloudStatus');
   if (cloudStatusEl) cloudStatusEl.textContent = (Cloud && Cloud.isConfigured()) ? 'الدخول السحابي جاهز — تقدر تدخل من أي جهاز.' : 'الدخول السحابي غير مهيأ في هذه النسخة.';
+  // التبديل بين الدخول والتسجيل: الدخول أولاً، والتسجيل وراء رابط.
+  // مسجّل؟ البوابة تتحكم في العرض — التبديل غير فعّال.
+  function showRegisterForm(show) {
+    if (Profile.hasProfile(profile)) return;
+    var lc = $('loginCard'); if (lc) lc.style.display = show ? 'none' : '';
+    var rc = $('registerCard'); if (rc) rc.style.display = show ? '' : 'none';
+    var w1 = $('showRegisterWrap'); if (w1) w1.style.display = show ? 'none' : '';
+    var w2 = $('showLoginWrap'); if (w2) w2.style.display = show ? '' : 'none';
+  }
+  var linkShowRegister = $('linkShowRegister');
+  if (linkShowRegister) linkShowRegister.addEventListener('click', function () { showRegisterForm(true); });
+  var linkShowLogin = $('linkShowLogin');
+  if (linkShowLogin) linkShowLogin.addEventListener('click', function () { showRegisterForm(false); });
+  showRegisterForm(false); // التسجيل مخفي افتراضياً — الدخول أولاً
   var btnLogin = $('btnLogin');
   if (btnLogin) btnLogin.addEventListener('click', function () {
     var name = $('lName').value.trim(), code = $('lCode').value.trim();
@@ -260,6 +316,7 @@
         ? 'تم الدخول — لقينا تقدّم محلي أجدد، حافظنا عليه وزامَنّاه.'
         : 'تم الدخول — أهلاً بعودتك يا ' + cloudProfile.name + '!';
       renderProfile();
+      showRegisterForm(false); // بعد الدخول نرجع للدخول أولاً
       $('fCode').value = code;
       if (merged.keptLocal) Cloud.syncCloud(profile);
     }).catch(function (e) {
@@ -270,6 +327,54 @@
       else $('loginMsg').textContent = 'تعذّر الدخول (لا يوجد اتصال؟) — جرّب لاحقاً.';
     });
   });
+  // ---- تسجيل الخروج: يمسح الملف المحلي والرابط السحابي وكود الجلسة، ويرجع لشاشة الدخول ----
+  var btnLogout = $('btnLogout');
+  if (btnLogout) btnLogout.addEventListener('click', function () {
+    if (Cloud) { Cloud.clearCloudLink(); Cloud.setSessionCode(''); }
+    profile = Profile.defaultProfile();
+    Profile.saveProfile(profile);
+    $('lName').value = ''; $('lCode').value = '';
+    $('loginMsg').textContent = ''; $('profileSaved').textContent = '';
+    renderProfile();
+    showRegisterForm(false);
+  });
+  // ---- الترتيب العام: منصة (الأول فوق بوحده، الثاني والثالث في الجناب لتحت) ثم باقي اللاعبين واحداً تحت واحد ----
+  function renderLeaderboard(list) {
+    var body = $('leaderboardBody'); if (!body) return;
+    if (!list || !list.length) { body.innerHTML = '<p class="muted">لا يوجد لاعبون بعد — كن أول بطل!</p>'; return; }
+    var me = Profile.hasProfile(profile) && Cloud ? Cloud.normalizeName(profile.name) : '';
+    function isMe(p) { return !!(me && Cloud && Cloud.normalizeName(p.name) === me); }
+    function meta(p) { return 'المستوى ' + p.level + ' • ' + p.xp + ' نقطة • ELO ' + p.elo + (isMe(p) ? ' • أنت' : ''); }
+    function row(p, rank) {
+      return '<div class="rank-row' + (isMe(p) ? ' me' : '') + '"><span class="rank-num">' + rank + '</span><span class="rank-name">' + escapeHtml(p.name) + '</span><span class="rank-meta">' + meta(p) + '</span></div>';
+    }
+    var html = '<div class="podium"><div class="podium-first"><div class="podium-medal">🥇</div><div class="podium-name">' + escapeHtml(list[0].name) + '</div><div class="podium-meta">' + meta(list[0]) + '</div></div>';
+    if (list.length > 1) {
+      html += '<div class="podium-row"><div class="podium-side second"><div class="podium-medal">🥈</div><div class="podium-name">' + escapeHtml(list[1].name) + '</div><div class="podium-meta">' + meta(list[1]) + '</div></div>';
+      if (list.length > 2) html += '<div class="podium-side third"><div class="podium-medal">🥉</div><div class="podium-name">' + escapeHtml(list[2].name) + '</div><div class="podium-meta">' + meta(list[2]) + '</div></div>';
+      html += '</div>';
+    }
+    html += '</div>';
+    if (list.length > 3) {
+      html += '<div class="rank-list">';
+      for (var i = 3; i < list.length; i++) html += row(list[i], i + 1);
+      html += '</div>';
+    }
+    body.innerHTML = html;
+  }
+  function loadLeaderboard() {
+    var msg = $('leaderboardMsg');
+    if (!Cloud || !Cloud.isConfigured()) { if (msg) msg.textContent = 'الترتيب غير متاح في هذه النسخة.'; return; }
+    if (msg) msg.textContent = 'جارٍ تحميل الترتيب…';
+    Cloud.listProfiles().then(function (list) {
+      renderLeaderboard(list);
+      if (msg) msg.textContent = list.length ? 'آخر تحديث: الآن.' : '';
+    }).catch(function () {
+      if (msg) msg.textContent = 'تعذّر تحميل الترتيب — جرّب لاحقاً.';
+    });
+  }
+  var btnRefreshLeaderboard = $('btnRefreshLeaderboard');
+  if (btnRefreshLeaderboard) btnRefreshLeaderboard.addEventListener('click', loadLeaderboard);
   renderProfile();
 
   // ---- الكاميرا ----
