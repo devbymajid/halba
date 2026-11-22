@@ -2888,10 +2888,10 @@ setSrcIfEmpty("#cupPage .gym-hero img", IMG_BOX);
       (function () {
         /* الشخصيات الجاهزة: ملفات VRM حقيقية — الذكر يرى الذكور فقط والأنثى ترى الإناث فقط */
         var CHARACTERS = [
-          { id: "gojo", name: "غوجو", sub: "Gojo", gender: "male", file: "assets/gojo.vrm", v1: false },
-          { id: "toji", name: "توجي", sub: "Toji Fushiguro", gender: "male", file: "assets/toji.vrm", v1: false },
-          { id: "hatsune", name: "هاتسوني", sub: "Hatsune Miku", gender: "female", file: "assets/hatsune.vrm", v1: true },
-          { id: "sara", name: "سارة", sub: "Sara", gender: "female", file: "assets/sara.vrm", v1: true }
+          { id: "gojo", name: "غوجو", sub: "Gojo", gender: "male", file: "assets/1377772477470045499.vrm", v1: false },
+          { id: "toji", name: "توجي", sub: "Toji Fushiguro", gender: "male", file: "assets/7772DF27-FD1D-45C3-A9A0-F9D3D82E2C7C-5838127647292564606.vrm", v1: false },
+          { id: "hatsune", name: "هاتسوني", sub: "Hatsune Miku", gender: "female", file: "assets/5BE26657-7FAD-4E42-86A8-ACD81F6FE923-2496223250082808139.vrm", v1: true },
+          { id: "sara", name: "سارة", sub: "Sara", gender: "female", file: "assets/B66B5482-2387-4C58-ACB4-66A0ED4FC3B6-5037406147021842787.vrm", v1: true }
         ];
         function charById(id) {
           for (var i = 0; i < CHARACTERS.length; i++) if (CHARACTERS[i].id === id) return CHARACTERS[i];
@@ -3149,10 +3149,10 @@ setSrcIfEmpty("#cupPage .gym-hero img", IMG_BOX);
           ["https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/pose_solution_wasm_bin.wasm", 5994571, "نموذج تتبّع الحركة"],
           ["https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/pose_detection.tflite", 2962288, "نموذج تتبّع الحركة"],
           ["https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/pose_landmark_lite.tflite", 2819824, "نموذج تتبّع الحركة"],
-          ["assets/gojo.vrm", 4931880, "شخصيات اللعبة"],
-          ["assets/toji.vrm", 9421844, "شخصيات اللعبة"],
-          ["assets/hatsune.vrm", 20200944, "شخصيات اللعبة"],
-          ["assets/sara.vrm", 11505192, "شخصيات اللعبة"]
+          ["assets/1377772477470045499.vrm", 4931880, "شخصيات اللعبة"],
+          ["assets/7772DF27-FD1D-45C3-A9A0-F9D3D82E2C7C-5838127647292564606.vrm", 9421844, "شخصيات اللعبة"],
+          ["assets/5BE26657-7FAD-4E42-86A8-ACD81F6FE923-2496223250082808139.vrm", 20200944, "شخصيات اللعبة"],
+          ["assets/B66B5482-2387-4C58-ACB4-66A0ED4FC3B6-5037406147021842787.vrm", 11505192, "شخصيات اللعبة"]
         ];
         var assetsGateDone = false, assetsGateBusy = false, assetsGateQueue = [];
         function enterWithPreload(next) {
