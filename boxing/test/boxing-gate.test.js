@@ -1,7 +1,8 @@
 // Boxing gate test — run: node test/boxing-gate.test.js
 // Loads the real boxing JS files + the inline script from boxing.html,
 // then asserts: pre-login only the login screen shows (no nav, no profile bar, no notice);
-// after login/register, all tabs show, the login card hides, and logout returns to the login screen.
+// after login/register, the home panel (avatar) opens first and the fixed bottom bar
+// shows all tabs; tapping a bottom-bar button opens its panel; logout returns to the login screen.
 'use strict';
 const fs = require('fs');
 const vm = require('vm');
@@ -34,6 +35,7 @@ const IDS = ['profileBar', 'fName', 'fCode', 'fAge', 'fAnime', 'btnSaveProfile',
   'lName', 'lCode', 'btnLogin', 'loginMsg', 'cloudStatus',
   'loginCard', 'registerCard', 'linkShowRegister', 'linkShowLogin', 'showRegisterWrap', 'showLoginWrap',
   'mainTabs', 'noticeCard', 'logoutWrap', 'btnLogout',
+  'homeTitle', 'homeSub', 'avatarStage', 'avatarStatus', 'btnAvatarPushup', 'btnAvatarHoodie',
   'heroSub', 'matchTimer', 'hpPlayer', 'hpBot', 'hpPlayerText', 'hpBotText', 'botName',
   'matchHits', 'matchHalf', 'matchDodges', 'matchCommand', 'matchFeedback', 'matchVideo', 'matchCanvas',
   'btnStartMatch', 'btnStopMatch', 'btnSimFullMatch', 'btnSimHalfMatch', 'lvl-easy', 'lvl-medium', 'lvl-hard',
@@ -44,13 +46,13 @@ const IDS = ['profileBar', 'fName', 'fCode', 'fAge', 'fAnime', 'btnSaveProfile',
 const els = {};
 IDS.forEach((id) => { els[id] = makeEl(id); });
 
-const tabNames = ['profile', 'match', 'training', 'combos', 'camera'];
+const tabNames = ['home', 'profile', 'match', 'training', 'combos', 'camera', 'leaderboard'];
 const tabBtns = tabNames.map((t) => {
   const b = makeEl('tab-' + t);
   b.getAttribute = (a) => (a === 'data-tab' ? t : null);
   return b;
 });
-const panels = ['profile', 'match', 'training', 'combos', 'camera'].map((t) => {
+const panels = ['home', 'profile', 'match', 'training', 'combos', 'camera', 'leaderboard'].map((t) => {
   const p = makeEl('panel-' + t);
   p.id = 'panel-' + t;
   if (t === 'profile') p.classList.add('active'); // matches the real markup
@@ -80,6 +82,15 @@ const sandbox = {
 };
 sandbox.window = sandbox;
 sandbox.global = sandbox;
+// محاكي عارض الأفاتار: السكربت المضمّن يستدعيه، والوحدة الحقيقية (ESM + three) لا تُحمَّل في Node.
+const avatarCalls = { init: 0, setLevel: [], setVisible: [], reset: 0 };
+sandbox.HalbaBoxingAvatar = {
+  init: function () { avatarCalls.init++; },
+  setLevel: function (lv) { avatarCalls.setLevel.push(lv); },
+  setVisible: function (v) { avatarCalls.setVisible.push(v); },
+  reset: function () { avatarCalls.reset++; },
+  isReady: function () { return true; },
+};
 vm.createContext(sandbox);
 
 function load(file) {
@@ -99,10 +110,12 @@ function check(name, cond) {
 const tabByName = (t) => tabBtns.find((b) => b.getAttribute('data-tab') === t);
 
 // --- 1. Fresh visitor: no profile ---
+check('pre-reg: home tab hidden', tabByName('home').style.display === 'none');
 check('pre-reg: match tab hidden', tabByName('match').style.display === 'none');
 check('pre-reg: training tab hidden', tabByName('training').style.display === 'none');
 check('pre-reg: combos tab hidden', tabByName('combos').style.display === 'none');
 check('pre-reg: camera tab hidden', tabByName('camera').style.display === 'none');
+check('pre-reg: leaderboard tab hidden', tabByName('leaderboard').style.display === 'none');
 check('pre-reg: profile tab visible', tabByName('profile').style.display !== 'none');
 check('pre-reg: nav hidden (login screen only)', els.mainTabs.style.display === 'none');
 check('pre-reg: profile bar hidden', els.profileBar.style.display === 'none');
@@ -110,11 +123,13 @@ check('pre-reg: notice hidden', els.noticeCard.style.display === 'none');
 check('pre-reg: logout hidden', els.logoutWrap.style.display === 'none');
 check('pre-reg: login card visible', els.loginCard.style.display === '');
 check('pre-reg: hero subtitle hidden', els.heroSub.style.display === 'none');
-check('pre-reg: profile panel active', panels[0].classList.contains('active'));
+check('pre-reg: profile panel active', panels[1].classList.contains('active'));
 
 // Clicking a hidden tab does nothing (guard)
 tabByName('match').click();
-check('pre-reg: clicking match tab does not switch panel', panels[0].classList.contains('active') && !panels[1].classList.contains('active'));
+check('pre-reg: clicking match tab does not switch panel', panels[1].classList.contains('active') && !panels[2].classList.contains('active'));
+tabByName('home').click();
+check('pre-reg: clicking home tab does not switch panel', panels[1].classList.contains('active') && !panels[0].classList.contains('active'));
 
 // --- 1b. Login first: register hidden behind a link ---
 check('toggle: register hidden by default', els.registerCard.style.display === 'none');
@@ -133,6 +148,14 @@ els.fCode.value = 'secret123';
 els.fAge.value = '25';
 els.fAnime.value = 'كايتو';
 els.btnSaveProfile.click();
+check('post-reg: home tab visible', tabByName('home').style.display === '');
+check('post-reg: leaderboard tab visible', tabByName('leaderboard').style.display === '');
+check('post-reg: home panel opens (avatar first)', panels[0].classList.contains('active'));
+check('post-reg: home button active', tabByName('home').classList.contains('active'));
+check('post-reg: home title greets the player', (els.homeTitle.textContent || '').indexOf('مجيد') !== -1);
+check('post-reg: avatar init called', avatarCalls.init >= 1);
+check('post-reg: avatar level set from profile', avatarCalls.setLevel.indexOf(1) !== -1);
+check('post-reg: avatar visible on home', avatarCalls.setVisible[avatarCalls.setVisible.length - 1] === true);
 check('post-reg: match tab visible', tabByName('match').style.display === '');
 check('post-reg: training tab visible', tabByName('training').style.display === '');
 check('post-reg: combos tab visible', tabByName('combos').style.display === '');
@@ -202,9 +225,18 @@ check('bot level: back to medium ELO 1200', els['lvl-medium'].classList.contains
 
   // --- 3. Tabs work after registration ---
   tabByName('training').click();
-  check('post-reg: training panel opens', panels[2].classList.contains('active'));
+  check('post-reg: training panel opens', panels[3].classList.contains('active'));
   tabByName('match').click();
-  check('post-reg: match panel opens', panels[1].classList.contains('active'));
+  check('post-reg: match panel opens', panels[2].classList.contains('active'));
+  tabByName('home').click();
+  check('post-reg: home panel opens from bottom bar', panels[0].classList.contains('active'));
+  check('post-reg: avatar visible again on home', avatarCalls.setVisible[avatarCalls.setVisible.length - 1] === true);
+  tabByName('match').click();
+  check('post-reg: avatar hidden when leaving home', avatarCalls.setVisible[avatarCalls.setVisible.length - 1] === false);
+  tabByName('profile').click();
+  check('post-reg: profile panel opens from bottom bar', panels[1].classList.contains('active'));
+  tabByName('home').click();
+  check('post-reg: back home from bottom bar', panels[0].classList.contains('active'));
 
   // حفظ بكود قصير: يُحفظ محلياً لكن السحابة ترفض — رسالة واضحة.
   els.fCode.value = '123';
@@ -221,6 +253,10 @@ check('bot level: back to medium ELO 1200', els['lvl-medium'].classList.contains
   check('logout: register hidden', els.registerCard.style.display === 'none');
   check('logout: register link visible', els.showRegisterWrap.style.display === '');
   check('logout: match tab hidden', tabByName('match').style.display === 'none');
+  check('logout: home tab hidden', tabByName('home').style.display === 'none');
+  check('logout: profile panel active again', panels[1].classList.contains('active'));
+  check('logout: home panel not active', !panels[0].classList.contains('active'));
+  check('logout: avatar hidden on logout', avatarCalls.setVisible[avatarCalls.setVisible.length - 1] === false);
   check('logout: profile cleared', (store.halba_boxing_profile_v1 || '').indexOf('سليم') === -1);
   check('logout: cloud link cleared', !store.halba_boxing_cloud_link_v1);
 

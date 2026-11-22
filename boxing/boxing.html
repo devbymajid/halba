@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>حلبة — وضع الملاكمة</title>
 <link rel="stylesheet" href="css/boxing.css">
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.149.0/examples/jsm/",
+  "@pixiv/three-vrm": "https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@0.6.11/lib/three-vrm.module.min.js"
+} }
+</script>
 </head>
 <body>
 <header class="top">
@@ -14,16 +21,21 @@
 
 <div class="profile-bar" id="profileBar">—</div>
 
-<nav class="tabs" id="mainTabs" aria-label="التنقل">
-  <button data-tab="profile" class="active">الملف والتسجيل</button>
-  <button data-tab="match">المباراة</button>
-  <button data-tab="training">التدريب</button>
-  <button data-tab="combos">الكومبو</button>
-  <button data-tab="camera">الكاميرا والاختبار</button>
-  <button data-tab="leaderboard">الترتيب</button>
-</nav>
-
 <main>
+  <!-- الرئيسية — الأفاتار -->
+  <section class="panel" id="panel-home">
+    <div class="card home-card">
+      <h2 id="homeTitle">أهلاً بك يا بطل!</h2>
+      <div class="avatar-stage" id="avatarStage"></div>
+      <p class="muted avatar-status" id="avatarStatus">جارٍ تحميل الأفاتار…</p>
+      <p class="muted" id="homeSub">ديرو كيكبر معاك — كلما درّبتي كتبان عضلاتو. اختار من التحت: مباراة، تدريب، كومبو، ولا الترتيب.</p>
+      <div class="home-actions">
+        <button class="btn cyan" id="btnAvatarPushup" type="button">▶ شوفو كيدير الضغط</button>
+        <button class="btn ghost" id="btnAvatarHoodie" type="button">إظهار الهودي</button>
+      </div>
+    </div>
+  </section>
+
   <!-- الملف -->
   <section class="panel active" id="panel-profile">
     <div class="card" id="loginCard">
@@ -164,6 +176,17 @@
   </section>
 </main>
 
+<!-- شريط سفلي ثابت: كل البطونات في التحت، والضغط على واحدة يفتحها -->
+<nav class="tabs" id="mainTabs" aria-label="التنقل">
+  <button data-tab="home">الرئيسية</button>
+  <button data-tab="profile" class="active">الملف</button>
+  <button data-tab="match">المباراة</button>
+  <button data-tab="training">التدريب</button>
+  <button data-tab="combos">الكومبو</button>
+  <button data-tab="camera">الكاميرا</button>
+  <button data-tab="leaderboard">الترتيب</button>
+</nav>
+
 <footer>حلبة — وضع الملاكمة • 100% أصلي • الفيديو لا يُسجَّل ولا يُرفَع أبداً • MediaPipe Pose مجاني في المتصفح</footer>
 
 <script src="js/boxing-moves.js"></script>
@@ -174,23 +197,47 @@
 <script src="js/boxing-match.js"></script>
 <script src="js/boxing-training.js"></script>
 <script src="js/boxing-combos.js"></script>
+<script type="module" src="js/boxing-avatar.js"></script>
 <script>
 (function () {
   'use strict';
   var $ = function (id) { return document.getElementById(id); };
   var Moves = window.HalbaBoxingMoves, Profile = window.HalbaBoxingProfile;
 
-  // ---- التنقل بين الألسنة ----
+  // ---- التنقل بين الألسنة (شريط سفلي ثابت) ----
   // قبل التسجيل: ألسنة المباراة/التدريب/الكومبو/الكاميرا مخفية أصلاً،
   // وهذا الحارس يمنع الوصول إليها حتى لو ظهرت بأي طريقة.
   var activeTab = 'profile';
+  // الرئيسية: عارض الأفاتار — يبدأ ببطء عند أول فتح، ويتوقف الرسم عند مغادرتها.
+  var avatarWatchdogSet = false;
+  function showHome() {
+    var av = window.HalbaBoxingAvatar;
+    if (av) { av.init(); av.setLevel(profile.level || 1); av.setVisible(true); return; }
+    // الوحدة لم تحمل بعد (CDN بطيء أو محجوب): بعد 12 ثانية، رسالة واضحة بدل «جارٍ التحميل…» للأبد.
+    if (!avatarWatchdogSet) {
+      avatarWatchdogSet = true;
+      setTimeout(function () {
+        if (window.HalbaBoxingAvatar) return;
+        var home = $('panel-home');
+        if (home && home.classList.contains('active')) {
+          var s = $('avatarStatus');
+          if (s) s.textContent = 'تعذّر تحميل الأفاتار — تحقق من الاتصال ثم أعد فتح الصفحة.';
+        }
+      }, 12000);
+    }
+  }
+  function showPanel(tab) {
+    document.querySelectorAll('nav.tabs button').forEach(function (b) { b.classList.toggle('active', b.getAttribute('data-tab') === tab); });
+    document.querySelectorAll('section.panel').forEach(function (p) { p.classList.toggle('active', p.id === 'panel-' + tab); });
+  }
   document.querySelectorAll('nav.tabs button').forEach(function (btn) {
     btn.addEventListener('click', function () {
       var tab = btn.getAttribute('data-tab');
       if (tab !== 'profile' && !Profile.hasProfile(profile)) return;
       activeTab = tab;
-      document.querySelectorAll('nav.tabs button').forEach(function (b) { b.classList.toggle('active', b === btn); });
-      document.querySelectorAll('section.panel').forEach(function (p) { p.classList.toggle('active', p.id === 'panel-' + activeTab); });
+      showPanel(tab);
+      if (window.HalbaBoxingAvatar) window.HalbaBoxingAvatar.setVisible(tab === 'home');
+      if (tab === 'home') showHome();
       if (tab === 'training') showCameraConsent();
       if (tab === 'leaderboard') loadLeaderboard();
     });
@@ -230,11 +277,14 @@
       var w1 = $('showRegisterWrap'); if (w1) w1.style.display = 'none';
       var w2 = $('showLoginWrap'); if (w2) w2.style.display = 'none';
       var rc = $('registerCard'); if (rc) rc.style.display = '';
+      // مسجّل: الرئيسية (الأفاتار) هي الشاشة الأولى، لا الملف.
+      if (activeTab === 'profile') { activeTab = 'home'; showPanel('home'); showHome(); }
     }
-    if (!registered && activeTab !== 'profile') {
+    if (!registered) {
+      // غير مسجّل: شاشة الدخول وحدها — الرئيسية والملف يرجعان للملف.
       activeTab = 'profile';
-      document.querySelectorAll('nav.tabs button').forEach(function (b) { b.classList.toggle('active', b.getAttribute('data-tab') === 'profile'); });
-      document.querySelectorAll('section.panel').forEach(function (p) { p.classList.toggle('active', p.id === 'panel-profile'); });
+      showPanel('profile');
+      if (window.HalbaBoxingAvatar) window.HalbaBoxingAvatar.setVisible(false);
     }
   }
 
@@ -247,6 +297,8 @@
       : 'لا يوجد ملف بعد — ادخل بحسابك أو سجّل حساباً جديداً.';
     $('fName').value = profile.name || ''; $('fCode').value = profile.code || '';
     $('fAge').value = profile.age || 18; $('fAnime').value = profile.anime || '';
+    var ht = $('homeTitle'); if (ht && profile.name) ht.textContent = 'أهلاً بك يا ' + profile.name + '!';
+    if (window.HalbaBoxingAvatar && window.HalbaBoxingAvatar.isReady()) window.HalbaBoxingAvatar.setLevel(profile.level || 1);
     updateGating();
   }
   function escapeHtml(s) { return String(s || '').replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
