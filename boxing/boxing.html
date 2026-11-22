@@ -1628,7 +1628,7 @@
       #boxPage {
         position: fixed;
         inset: 0;
-        z-index: 40;
+        z-index: 75;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
         background:
@@ -1823,24 +1823,30 @@
         border-radius: 999px;
         background: #ff3b30;
         border: 1px solid rgba(255, 255, 255, 0.35);
-        overflow: hidden;
+        overflow: visible;
         position: relative;
         box-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
       }
       .box-tug > div {
         height: 100%;
         width: 50%;
+        border-radius: 999px;
         background: linear-gradient(90deg, #1db954, #2ee66b);
         transition: width 0.3s ease;
       }
+      /* المعين الأبيض في وسط الشريط الأخضر/الأحمر — بحال الريل */
       .box-tug::after {
         content: "";
         position: absolute;
-        top: -2px;
-        bottom: -2px;
+        top: 50%;
         left: 50%;
-        width: 2px;
-        background: rgba(255, 255, 255, 0.75);
+        width: 15px;
+        height: 15px;
+        background: #fff;
+        border: 2px solid rgba(0, 0, 0, 0.35);
+        transform: translate(-50%, -50%) rotate(45deg);
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.85);
+        z-index: 2;
       }
       .box-tug.train > div { background: linear-gradient(90deg, #1db954, #2ee66b); width: 100%; }
       .box-combo {
@@ -1880,42 +1886,97 @@
       .box-instruct .bi-move.slip { color: #ff6b61; }
       .box-instruct .bi-sub { display: block; color: #e8e8ec; font-size: 0.92rem; font-weight: 700; margin-top: 2px; }
       .box-instruct .bi-count { display: block; color: #b9b9c6; font-size: 0.85rem; font-weight: 800; margin-top: 4px; }
+      /* SLIP: شريط أحمر عريض بسهم لليسار — كيبان ملي تكون ضربة جاية */
       .box-slip {
         position: absolute;
-        top: 36%;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 5;
-        display: inline-flex;
+        top: 63%;
+        left: 0;
+        right: 0;
+        z-index: 6;
+        display: flex;
         align-items: center;
-        gap: 8px;
-        background: rgba(60, 6, 4, 0.66);
-        border: 2px solid rgba(255, 59, 48, 0.75);
-        color: #ffb3ae;
-        border-radius: 999px;
-        padding: 6px 16px;
-        font-size: 1.05rem;
+        justify-content: center;
+        gap: 10px;
+        background: rgba(160, 12, 8, 0.92);
+        border-top: 2px solid rgba(255, 120, 110, 0.9);
+        border-bottom: 2px solid rgba(255, 120, 110, 0.9);
+        color: #fff;
+        padding: 9px 16px;
+        font-size: 1.3rem;
         font-weight: 900;
-        letter-spacing: 0.08em;
-        opacity: 0.55;
+        letter-spacing: 0.14em;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.15s ease;
       }
       .box-slip.warn {
         opacity: 1;
-        background: rgba(120, 10, 6, 0.9);
-        color: #fff;
+        visibility: visible;
+        background: #d40f06;
         animation: boxSlipPulse 0.32s ease-in-out infinite alternate;
       }
       .box-slip.done {
         opacity: 1;
+        visibility: visible;
+        background: rgba(10, 90, 34, 0.95);
         border-color: #2ee66b;
-        background: rgba(10, 70, 30, 0.9);
-        color: #b9f4c4;
+        color: #d8ffe0;
         animation: none;
       }
       @keyframes boxSlipPulse {
-        from { transform: translateX(-50%) scale(1); box-shadow: 0 0 0 rgba(255, 59, 48, 0); }
-        to { transform: translateX(-50%) scale(1.13); box-shadow: 0 0 30px rgba(255, 59, 48, 0.85); }
+        from { box-shadow: 0 0 0 rgba(255, 59, 48, 0); }
+        to { box-shadow: 0 0 30px rgba(255, 59, 48, 0.85); }
       }
+      /* DODGE: دائرة حمراء كبيرة في الوسط كتغطي الوجه ملي يجي هجوم الخصم */
+      .box-dodge {
+        position: absolute;
+        top: 38%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 6;
+        width: min(58vw, 215px);
+        height: min(58vw, 215px);
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        background: rgba(226, 18, 8, 0.9);
+        border: 4px solid rgba(255, 255, 255, 0.85);
+        color: #fff;
+        font-size: 2rem;
+        font-weight: 900;
+        letter-spacing: 0.1em;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+      .box-dodge.warn {
+        opacity: 1;
+        visibility: visible;
+        animation: boxDodgePulse 0.32s ease-in-out infinite alternate;
+      }
+      @keyframes boxDodgePulse {
+        from { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 0 rgba(255, 59, 48, 0); }
+        to { transform: translate(-50%, -50%) scale(1.07); box-shadow: 0 0 44px rgba(255, 59, 48, 0.95); }
+      }
+      /* TOO SLOW: شريط أسود في الوسط ملي تتأخر في رد الفعل */
+      .box-tooslow {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        transform: translateY(-50%);
+        z-index: 7;
+        background: rgba(0, 0, 0, 0.94);
+        color: #fff;
+        text-align: center;
+        padding: 13px 10px;
+        font-size: 1.9rem;
+        font-weight: 900;
+        letter-spacing: 0.18em;
+        pointer-events: none;
+      }
+      .box-tooslow[hidden] { display: none; }
       .box-status {
         top: auto;
         bottom: 128px;
@@ -2026,7 +2087,7 @@
         color: #2ee66b;
         text-shadow: 0 0 34px rgba(46, 230, 107, 0.5);
       }
-      .br-title.lose { color: #ff5147; text-shadow: 0 0 34px rgba(255, 81, 71, 0.5); }
+      .br-title.lose { color: #ff2d1e; text-shadow: 0 0 38px rgba(255, 45, 30, 0.65); font-size: 4.4rem; letter-spacing: 0.05em; }
       .br-title.train { color: #ffd75e; text-shadow: 0 0 34px rgba(255, 198, 26, 0.4); font-size: 2.2rem; }
       .br-elo {
         margin: 6px 0 0;
@@ -2077,6 +2138,38 @@
       .br-row.me { border-color: rgba(46, 230, 107, 0.65); background: rgba(46, 230, 107, 0.09); }
       .br-row.me .rk { color: #2ee66b; }
       .box-result .av-actions { margin-top: 20px; }
+      /* أزرار النتيجة بحال الريل: Rematch أحمر كبير و Done تحت منو */
+      .box-result .br-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 22px;
+      }
+      .br-rematch {
+        width: 100%;
+        min-height: 3.4rem;
+        border: none;
+        border-radius: 14px;
+        background: #e81105;
+        color: #fff;
+        font-size: 1.3rem;
+        font-weight: 900;
+        letter-spacing: 0.06em;
+        box-shadow: 0 6px 24px rgba(232, 17, 5, 0.45);
+        cursor: pointer;
+      }
+      .br-done {
+        width: 100%;
+        min-height: 3.1rem;
+        border: 1px solid rgba(255, 255, 255, 0.28);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.07);
+        color: #fff;
+        font-size: 1.1rem;
+        font-weight: 900;
+        letter-spacing: 0.05em;
+        cursor: pointer;
+      }
     </style>
   </head>
   <body>
@@ -2712,7 +2805,7 @@
         <div class="box-elo-card">
           <div class="be-cell">
             <span class="be-lab">تصنيفك · ELO</span>
-            <span class="be-num pink" id="boxPageElo">1000</span>
+            <span class="be-num pink" id="boxPageElo">650</span>
           </div>
           <div class="be-cell">
             <span class="be-lab">ترتيبك بين اللاعبين</span>
@@ -2724,7 +2817,7 @@
         <article class="box-opt ranked">
           <span class="box-opt-tag">RANKED · 1 ضد 1</span>
           <h4>العب ضد شي واحد</h4>
-          <p>مباراة 30 ثانية على الكاميرا الأمامية: الهيكل كيتبع حركتك، والضربات كتتكتشف بالكاميرا ماشي بالأزرار. الفائز كيربح ‎+150 ELO.</p>
+          <p>مباراة 30 ثانية ضد TYSON ‏(8,700 ELO) على الكاميرا الأمامية: الحمرا DODGE خاصك تتجنب ضربة الخصم، والخضرا JAB والصفرا HOOK تضربهم بيدك. إلا خسرتي كتنقص ‎-100 ELO.</p>
           <button type="button" class="sec-enter" id="boxRankedBtn">ابحث عن خصم</button>
         </article>
 
@@ -2768,8 +2861,16 @@
           <div class="ex-row">
             <span class="move-dot slip" aria-hidden="true"></span>
             <div class="ex-tx">
+              <span class="ex-nm">DODGE <span class="en">· تجنّب الضربة</span></span>
+              <span class="ex-sb">ملي تبان الدائرة الحمراء الكبيرة DODGE في الوسط، تجنّب ضربة الخصم — الحمرا ما كتضربش، كتتفادى</span>
+            </div>
+            <span class="ex-chip">دفاع</span>
+          </div>
+          <div class="ex-row">
+            <span class="move-dot slip" aria-hidden="true"></span>
+            <div class="ex-tx">
               <span class="ex-nm">SLIP <span class="en">· تفادي</span></span>
-              <span class="ex-sb">ملي تشعل علامة SLIP الحمراء، زح راسك للجنب بسرعة قبل ما توصلك ضربة الخصم</span>
+              <span class="ex-sb">ملي يبان شريط SLIP الأحمر بالسهم لليسار، زح راسك لليسار بسرعة قبل ما توصلك ضربة الخصم</span>
             </div>
             <span class="ex-chip">دفاع</span>
           </div>
@@ -2797,7 +2898,7 @@
           <div class="box-top" dir="ltr">
             <div class="box-fighter you">
               <span class="bf-name">YOU</span>
-              <span class="bf-elo">ELO <b id="boxYouElo">1000</b></span>
+              <span class="bf-elo">ELO <b id="boxYouElo">650</b></span>
             </div>
             <div class="box-time">
               <span class="bt-lab">TIME</span>
@@ -2825,11 +2926,16 @@
             <span class="bi-count">الضربات: <b id="boxTrainCount">0</b></span>
           </div>
 
-          <!-- SLIP: علامة حمراء بسهم حدا الراس — كتشعل ملي تكون ضربة جاية -->
-          <div class="box-slip" id="boxSlip">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></svg>
+          <!-- DODGE: دائرة حمراء كبيرة في الوسط كتغطي الوجه ملي يجي هجوم الخصم -->
+          <div class="box-dodge" id="boxDodge" dir="ltr"><span>DODGE</span></div>
+
+          <!-- TOO SLOW: شريط أسود في الوسط ملي تتأخر -->
+          <div class="box-tooslow" id="boxTooSlow" dir="ltr" hidden>TOO SLOW</div>
+
+          <!-- SLIP: شريط أحمر بسهم لليسار — كيبان ملي تكون ضربة جاية -->
+          <div class="box-slip" id="boxSlip" dir="ltr">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></svg>
             <span>SLIP</span>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
           </div>
 
           <span class="push-status box-status" id="boxStatus"><span class="dot"></span><span id="boxStatusTx">الكاميرا واقفة</span></span>
@@ -2886,9 +2992,9 @@
               <div class="br-board" id="boxResBoard"></div>
             </div>
 
-            <div class="av-actions">
-              <button type="button" class="av-btn ghost" id="boxResBack">رجوع</button>
-              <button type="button" class="av-btn primary" id="boxResAgain">عاود</button>
+            <div class="br-actions" dir="ltr">
+              <button type="button" class="br-rematch" id="boxResAgain">Rematch</button>
+              <button type="button" class="br-done" id="boxResBack">Done</button>
             </div>
           </div>
 
@@ -4679,11 +4785,13 @@
           pushFeedback("بلا كاميرا ما يمكنش يتحسبو العدّات — ملي تكون واجد، اضغط «ابدأ التمرين».");
         });
         /* ================= الملاكمة: صفحة الخيارين + شاشة قتال PadKo بالكاميرا (JAB / HOOK / SLIP كيتكتشفو من الحركة) ================= */
-        var BOX_ELO_KEY = "halba_boxing_elo_v1";
+        var BOX_ELO_KEY = "halba_boxing_elo_v2";
         var BOX_CONSENT_KEY = "halba_boxing_consent_v1";
         var BOX_FIGHT_SECS = 30;
         var BOX_TRAIN_SECS = 60;
+        var BOX_TYSON = { name: "TYSON", elo: 8700 };
         var BOX_OPPONENTS = [
+          { name: "TYSON", elo: 8700 },
           { name: "ياسين «الصاعقة»", elo: 1060 },
           { name: "عمر «الحيط»", elo: 1140 },
           { name: "سفيان «البرق»", elo: 1230 },
@@ -4692,7 +4800,7 @@
         ];
         var box = {
           mode: "ranked", stream: null, pose: null, raf: 0, sending: false, running: false, phase: "idle",
-          elo: 1000, opp: null, you: 0, oppScore: 0,
+          elo: 650, opp: null, you: 0, oppScore: 0,
           combo: 0, comboAt: 0,
           swings: 0, landed: 0, techGood: 0,
           frames: 0, guardFrames: 0,
@@ -4828,6 +4936,8 @@
           el("boxInstruct").hidden = true;
           el("boxCombo").hidden = true;
           el("boxSlip").className = "box-slip";
+          el("boxDodge").className = "box-dodge";
+          el("boxTooSlow").hidden = true;
           el("boxYouElo").textContent = box.elo;
           if (mode === "train") {
             el("boxOppName").textContent = "TRAINING";
@@ -4874,6 +4984,9 @@
           if (box.pose) { try { box.pose.close(); } catch (e) {} box.pose = null; }
           var off = el("boxStageOff");
           if (off) off.hidden = false;
+          var dg = el("boxDodge"); if (dg) dg.className = "box-dodge";
+          var sl = el("boxSlip"); if (sl) sl.className = "box-slip";
+          var ts2 = el("boxTooSlow"); if (ts2) ts2.hidden = true;
           boxSetStatus("", "الكاميرا واقفة");
         }
         function boxCameraError(err) {
@@ -4966,7 +5079,7 @@
             el("boxSearch").hidden = false;
             boxLater(function () {
               el("boxSearch").hidden = true;
-              box.opp = boxPickOpponent();
+              box.opp = BOX_TYSON;
               el("boxOppName").textContent = box.opp.name;
               el("boxOppElo").textContent = box.opp.elo;
               boxCountdown();
@@ -5015,6 +5128,12 @@
             if (left <= 0) boxEndFight();
           }, 200);
         }
+        function boxShowTooSlow() {
+          var ts = el("boxTooSlow");
+          if (!ts) return;
+          ts.hidden = false;
+          boxLater(function () { ts.hidden = true; }, 950);
+        }
         function boxScheduleAttack() {
           if (box.mode !== "ranked" || box.phase !== "fight") return;
           box.attackTimeout = setTimeout(function () {
@@ -5023,15 +5142,18 @@
             box.attackStart = Date.now();
             box.slipChances++;
             el("boxSlip").className = "box-slip warn";
-            boxSetStatus("bad", "ضربة جاية — SLIP دابا!");
+            el("boxDodge").className = "box-dodge warn";
+            boxSetStatus("bad", "ضربة جاية — DODGE / SLIP دابا!");
             box.attackResolveTimeout = setTimeout(function () {
               if (!box.attackOpen) return;
               box.attackOpen = false;
               el("boxSlip").className = "box-slip";
+              el("boxDodge").className = "box-dodge";
               box.oppScore++;
               boxUpdateScore();
               boxFlashHit();
-              boxSetStatus("on", "وصّلاتك الضربة — راقب علامة SLIP الحمراء");
+              boxShowTooSlow();
+              boxSetStatus("on", "TOO SLOW — وصّلاتك الضربة، تفادى بكري المرة الجاية");
               boxScheduleAttack();
             }, 880);
           }, 2300 + Math.random() * 1700);
@@ -5089,6 +5211,7 @@
               if (box.attackResolveTimeout) { clearTimeout(box.attackResolveTimeout); box.attackResolveTimeout = null; }
               box.slips++;
               box.reactions.push(Date.now() - box.attackStart);
+              el("boxDodge").className = "box-dodge";
               el("boxSlip").className = "box-slip done";
               boxFloat("DODGED!", null, "dodge");
               boxSetStatus("on", "تفاديتيها! كمّل الضرب");
@@ -5249,8 +5372,8 @@
               title.textContent = "WIN";
               title.className = "br-title";
             } else if (box.you < box.oppScore) {
-              delta = -50;
-              title.textContent = "LOSE";
+              delta = -100;
+              title.textContent = "LOSS";
               title.className = "br-title lose";
             } else {
               title.textContent = "DRAW";
@@ -5281,7 +5404,7 @@
               row.appendChild(ev);
               board.appendChild(row);
             });
-            showToast(delta > 0 ? "ربحتي! ‎+150 ELO" : delta < 0 ? "خسرتي هاد المباراة — عاود وحسّن التفادي" : "تعادل!");
+            showToast(delta > 0 ? "ربحتي! ‎+150 ELO" : delta < 0 ? "LOSS — ‎-100 ELO. عاود وحسّن التفادي" : "تعادل!");
           } else {
             title.textContent = "سالي التدريب";
             title.className = "br-title train";
