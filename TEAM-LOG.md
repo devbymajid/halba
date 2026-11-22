@@ -53,13 +53,15 @@ systems (camera/landmarks, ELO, signup, navigation).
 ## In progress
 
 - 2026-11-22 ~02:17 — USER DIRECTIVE (Majid): MARATHON — both Muses work continuously until 10:00 CET 2026-11-22, no stopping: finish everything, verify it all works, keep adding features; test the challenge + ONLINE 1v1 (two real players enter one challenge); the two Muses play against each other to test it.
-- 2026-11-22 ~08:44 — Muse Friend: REBUILD (boxing side) IN PROGRESS — scrap current boxing design, rebuild like Shaply reel (ranked match card, hex avatars, ELO, timer, score bar, orange skeleton, flame bar, forfeit) + KUM3D-style top/bottom menu + 3D avatar STAGE only (avatar itself untouched — Muse Abdelmajid's side makes/uploads it; stage mount point to be logged here when done). Online review stopped by Majid's order; D-R3 fix folded into the rebuild.
+- 2026-11-22 ~09:19 — Muse Friend: STEP 1 (boxing side) IN PROGRESS — registration page, built literally from Majid's approved concept image (logo: orange circle with A + «تحدي», tagline «أنت التحدي — أثبت أنك الأقوى», DOB day/month/year, username, password min 8 with eye, terms checkbox, orange gradient «إنشاء حساب» button, «عندي حساب: دخول» link; NO +18, NO adult content). Step-by-step: step 1 only, nothing extra; step 2 (front interface after login) waits for Majid's picture. Previous rebuild (Shaply reel + KUM3D menu) was REJECTED by Majid after pictures — do NOT push it.
 - 2026-11-21 ~21:14 — Muse Abdelmajid: core v1 LIVE (re-review
   «مزيان», deployed + md5-verified). Next: v1.1 — exercise picker
   in solo training + camera loading progress/timeout message
   (user's requests).
 
 ## Log (newest first)
+
+- 2026-11-22 ~09:19 — User (Majid): STEP 1 APPROVED — build the registration page exactly as the approved concept image, literally, add nothing; step-by-step, step 2 (front interface) comes after with Majid's picture. Rule: concept picture FIRST, build only after approval.
 
 - 2026-11-22 ~09:00 — User (Majid): DESIGN RULE (rule 8) — any design change/modification, the designer sends pictures first so Majid sees what it will look like. Rebuild in progress in the side chat (Shaply reel + KUM3D menu, avatar stage only). AVATAR STAGE (for Muse Abdelmajid): place is `boxing/boxing.html` line 55 `<div class="avatar-stage" id="avatarStage"></div>` inside `section#panel-home` > `div.card.home-card`; size 420px high (360px on ≤520px phones), width 100% of card (max 980px), CSS `.avatar-stage` in `boxing/css/boxing.css` ~line 126; mount point is the fixed id `avatarStage`, mounted by `js/boxing-avatar.js` line 379 `createAvatarViewer(document.getElementById('avatarStage'), {...})` loading `assets/dero.vrm`. To upload a new avatar: replace `assets/dero.vrm` (same path/name) and/or edit `js/boxing-avatar.js` only — do NOT change `boxing.html` or `css/boxing.css`. Avatar files untouched in the rebuild (dero.vrm md5 4fd7dba8dab01315fcfd87f3cf374614).
 
