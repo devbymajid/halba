@@ -53,13 +53,15 @@ systems (camera/landmarks, ELO, signup, navigation).
 ## In progress
 
 - 2026-11-22 ~02:17 — USER DIRECTIVE (Majid): MARATHON — both Muses work continuously until 10:00 CET 2026-11-22, no stopping: finish everything, verify it all works, keep adding features; test the challenge + ONLINE 1v1 (two real players enter one challenge); the two Muses play against each other to test it.
-- 2026-11-22 ~09:19 — Muse Friend: STEP 1 (boxing side) IN PROGRESS — registration page, built literally from Majid's approved concept image (logo: orange circle with A + «تحدي», tagline «أنت التحدي — أثبت أنك الأقوى», DOB day/month/year, username, password min 8 with eye, terms checkbox, orange gradient «إنشاء حساب» button, «عندي حساب: دخول» link; NO +18, NO adult content). Step-by-step: step 1 only, nothing extra; step 2 (front interface after login) waits for Majid's picture. Previous rebuild (Shaply reel + KUM3D menu) was REJECTED by Majid after pictures — do NOT push it.
+- 2026-11-22 ~09:19 — Muse Friend: STEP 1 (boxing side) DONE + PUSHED — registration page built literally from Majid's approved concept image (logo: orange circle with A + «تحدي», tagline «أنت التحدي — أثبت أنك الأقوى», DOB day/month/year, username, password min 8 with eye, terms checkbox, orange gradient «إنشاء حساب» button, «عندي حساب: دخول» link; background register-bg.jpg; NO +18, NO adult content). Pushed as a CLEAN merge onto the live site: only the auth screen changed, everything after login byte-identical to live (no rebuild UI). Step 2 (front interface after login) waits for Majid's picture.
 - 2026-11-21 ~21:14 — Muse Abdelmajid: core v1 LIVE (re-review
   «مزيان», deployed + md5-verified). Next: v1.1 — exercise picker
   in solo training + camera loading progress/timeout message
   (user's requests).
 
 ## Log (newest first)
+
+- 2026-11-22 ~09:50 — Muse Friend: STEP 1 PUSHED to GitHub + Firebase (Majid approved the polished screenshot «عجبتني، دفعها للموقع»): boxing.html + css/boxing.css + test/boxing-gate.test.js + assets/register-bg.jpg (clean merge on live, gate 109 + firebase 58 green, live-verified hashes). Previous rebuild (Shaply reel + KUM3D menu) was REJECTED by Majid after pictures — do NOT push it; its files stay local only in ~/workspace/halba/boxing/.
 
 - 2026-11-22 ~09:19 — User (Majid): STEP 1 APPROVED — build the registration page exactly as the approved concept image, literally, add nothing; step-by-step, step 2 (front interface) comes after with Majid's picture. Rule: concept picture FIRST, build only after approval.
 

@@ -14,7 +14,7 @@
 </script>
 </head>
 <body>
-<header class="top">
+<header class="top" id="pageHeader">
   <h1><span class="pink">حلبة</span> <span class="cyan">— الملاكمة</span></h1>
   <p id="heroSub">مباراة مصنّفة 1v1 بالكاميرا • تدريب فردي • سلّم الكومبو — الكاميرا تتحقق، والحركة النصفية لا تُحسب</p>
 </header>
@@ -38,30 +38,40 @@
 
   <!-- الملف -->
   <section class="panel active" id="panel-profile">
-    <div class="card" id="loginCard">
-      <h2>دخول — عندي حساب</h2>
-      <p class="muted">سجّلت من قبل من جهاز آخر؟ ادخل باسمك وكودك واسترجع ملفك (ELO وXP والمباريات).</p>
-      <div class="form-grid">
-        <div><label for="lName">الاسم</label><input id="lName" type="text" placeholder="اسمك المسجّل"></div>
-        <div><label for="lCode">الكود</label><input id="lCode" type="text" placeholder="كودك"></div>
+    <div class="auth-screen" id="authScreen">
+      <div class="auth-brand" id="authBrand" dir="ltr">
+        <div class="auth-logo"><span class="auth-logo-a">A</span><span class="auth-logo-word">تحدي</span></div>
+        <button class="auth-lang" id="authLang" type="button">🌐 العربية <span aria-hidden="true">⌄</span></button>
+        <span class="auth-brand-spacer" aria-hidden="true"></span>
       </div>
-      <button class="btn cyan" id="btnLogin">دخول</button>
-      <p class="muted small" id="loginMsg"></p>
-      <p class="muted small" id="cloudStatus"></p>
-    </div>
-    <p class="muted" id="showRegisterWrap">ما عندكش حساب؟ <button class="linklike" id="linkShowRegister" type="button">سجّل دابا</button></p>
-    <div class="card" id="registerCard" style="display:none">
-      <h2>التسجيل — ملف اللاعب</h2>
-      <p class="muted">حساب جديد: اسمك وكودك وعمرك وشخصية الأنمي — تقدمك يتحفظ، وتقدر تدخل من أي جهاز.</p>
-      <div class="form-grid">
-        <div><label for="fName">الاسم</label><input id="fName" type="text" placeholder="مثال: مجيد"></div>
-        <div><label for="fCode">الكود</label><input id="fCode" type="text" placeholder="كود اللاعب — 6 أحرف على الأقل"></div>
-        <div><label for="fAge">العمر</label><input id="fAge" type="number" min="10" max="99" value="18"></div>
-        <div><label for="fAnime">اسم شخصية الأنمي</label><input id="fAnime" type="text" placeholder="مثال: كايتو"></div>
+      <div class="card auth-card" id="loginCard" style="display:none">
+        <h2>دخول — عندي حساب</h2>
+        <div><label for="lName">اسم المستخدم</label><input id="lName" type="text" placeholder="اسمك المسجّل"></div>
+        <div><label for="lCode">كلمة السر</label><input id="lCode" type="password" placeholder="كلمة السر"></div>
+        <button class="btn btn-auth" id="btnLogin">دخول</button>
+        <p class="muted small" id="loginMsg"></p>
+        <p class="muted small" id="cloudStatus"></p>
+        <p class="muted auth-switch" id="showRegisterWrap">ما عندكش حساب؟ <button class="linklike" id="linkShowRegister" type="button">سجّل دابا</button></p>
       </div>
-      <button class="btn" id="btnSaveProfile">حفظ الملف</button>
-      <p class="muted small" id="profileSaved"></p>
-      <p class="muted" id="showLoginWrap">عندي حساب — <button class="linklike" id="linkShowLogin" type="button">رجوع للدخول</button></p>
+      <div class="card auth-card" id="registerCard">
+        <h2 id="regTitle">أنشئ حسابك</h2>
+        <p class="auth-tagline">أنت التحدي — أثبت أنك الأقوى</p>
+        <label>تاريخ الميلاد</label>
+        <div class="dob-grid">
+          <div><label for="rDay">يوم</label><input id="rDay" type="number" min="1" max="31" inputmode="numeric" placeholder="يوم"></div>
+          <div><label for="rMonth">شهر</label><input id="rMonth" type="number" min="1" max="12" inputmode="numeric" placeholder="شهر"></div>
+          <div><label for="rYear">سنة</label><input id="rYear" type="number" min="1900" max="2099" inputmode="numeric" placeholder="سنة"></div>
+        </div>
+        <div><label for="fName">اسم المستخدم</label><input id="fName" type="text" placeholder="مثال: علي_فستة"></div>
+        <div><label for="fCode">كلمة السر</label>
+          <div class="pass-wrap"><input id="fCode" type="password" placeholder="8 أحرف على الأقل"><button class="pass-eye" id="rPassEye" type="button" aria-label="إظهار كلمة السر">👁</button></div>
+        </div>
+        <label class="auth-terms" id="rTermsRow"><input type="checkbox" id="rTerms"> <span>أوافق على <u>الشروط</u> والقواعد</span></label>
+        <p class="auth-note">لن تتمكن من استعادة كلمة المرور بدون البريد الإلكتروني. يمكنك إضافته لاحقاً.</p>
+        <button class="btn btn-auth" id="btnSaveProfile">إنشاء حساب</button>
+        <p class="muted small" id="profileSaved"></p>
+        <p class="muted auth-switch" id="showLoginWrap">عندي حساب: <button class="linklike" id="linkShowLogin" type="button">دخول</button></p>
+      </div>
     </div>
     <p class="muted" id="logoutWrap" style="display:none"><button class="linklike" id="btnLogout" type="button">تسجيل الخروج</button></p>
     <div class="card notice" id="noticeCard">
@@ -187,7 +197,7 @@
   <button data-tab="leaderboard">الترتيب</button>
 </nav>
 
-<footer>حلبة — وضع الملاكمة • 100% أصلي • الفيديو لا يُسجَّل ولا يُرفَع أبداً • MediaPipe Pose مجاني في المتصفح</footer>
+<footer id="pageFooter">حلبة — وضع الملاكمة • 100% أصلي • الفيديو لا يُسجَّل ولا يُرفَع أبداً • MediaPipe Pose مجاني في المتصفح</footer>
 
 <script src="js/boxing-moves.js"></script>
 <script src="js/boxing-profile.js"></script>
@@ -271,6 +281,11 @@
     var notice = $('noticeCard'); if (notice) notice.style.display = registered ? '' : 'none';
     var logout = $('logoutWrap'); if (logout) logout.style.display = registered ? '' : 'none';
     $('heroSub').style.display = registered ? '' : 'none';
+    // شاشة الدخول الأولى: الهيدر والفوتر يختفيان قبل الدخول (التصويرة لها شعارها الخاص)،
+    // وشعار «تحدي» يظهر في شاشة الدخول وحدها.
+    var hd = $('pageHeader'); if (hd) hd.style.display = registered ? '' : 'none';
+    var ab2 = $('authBrand'); if (ab2) ab2.style.display = registered ? 'none' : '';
+    var ft = $('pageFooter'); if (ft) ft.style.display = registered ? '' : 'none';
     if (registered) {
       // مسجّل: بطاقة الملف وحدها — بلا بطاقة دخول وبلا رابط تسجيل وبلا رابط «رجوع للدخول»
       var lc = $('loginCard'); if (lc) lc.style.display = 'none';
@@ -295,32 +310,74 @@
     $('profileBar').innerHTML = profile.name
       ? 'اللاعب: <b>' + escapeHtml(profile.name) + '</b> • الشخصية: <b>' + escapeHtml(profile.anime || '—') + '</b> • ELO: <b>' + profile.elo + '</b> • المستوى ' + profile.level + ' • XP ' + profile.xp + ' • فوز ' + profile.wins + ' / خسارة ' + profile.losses
       : 'لا يوجد ملف بعد — ادخل بحسابك أو سجّل حساباً جديداً.';
-    $('fName').value = profile.name || ''; $('fCode').value = profile.code || '';
-    $('fAge').value = profile.age || 18; $('fAnime').value = profile.anime || '';
+    var fn = $('fName'); if (fn) fn.value = profile.name || '';
+    var fc = $('fCode'); if (fc) fc.value = profile.code || '';
+    // تاريخ الميلاد: يُحفظ العمر فقط — نملأ السنة تقريبياً عند التعديل، واليوم/الشهر يبقيان فارغين.
+    var ry = $('rYear'); if (ry) ry.value = Profile.hasProfile(profile) ? (new Date().getFullYear() - (profile.age || 18)) : '';
+    var rd = $('rDay'); if (rd && !Profile.hasProfile(profile)) rd.value = '';
+    var rm = $('rMonth'); if (rm && !Profile.hasProfile(profile)) rm.value = '';
+    // محرر الملف (مسجّل) مقابل التسجيل (جديد): العنوان والزر والشروط تتبدل.
+    var rt = $('regTitle'); if (rt) rt.textContent = Profile.hasProfile(profile) ? 'ملف اللاعب' : 'أنشئ حسابك';
+    var bs = $('btnSaveProfile'); if (bs) bs.textContent = Profile.hasProfile(profile) ? 'حفظ الملف' : 'إنشاء حساب';
+    var tr = $('rTermsRow'); if (tr) tr.style.display = Profile.hasProfile(profile) ? 'none' : '';
     var ht = $('homeTitle'); if (ht && profile.name) ht.textContent = 'أهلاً بك يا ' + profile.name + '!';
     if (window.HalbaBoxingAvatar && window.HalbaBoxingAvatar.isReady()) window.HalbaBoxingAvatar.setLevel(profile.level || 1);
     updateGating();
   }
   function escapeHtml(s) { return String(s || '').replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  // تاريخ الميلاد → العمر (يوم/شهر/سنة — 3 حقول في نموذج التسجيل).
+  function dobToAge(d, m, y) {
+    if (!d || !m || !y || d < 1 || d > 31 || m < 1 || m > 12 || y < 1900 || y > new Date().getFullYear()) return null;
+    var now = new Date(), age = now.getFullYear() - y;
+    if (now.getMonth() + 1 < m || (now.getMonth() + 1 === m && now.getDate() < d)) age--;
+    return age;
+  }
+
   $('btnSaveProfile').addEventListener('click', function () {
-    profile.name = $('fName').value.trim(); profile.code = $('fCode').value.trim();
-    profile.age = parseInt($('fAge').value, 10) || 18; profile.anime = $('fAnime').value.trim();
+    var isNew = !Profile.hasProfile(profile);
+    profile.name = $('fName').value.trim();
+    var pass = $('fCode').value.trim();
+    // تاريخ الميلاد: إجباري عند التسجيل؛ وعند تعديل الملف اختياري (الثلاثة معاً أو لا شيء).
+    var d = parseInt($('rDay').value, 10), m = parseInt($('rMonth').value, 10), y = parseInt($('rYear').value, 10);
+    var dobFilled = $('rDay').value.trim() !== '' || $('rMonth').value.trim() !== '' || $('rYear').value.trim() !== '';
+    if (isNew || dobFilled) {
+      var age = dobToAge(d, m, y);
+      if (age === null) { $('profileSaved').textContent = 'ادخل تاريخ ميلاد صحيح (يوم / شهر / سنة).'; return; }
+      if (age < 10) { $('profileSaved').textContent = 'العمر صغير — خاصك تكون 10 سنوات على الأقل.'; return; }
+      profile.age = age;
+    }
+    // الشروط: إجبارية عند التسجيل فقط.
+    if (isNew) {
+      var terms = $('rTerms');
+      if (!terms || !terms.checked) { $('profileSaved').textContent = 'وافق على الشروط والقواعد أولاً.'; return; }
+    }
+    // كلمة السر: 8 أحرف على الأقل عند التسجيل؛ وعند التعديل إن كُتبت وجب أن تكون 8+، وإن تُركت فارغة يبقى الكود القديم.
+    if (isNew) {
+      if (pass.length < 8) { $('profileSaved').textContent = 'كلمة السر قصيرة — خاصها 8 أحرف على الأقل.'; return; }
+      profile.code = pass;
+    } else if (pass) {
+      if (pass.length < 8) { $('profileSaved').textContent = 'كلمة السر قصيرة — خاصها 8 أحرف على الأقل.'; return; }
+      profile.code = pass;
+    }
+    profile.anime = profile.anime || 'كايتو';
     var savedCode = profile.code; // الكود يبقى في الذاكرة للجلسة فقط
     var prevLink = Cloud ? Cloud.getCloudLink() : '';
     Profile.saveProfile(profile);
-    $('profileSaved').textContent = 'تم حفظ الملف محلياً. (الكود يُحفظ كهاش فقط، لا نصاً عادياً — أعد إدخاله بعد تحديث الصفحة.)';
+    $('profileSaved').textContent = 'تم حفظ الملف محلياً. (كلمة السر تُحفظ كهاش فقط، لا نصاً عادياً — أعد إدخالها بعد تحديث الصفحة.)';
     renderProfile();
-    showRegisterForm(false); // بعد التسجيل نرجع للدخول أولاً
+    showRegisterForm(false); // بعد التسجيل نرجع للدخول أولاً (بلا أثر — hasProfile يمنعه)
     $('fCode').value = savedCode; // renderProfile يعيد تحميل الملف من التخزين (بلا كود نصي)
     if (!Cloud || !Cloud.isConfigured()) return;
+    // تعديل بلا كلمة سر جديدة: لا شيء سحابياً (الحساب مربوط أصلاً).
+    if (!isNew && !savedCode) { $('profileSaved').textContent = 'تم حفظ الملف.'; return; }
     // غيّر الاسم؟ الرابط السحابي يخص الاسم القديم — نمسحه.
     if (prevLink && Cloud.normalizeName(profile.name) !== prevLink) Cloud.clearCloudLink();
     if (!savedCode) {
-      $('profileSaved').textContent = 'تم حفظ الملف محلياً. بلا كود، الحساب السحابي غير مربوط — دخل كودك (6 أحرف على الأقل) باش تربطو.';
+      $('profileSaved').textContent = 'تم حفظ الملف محلياً. بلا كلمة سر، الحساب السحابي غير مربوط — دخل كلمة سر (8 أحرف على الأقل) باش تربطو.';
       return;
     }
     if (savedCode.length < Cloud.CODE_MIN) {
-      $('profileSaved').textContent = 'تم حفظ الملف محلياً. الكود قصير — خاصو 6 أحرف على الأقل باش يتسجل في السحابة.';
+      $('profileSaved').textContent = 'تم حفظ الملف محلياً. كلمة السر قصيرة — خاصها 6 أحرف على الأقل باش تتسجل في السحابة.';
       return;
     }
     // تسجيل سحابي (أفضل جهد، بلا حظر): إن كان الاسم مسجَّلاً من قبل نكتفي بالمحلي ونرشد للدخول.
@@ -331,6 +388,16 @@
       else if (e && e.code === 'not-configured') $('profileSaved').textContent = 'تم حفظ الملف محلياً. الدخول السحابي غير مهيأ في هذه النسخة.';
       // غير ذلك (انقطاع): يبقى الملف محلياً، ونزامنه عند نهاية المباراة التالية.
     });
+  });
+
+  // زر العين: إظهار/إخفاء كلمة السر في نموذج التسجيل.
+  var rPassEye = $('rPassEye');
+  if (rPassEye) rPassEye.addEventListener('click', function () {
+    var pw = $('fCode'); if (!pw) return;
+    var show = !pw.type || pw.type === 'password';
+    pw.type = show ? 'text' : 'password';
+    rPassEye.textContent = show ? '🙈' : '👁';
+    if (rPassEye.setAttribute) rPassEye.setAttribute('aria-label', show ? 'إخفاء كلمة السر' : 'إظهار كلمة السر');
   });
 
   // ---- الدخول السحابي (اسم + كود — من أي جهاز) ----
@@ -350,7 +417,7 @@
   if (linkShowRegister) linkShowRegister.addEventListener('click', function () { showRegisterForm(true); });
   var linkShowLogin = $('linkShowLogin');
   if (linkShowLogin) linkShowLogin.addEventListener('click', function () { showRegisterForm(false); });
-  showRegisterForm(false); // التسجيل مخفي افتراضياً — الدخول أولاً
+  showRegisterForm(true); // التسجيل أولاً — الدخول وراء رابط «عندي حساب: دخول»
   var btnLogin = $('btnLogin');
   if (btnLogin) btnLogin.addEventListener('click', function () {
     var name = $('lName').value.trim(), code = $('lCode').value.trim();
@@ -388,7 +455,7 @@
     $('lName').value = ''; $('lCode').value = '';
     $('loginMsg').textContent = ''; $('profileSaved').textContent = '';
     renderProfile();
-    showRegisterForm(false);
+    showRegisterForm(true); // بعد الخروج نرجع لشاشة التسجيل (أول دخول)
   });
   // ---- الترتيب العام: منصة (الأول فوق بوحده، الثاني والثالث في الجناب لتحت) ثم باقي اللاعبين واحداً تحت واحد ----
   function renderLeaderboard(list) {
