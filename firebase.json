@@ -11,6 +11,12 @@
       "**/node_modules/**"
     ],
     "public": ".",
-    "site": "mangawa"
+    "site": "mangawa",
+    "rewrites": [
+      {
+        "source": "/",
+        "destination": "/boxing/boxing.html"
+      }
+    ]
   }
 }
