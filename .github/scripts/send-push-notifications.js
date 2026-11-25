@@ -5,8 +5,9 @@
 // enabled that type in the app settings (notifPrefs) and has an FCM token.
 // Dedup: every sent push is recorded in the `push_log` collection, so a
 // rerun never sends the same notification twice.
-// Auth: the Firebase Admin SDK with the FIREBASE_SERVICE_ACCOUNT secret
-// (a service-account JSON). The Admin SDK bypasses Firestore rules;
+// Auth: the Firebase Admin SDK — with the FIREBASE_SERVICE_ACCOUNT secret
+// (a service-account JSON) when set, otherwise Application Default
+// Credentials (GitHub Actions OIDC / Workload Identity). The Admin SDK
 // this script only READS game data and WRITES push_log — it never writes
 // to players/chats/challenge_rooms.
 // NOTE on field names: the app's notifPrefs keys are not pinned here —
@@ -57,9 +58,11 @@ function trunc(s, n) {
 
 async function main() {
   const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
-  if (!raw) throw new Error('FIREBASE_SERVICE_ACCOUNT secret is missing');
-  const creds = JSON.parse(raw);
-  admin.initializeApp({ credential: admin.credential.cert(creds) });
+  if (raw) {
+    admin.initializeApp({ credential: admin.credential.cert(JSON.parse(raw)) });
+  } else {
+    admin.initializeApp(); // Application Default Credentials (GitHub Actions OIDC / Workload Identity)
+  }
   const db = admin.firestore();
   const messaging = admin.messaging();
   const now = Date.now();
