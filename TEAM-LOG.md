@@ -62,6 +62,22 @@ systems (camera/landmarks, ELO, signup, navigation).
 
 ## Log (newest first)
 
+2026-11-25 ~13:36 — Muse Friend: REGISTRATION STILL BROKEN — NEEDS MUSE ABDELMAJID TO FIX IT (Majid's order: upload everything to GitHub + this note so his Muse can fix it).
+
+WHAT I DID (all live on rondex.web.app, deploy #11, boxing.html SHA 3423b4a6…):
+- Rebuilt the registration/login from scratch using the Firebase SDK (createUserWithEmailAndPassword with the real email, signInWithEmailAndPassword, players doc {name, displayName, uid, lastSeen, level 1, xp 0, elo 1000, termsApproved true}, 15s timeout on every step, fbSyncMe writes everything to the Firestore players doc).
+- Fixed the service worker (boxing/sw.js, cache halba-assets-v10): cross-origin requests (Firebase/gstatic/CDN) now pass through untouched, never cached or replaced.
+- Added rondex.web.app + rondix.web.app to the Firebase Auth authorized domains (console, 2026-11-25 ~13:03).
+- Added «حذف الحساب» (delete account) under «تسجيل الخروج» in «أنا» + «ملفي» (confirmation sheet, deletes the Firestore players doc + the Auth user, re-auth if required).
+- Deploy #11 live-verified by curl (boxing.html SHA 3423b4a6… exact match, sw.js SHA d8fa6d30… exact match, root 301, title RONDEX). The app IS connected to the database (Firebase Auth + Firestore; rondex.web.app is in FB_LIVE_HOSTS, FB_CONFIG projectId studio-5633829332-99f59, 4 SDK scripts, fbSyncMe ×14).
+
+THE PROBLEM (Majid's phone, still happening after deploy #11):
+- Registration does NOT work. Tapping «تسجيل» hangs on «جارٍ التحقق…» then shows «تعذّر الوصول إلى الخادم — تحقّق من اتصالك بالإنترنت» (errOffline). The same failure happens in the cloud browser (which cannot reach Firebase, so that test is inconclusive) AND on Majid's iPhone (which has 5G). The players collection is EMPTY and the Auth Users list is EMPTY (the «Dero» doc was deleted on Majid's order 2026-11-25 ~08:11; the email deromajid97@gmail.com is free).
+- What was already tried and did NOT fix it: (1) the localTaken bug fix (deploy #8), (2) the 15s timeout fix (deploy #9), (3) the REST-fetch doc check (deploy #9), (4) adding rondex.web.app to the Auth authorized domains, (5) the service-worker cross-origin fix (deploy #10), (6) the full registration rebuild with the Firebase SDK (deploy #11). The errOffline message is a catch-all — it masks the real error (auth/unauthorized-domain, auth/network-request-failed, fbAuth null because the SDK scripts fail to load/execute in the browser, or something else). The live code was verified correct by reading it (SDK scripts load 200, FB_CONFIG correct, init code correct) — but it still fails on the real phone.
+- PLEASE FIX: the registration must work in the app for anyone (anyone can register), and the login must work too. No manual account creation. The code is in the repo (boxing/boxing.html, this push) — please diagnose why the Firebase Auth createUser/signIn fails on a real iPhone and fix it. The players rules allow public read and owner-only create (request.auth.uid == doc uid); the Auth authorized domains include rondex.web.app. If the fix needs a rules change, publish it via the console (CLI fails 403).
+
+FILES IN THIS PUSH (GitHub main): boxing/boxing.html (new, SHA 3423b4a6…, 8,491,271 B — the deploy #11 build), boxing/sw.js (fixed v10), TEAM-LOG.md (this note).
+
 2026-11-24 ~11:24 — Muse Friend: STATUS NOTE FOR MUSE ABDELMAJID (Majid's order: write everything — what we did, what we didn't do, what changed, what matters — so his Muse knows before working on anything). READ THIS FIRST: the Space preview is far ahead of BOTH live hosts, and NOTHING below is published yet.
 
 WHAT WE DID (Space preview only, 2026-11-23/24 — verified in the preview; Majid's phone check still pending for most):
