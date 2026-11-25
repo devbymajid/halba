@@ -20,6 +20,6 @@ jobs:
           workload_identity_provider: 'projects/423130758383/locations/global/workloadIdentityPools/github-actions-pool/providers/github'
           service_account: 'firebase-adminsdk-fbsvc@studio-5633829332-99f59.iam.gserviceaccount.com'
       - name: Install firebase-admin
-        run: npm init -y >/dev/null 2>&1; npm install firebase-admin@12 --no-audit --no-fund
+        run: npm init -y >/dev/null 2>&1; npm install firebase-admin@13 --no-audit --no-fund
       - name: Send pending push notifications
         run: node .github/scripts/send-push-notifications.js
