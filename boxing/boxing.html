@@ -3209,6 +3209,71 @@
       }
       .chal-cancel:active { transform: translateY(2px); }
 
+      /* ---------- نافذة تحدي وارد: تظهر فور وصول تحدٍّ جديد ---------- */
+      #chalInPop {
+        position: fixed;
+        inset: 0;
+        z-index: 95;
+        background: rgba(4, 4, 14, 0.82);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 22px;
+      }
+      #chalInPop[hidden] { display: none; }
+      .cip-ava {
+        width: 74px; height: 74px;
+        margin: 0 auto 16px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.9rem;
+        font-weight: 900;
+        color: #fff;
+        border: 2px solid rgba(255, 176, 32, 0.55);
+      }
+      .cip-char { color: #c9c3ea; font-weight: 700; font-size: 0.95rem; margin: -16px 0 8px; }
+      .cip-btns { display: flex; gap: 10px; justify-content: center; margin-top: 14px; }
+      .cip-acc {
+        border: none;
+        background: linear-gradient(90deg, #ffb020, #ff7a00);
+        color: #1a0d00;
+        font-family: inherit;
+        font-weight: 900;
+        font-size: 1.05rem;
+        border-radius: 999px;
+        padding: 12px 38px;
+        cursor: pointer;
+        min-height: 50px;
+      }
+      .cip-acc:active { transform: translateY(2px); }
+      .cip-dec {
+        border: 1px solid #57489f;
+        background: #241a52;
+        color: #e8e4ff;
+        font-family: inherit;
+        font-weight: 900;
+        font-size: 1.05rem;
+        border-radius: 999px;
+        padding: 12px 32px;
+        cursor: pointer;
+        min-height: 50px;
+      }
+      .cip-dec:active { transform: translateY(2px); }
+      .cip-later {
+        margin-top: 12px;
+        border: none;
+        background: none;
+        color: #aca5d4;
+        font-family: inherit;
+        font-weight: 800;
+        font-size: 0.95rem;
+        cursor: pointer;
+        padding: 8px 16px;
+        min-height: 40px;
+      }
+
       /* ---------- منتقي التحدي: الخصم (بوت/حقيقي) ثم النوع (بوش أب/مشي/جري) ---------- */
       .cp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
       .cp-grid.three { grid-template-columns: 1fr 1fr 1fr; }
@@ -4777,6 +4842,22 @@
           </div>
         </div>
 
+        <!-- نافذة تحدي وارد: تظهر فور وصول تحدٍّ جديد أثناء وجود اللاعب في التطبيق -->
+        <div id="chalInPop" hidden role="dialog" aria-label="تحدٍّ جديد">
+          <div class="chal-card">
+            <div class="cip-ava" id="chalInAva"></div>
+            <p class="chal-title">تحدٍّ جديد!</p>
+            <p class="chal-name" id="chalInName"></p>
+            <p class="cip-char" id="chalInChar" hidden></p>
+            <p class="chal-sub" id="chalInSub"></p>
+            <div class="cip-btns">
+              <button type="button" class="cip-acc" id="chalInAccept">قبول</button>
+              <button type="button" class="cip-dec" id="chalInDecline">رفض</button>
+            </div>
+            <button type="button" class="cip-later" id="chalInLater">لاحقًا</button>
+          </div>
+        </div>
+
         <!-- قائمة المحادثات: صف لكل محادثة — الصورة والاسم وآخر رسالة ووقتها وعدّاد غير المقروء -->
         <div class="hm-sheet-wrap chat-wrap" id="chatListSheet" hidden>
           <div class="hm-sheet" role="dialog" aria-label="الرسائل">
@@ -5188,6 +5269,7 @@
               </div>
             </div>
           </div>
+          <div class="pu-count" id="wkCount" hidden>3</div>
 
           <!-- رسالة «قواعد تمارين» العامة عند فتح تمرين المشي: نسخة التمرين
                الخاصة منه — نفس النص ونفس خيار الإخفاء المستقل تمامًا كما في
@@ -9306,7 +9388,8 @@
           var exr = el("exRules"); if (exr) exr.hidden = true;
           puDrawDepth(0, false);
           puMatchResetUi();
-          if (pu.match) puSetStatus("مباراة ضد " + pu.match.bot.name + " — اضغط «بدء المباراة» حين تكون جاهزًا");
+          if (pu.match && pu.match.real) puSetStatus("مباراة ضد " + pu.match.bot.name + " — ستبدأ تلقائيًا بعد العدّ التنازلي");
+          else if (pu.match) puSetStatus("مباراة ضد " + pu.match.bot.name + " — اضغط «بدء المباراة» حين تكون جاهزًا");
           else puSetStatus("ضع الهاتف أمامك على الأرض والكاميرا نحوك، ثم خذ وضعية الضغط");
         }
         /* ---------- خيار إخفاء رسالة «قواعد تمارين» عند فتح التمارين ----------
@@ -9357,6 +9440,8 @@
           if (p) { p.hidden = true; p.classList.remove("in-match"); }
           var pm = el("puMatch");
           if (pm) pm.hidden = true;
+          /* فرغ اللاعب من التمرين: اعرض أي نافذة تحدي وارد مؤجلة */
+          setTimeout(chalInPopNext, 600);
         }
         function puStopSession() {
           pu.counting = false;
@@ -9836,6 +9921,9 @@
         var chalReal = null;       /* مباراة حقيقية جارية {id, type, myKey, oppKey, opp, myField, oppField, myDoneField, oppDoneField, unsub, lastWriteTs, lastScore, over, myDone, oppScore, oppDone} */
         var chalInUnsub = null;    /* مستمع التحديات الواردة (يحرس من التكرار) */
         var chalInList = [];       /* التحديات الواردة المعلّقة غير المنتهية */
+        var chalInSeen = {};       /* معرفات تحديات ظهرت نافذتها في هذه الجلسة — لا تتكرر النافذة */
+        var chalInQueue = [];      /* تحديات واردة بانتظار عرض نافذتها (واحدة تلو الأخرى) */
+        var chalInPopCur = null;   /* التحدي المعروض حاليًا في نافذة التحدي الوارد */
 
         function chalIsRealPlayer(p) {
           return !!(p && p.key && !p.bot && !p.botId && String(p.key).indexOf("bot:") !== 0);
@@ -10023,6 +10111,9 @@
           if (chalRealWait.expTimer) clearTimeout(chalRealWait.expTimer);
           chalRealWait = null;
           el("chalWait").hidden = true;
+          /* فرغ اللاعب من الانتظار: اعرض أي نافذة تحدي وارد مؤجلة (بعد مهلة قصيرة
+             حتى يستقر دخول المباراة عند القبول فلا تظهر النافذة فوقها) */
+          setTimeout(chalInPopNext, 600);
         }
         function chalCancelRealWait() {
           if (!chalRealWait) return;
@@ -10058,6 +10149,12 @@
                 list.sort(function (a, b) { return a.createdAt - b.createdAt; });
                 chalInList = list;
                 chalRenderIncoming();
+                /* تحدٍّ جديد لم تظهر نافذته بعد؟ يدخل طابور النوافذ (مرة واحدة لكل تحدٍّ) */
+                list.forEach(function (c) {
+                  if (!chalInSeen[c.id]) { chalInSeen[c.id] = true; chalInQueue.push(c); }
+                });
+                if (chalInPopCur && !list.some(function (x) { return x.id === chalInPopCur.id; })) chalInPopClose();
+                else chalInPopNext();
               }, function () {});
           } catch (e) {}
         }
@@ -10100,6 +10197,49 @@
             list.appendChild(row);
           });
         }
+        /* ---------- نافذة التحدي الوارد: تظهر فورًا عند وصول تحدٍّ جديد ---------- */
+        function chalInPopNext() {
+          if (chalInPopCur) return;
+          /* لا نقاطع مباراة/انتظار/تمرينًا جاريًا — تبقى النافذة في الطابور حتى يفرغ اللاعب */
+          if (chalReal || chalRealWait || pu.open || wk.open) return;
+          while (chalInQueue.length) {
+            var c = chalInQueue.shift();
+            var still = chalInList.some(function (x) { return x.id === c.id; });
+            if (!still || chalExpired(c, Date.now())) continue;
+            chalInPopCur = c;
+            var p = chalPlayerByKey(c.from);
+            var ava = el("chalInAva");
+            ava.style.background = lbColor(p.name);
+            ava.textContent = frInitial(p.name);
+            el("chalInName").textContent = p.name;
+            var ch = p.char ? charById(p.char) : null;
+            var chEl = el("chalInChar");
+            chEl.hidden = !ch;
+            if (ch) chEl.textContent = "الشخصية: " + ch.name;
+            el("chalInSub").textContent = (CHAL_TYPE_AR[c.type] || c.type) + " — الأول إلى " + (CHAL_TARGETS[c.type] || 0) + (c.type === "pushup" ? " عدّة" : " خطوة");
+            el("chalInPop").hidden = false;
+            return;
+          }
+        }
+        function chalInPopClose() {
+          chalInPopCur = null;
+          el("chalInPop").hidden = true;
+          chalInPopNext();
+        }
+        el("chalInAccept").addEventListener("click", function () {
+          var c = chalInPopCur; if (!c) return;
+          /* إخفاء دون عرض التالية: القبول يدخل المباراة فورًا */
+          chalInPopCur = null;
+          el("chalInPop").hidden = true;
+          chalAccept(c);
+        });
+        el("chalInDecline").addEventListener("click", function () {
+          var c = chalInPopCur; if (!c) return;
+          chalInPopClose();
+          chalDecline(c);
+        });
+        el("chalInLater").addEventListener("click", chalInPopClose);
+        el("chalInPop").addEventListener("click", function (e) { if (e.target === el("chalInPop")) chalInPopClose(); });
         function chalAccept(c) {
           if (!chalGuardOnline()) return;
           if (chalReal || chalRealWait) { showToast("لديك تحدٍّ جارٍ بالفعل"); return; }
@@ -10140,12 +10280,58 @@
           if (d.type === "pushup") {
             pu.match = { bot: opp, botReps: 0, started: false, over: false, timer: 0, startTs: 0, real: true, chalId: id };
             openPuPage();
+            chalAutoStartPu();
           } else {
             wk.match = { bot: opp, botSteps: 0, botStepsFloat: 0, over: false, started: false, real: true, chalId: id, type: d.type, target: CHAL_TARGETS[d.type], timerInt: 0 };
             openWalkPage();
             wkChooseMode(d.type);
+            chalWkAutoStart();
           }
           if (after) after();
+        }
+        /* ---------- بدء تلقائي للمباراة الحقيقية: عدّ تنازلي ثم بدء العدّ فورًا ----------
+           لا ينتظر اللاعب ضغطة «بدء المباراة»: عند جاهزية الكاميرا/الحساسات يعمل
+           العدّ التنازلي (٣ ٢ ١) ثم يبدأ العدّ عند الطرفين. إن تعذّر الإذن يبقى زر
+           البدء خيارًا يدويًا — لا طريق مسدودًا أبدًا. مباريات البوت كما هي تمامًا. */
+        function chalAutoStartPu() {
+          var m0 = pu.match;
+          var tries = 0;
+          var iv = setInterval(function () {
+            tries++;
+            var m = pu.match;
+            if (!m || m !== m0 || !m.real || m.over || m.started || pu.counting || pu.countIv || !pu.open) { clearInterval(iv); return; }
+            var exr = el("exRules");
+            if (pu.stream && pu.poseReady && (!exr || exr.hidden)) { clearInterval(iv); puStart(); return; }
+            if (tries >= 120) clearInterval(iv);  /* ~60 ثانية: يبقى زر البدء خيارًا يدويًا */
+          }, 500);
+        }
+        var chalWkCdIv = 0;
+        function chalWkAutoStart() {
+          if (chalWkCdIv) return;
+          var m0 = wk.match;
+          var tries = 0;
+          chalWkCdIv = setInterval(function () {
+            tries++;
+            var m = wk.match;
+            if (!m || m !== m0 || !m.real || m.over || m.started || wk.counting || !wk.open) { clearInterval(chalWkCdIv); chalWkCdIv = 0; return; }
+            var wr = el("walkRules");
+            if (wk.mode && (!wr || wr.hidden)) { clearInterval(chalWkCdIv); chalWkCdIv = 0; chalWkCountdown(); return; }
+            if (tries >= 120) { clearInterval(chalWkCdIv); chalWkCdIv = 0; }
+          }, 500);
+        }
+        function chalWkCountdown() {
+          var m0 = wk.match;
+          var c = el("wkCount");
+          var n = 3;
+          if (c) { c.hidden = false; c.textContent = n; }
+          wkSetStatus("استعد…");
+          var iv = setInterval(function () {
+            var m = wk.match;
+            if (!m || m !== m0 || !m.real || m.over || wk.counting || !wk.open) { clearInterval(iv); if (c) c.hidden = true; return; }
+            n--;
+            if (n <= 0) { clearInterval(iv); if (c) c.hidden = true; wkStart(); }
+            else if (c) c.textContent = n;
+          }, 850);
         }
         function chalRealOnDoc(d) {
           var r = chalReal;
@@ -10300,6 +10486,8 @@
             achEvaluate();
           }
           chalReal = null;
+          /* انتهت المباراة: اعرض أي نافذة تحدي وارد مؤجلة */
+          setTimeout(chalInPopNext, 600);
         }
 
         /* ---------- مباريات المشي/الجري ضد البوت: إيقاع خطوات محاكى ---------- */
@@ -10890,6 +11078,7 @@
           el("walkSession").hidden = true;
           el("walkSummary").hidden = true;
           el("walkRules").hidden = true;
+          var wc = el("wkCount"); if (wc) wc.hidden = true;
           el("walkPermErr").hidden = true;
           el("walkStartBtn").hidden = false;
           el("walkFinishBtn").hidden = true;
@@ -10917,6 +11106,8 @@
           wkStop();
           var p = el("walkPage");
           if (p) p.hidden = true;
+          /* فرغ اللاعب من التمرين: اعرض أي نافذة تحدي وارد مؤجلة */
+          setTimeout(chalInPopNext, 600);
         }
         function wkChooseMode(mode) {
           /* في مباراة خطوات: النوع محدد من التحدي نفسه ولا يُبدَّل */
@@ -10939,7 +11130,13 @@
             el("walkModePick").hidden = true;
             el("walkSession").hidden = false;
             wkUpdateUi();
-            wkSetStatus(mode === "run" ? "وضع الجري — احمل هاتفك في يدك أو جيبك، واضغط «بدء التمرين» حين تكون جاهزًا" : "وضع المشي — احمل هاتفك في يدك أو جيبك، واضغط «بدء التمرين» حين تكون جاهزًا");
+            if (wk.match && wk.match.real) {
+              /* مباراة حقيقية: تبدأ تلقائيًا بعد العدّ التنازلي دون ضغطة بدء */
+              wkSetStatus("استعد… ستبدأ المباراة تلقائيًا بعد العدّ التنازلي");
+              chalWkAutoStart();
+            } else {
+              wkSetStatus(mode === "run" ? "وضع الجري — احمل هاتفك في يدك أو جيبك، واضغط «بدء التمرين» حين تكون جاهزًا" : "وضع المشي — احمل هاتفك في يدك أو جيبك، واضغط «بدء التمرين» حين تكون جاهزًا");
+            }
           };
           if (typeof DeviceMotionEvent === "undefined") { done(false, "none"); return; }
           if (typeof DeviceMotionEvent.requestPermission === "function") {
