@@ -4796,7 +4796,7 @@
               </div>
               <div class="sec-body">
                 <h4 class="sec-name gym-open-tap" id="walkTitleTap">المشي والجري <span class="en">· Walking &amp; Running</span></h4>
-                <p class="sec-desc">تمرين بلا كاميرا: اختر المشي أو الجري، وحساسات هاتفك تعدّ خطواتك الحقيقية — المشي +1 XP كل خطوتين، والجري +1 XP كل 5 خطوات.</p>
+                <p class="sec-desc">تمرين بلا كاميرا: اختر المشي أو الجري، وحساسات هاتفك تعدّ خطواتك الحقيقية — المشي +2 XP كل خطوة، والجري +4 XP كل خطوة.</p>
                 <button type="button" class="sec-enter" id="walkEnterBtn">ادخل</button>
               </div>
             </article>
@@ -5014,8 +5014,8 @@
         <!-- صفحة تمرين المشي والجري: عند الدخول يختار اللاعب نمطه (مشي أو
              جري)، ثم تُعدّ خطواته بحساسات حركة الهاتف (DeviceMotion) — بلا
              كاميرا وبلا أي عدّ وهمي: إن غاب الإذن أو الحساسات تظهر رسالة
-             صادقة ولا تُحتسب أي خطوة. المشي: +1 XP كل خطوتين، والجري:
-             +1 XP كل 5 خطوات، وإنهاء الجلسة يُحسب يوم تمرين كأي جلسة -->
+             صادقة ولا تُحتسب أي خطوة. المشي: +2 XP كل خطوة، والجري:
+             +4 XP كل خطوة، وإنهاء الجلسة يُحسب يوم تمرين كأي جلسة -->
         <div id="walkPage" hidden>
           <div class="walk-col">
             <div class="walk-top">
@@ -5035,12 +5035,12 @@
                 <button type="button" class="walk-mode" id="walkModeWalk">
                   <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="13" cy="4.5" r="1.8"/><path d="M13 8l-2.2 3L8 12.5M13 8l1.8 2.6 2.4 1M10.8 11L9 15l-2.4 4.5M10.8 11l2.4 3 .6 5.5"/></svg>
                   <span class="wm-nm">مشي</span>
-                  <span class="wm-sb">+1 XP كل خطوتين</span>
+                  <span class="wm-sb">+2 XP كل خطوة</span>
                 </button>
                 <button type="button" class="walk-mode" id="walkModeRun">
                   <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="14.5" cy="4.5" r="1.8"/><path d="M10 21l2-4.5L9.5 14 11 10M14 7.5L11 10M14 7.5l2.8 1 2.7-.5M11 10l-3 .8-2 2.7M12 16.5l3 1.5 1 3.5"/></svg>
                   <span class="wm-nm">جري</span>
-                  <span class="wm-sb">+1 XP كل 5 خطوات</span>
+                  <span class="wm-sb">+4 XP كل خطوة</span>
                 </button>
               </div>
               <p class="walk-note">سنطلب إذن الوصول إلى حساسات الحركة في هاتفك لعدّ خطواتك — تُعالج الحركة على هاتفك فقط ولا تُرسل إلى أي مكان.</p>
@@ -5065,7 +5065,7 @@
                   <span class="wp-lab" id="walkSpeedLab">السرعة الآن</span>
                   <b class="wp-val" id="walkSpeedVal">—</b>
                 </div>
-                <p class="wp-state" id="walkPaceState">يُحتسب الآن كمشي — بمعدل المشي: +1 XP كل خطوتين</p>
+                <p class="wp-state" id="walkPaceState">يُحتسب الآن كمشي — بمعدل المشي: +2 XP كل خطوة</p>
                 <p class="wp-note" id="walkPaceNote">جارٍ قياس سرعتك… يبدأ احتساب الجري من 7 كم/س فأكثر</p>
               </div>
               <p class="walk-status" id="walkStatus">احمل هاتفك في يدك أو جيبك وابدأ الحركة</p>
@@ -6309,19 +6309,19 @@
           "المشي والجري": "Walking & Running",
           "المشي والجري — اضغط للدخول": "Walking & Running — tap to enter",
           "مشي وجري": "Walk & Run",
-          "تمرين بلا كاميرا: اختر المشي أو الجري، وحساسات هاتفك تعدّ خطواتك الحقيقية — المشي +1 XP كل خطوتين، والجري +1 XP كل 5 خطوات.": "A camera-free workout: choose walking or running, and your phone's sensors count your real steps — walking +1 XP every 2 steps, running +1 XP every 5 steps.",
+          "تمرين بلا كاميرا: اختر المشي أو الجري، وحساسات هاتفك تعدّ خطواتك الحقيقية — المشي +2 XP كل خطوة، والجري +4 XP كل خطوة.": "A camera-free workout: choose walking or running, and your phone's sensors count your real steps — walking +2 XP every step, running +4 XP every step.",
           "مشي": "Walk",
           "جري": "Run",
           "تمرين المشي — اضغط لفتح التمرين": "Walking workout — tap to open the workout",
           "لمن يفضّل المشي أو الجري: حساسات هاتفك تعدّ خطواتك، وكل خطواتك تزيدك XP — اضغط للبدء": "For those who prefer walking or running: your phone's sensors count your steps, and every step earns you XP — tap to start",
           "اختر نمط تمرينك": "Choose your workout mode",
-          "+1 XP كل خطوتين": "+1 XP every 2 steps",
-          "+1 XP كل 5 خطوات": "+1 XP every 5 steps",
+          "+2 XP كل خطوة": "+2 XP every step",
+          "+4 XP كل خطوة": "+4 XP every step",
           "في وضع الجري تُقاس سرعتك فعليًا: لا تُمنح XP الجري إلا أثناء الجري بسرعة 7 كم/س فأكثر، وما دونها يُحتسب بمعدل المشي.": "In running mode your speed is actually measured: running XP is awarded only while you run at 7 km/h or faster — anything slower counts at the walking rate.",
           "السرعة الآن": "Current speed",
           "الإيقاع الآن": "Current cadence",
-          "يُحتسب الآن كجري — بمعدل الجري: +1 XP كل 5 خطوات": "Counting as running now — running rate: +1 XP every 5 steps",
-          "يُحتسب الآن كمشي — بمعدل المشي: +1 XP كل خطوتين": "Counting as walking now — walking rate: +1 XP every 2 steps",
+          "يُحتسب الآن كجري — بمعدل الجري: +4 XP كل خطوة": "Counting as running now — running rate: +4 XP every step",
+          "يُحتسب الآن كمشي — بمعدل المشي: +2 XP كل خطوة": "Counting as walking now — walking rate: +2 XP every step",
           "تُقاس سرعتك بـ GPS — يبدأ احتساب الجري من 7 كم/س فأكثر": "Your speed is measured by GPS — running counts from 7 km/h and above",
           "GPS غير متاح — يُقاس إيقاع خطواتك بدلًا من سرعتك، ويبدأ احتساب الجري من 150 خطوة/دقيقة": "GPS unavailable — your step cadence is measured instead of your speed, and running counts from 150 steps/min",
           "جارٍ قياس سرعتك… يبدأ احتساب الجري من 7 كم/س فأكثر": "Measuring your speed… running counts from 7 km/h and above",
@@ -9945,8 +9945,8 @@
         });
 
         /* ================= تمرين المشي والجري (حساسات حركة الهاتف) =================
-           عند الدخول يختار اللاعب نمطه: مشي (+1 XP كل خطوتين) أو جري
-           (+1 XP كل 5 خطوات). العدّ من DeviceMotion فقط: ذروة تسارع تتجاوز
+           عند الدخول يختار اللاعب نمطه: مشي (+2 XP كل خطوة) أو جري
+           (+4 XP كل خطوة). العدّ من DeviceMotion فقط: ذروة تسارع تتجاوز
            العتبة بعد ذروة سابقة دونها = خطوة، بفاصل أدنى 220ms بين الخطوات.
            إذن iOS يُطلب عند اختيار النمط مع شرح سببه قبل الطلب؛ وإن غابت
            الحساسات أو رُفض الإذن تظهر رسالة صادقة ولا تُحتسب أي خطوة أبدًا —
@@ -9961,13 +9961,13 @@
         var wk = {
           open: false, mode: null, counting: false, started: false,
           steps: 0, sessionXp: 0, xpGiven: 0, startTs: 0, elapsed: 0,
-          timerInt: 0, lastMag: 0, lastStepTs: 0, handler: null,
+          timerInt: 0, lastMag: 0, lastStepTs: 0, lastSyncTs: 0, handler: null,
           paceSteps: { run: 0, walk: 0 }, stepTimes: [],
           pace: "walk", paceSrc: "", gpsWatch: null, gpsSpeed: null,
           gpsTs: 0, gpsLast: null
         };
         var WK_STRIDE = { walk: 0.75, run: 1.05 };
-        var WK_PER = { walk: 2, run: 5 };
+        var WK_PER = { walk: 0.5, run: 0.25 };
         /* عتبة الجري: المشي الطبيعي 3–6 كم/س، والجري يبدأ نحو 7–8 كم/س */
         var WK_RUN_MIN_KMH = 7;
         var WK_RUN_MIN_SPM = 150;
@@ -10065,7 +10065,7 @@
             note.textContent = "جارٍ قياس سرعتك… يبدأ احتساب الجري من 7 كم/س فأكثر";
           }
           var running = wk.pace === "run";
-          st.textContent = running ? "يُحتسب الآن كجري — بمعدل الجري: +1 XP كل 5 خطوات" : "يُحتسب الآن كمشي — بمعدل المشي: +1 XP كل خطوتين";
+          st.textContent = running ? "يُحتسب الآن كجري — بمعدل الجري: +4 XP كل خطوة" : "يُحتسب الآن كمشي — بمعدل المشي: +2 XP كل خطوة";
           st.classList.toggle("is-run", running);
         }
         function wkSetStatus(t) {
@@ -10103,6 +10103,9 @@
               xp += d;
               wk.sessionXp += d;
               persist();
+              /* مزامنة سحابية أثناء الجلسة (مخفّضة التكرار): يصل التقدم إلى قاعدة البيانات
+                 قبل انتهاء الجلسة، فلا يضيع إن بدّل اللاعب الجهاز أو أغلق التطبيق فجأة */
+              if (now - wk.lastSyncTs > 15000) { wk.lastSyncTs = now; fbSyncMe(); }
               updateProgressUI();
               var gl = el("gymMyLvl"); if (gl) gl.textContent = "مستوى " + xpLevel();
               var gx = el("gymMyXp"); if (gx) gx.textContent = xp;
@@ -10127,6 +10130,7 @@
           wk.elapsed = 0;
           wk.lastMag = 0;
           wk.lastStepTs = 0;
+          wk.lastSyncTs = 0;
           wk.paceSteps = { run: 0, walk: 0 };
           wk.stepTimes = [];
           wk.pace = "walk";
@@ -10191,6 +10195,7 @@
           if (!wk.mode || wk.counting) return;
           wk.counting = true;
           wk.started = true;
+          wk.lastSyncTs = 0;
           wk.startTs = Date.now() - wk.elapsed;
           wk.handler = wkOnMotion;
           window.addEventListener("devicemotion", wk.handler);
@@ -11742,6 +11747,9 @@
         function fbSyncMe() {
           var key = fbMyKey();
           if (!fbDb || !key) return;
+          /* اشتقاق هوية المصادقة من جلسة Firebase الحية إن لم تُختم الهوية المحلية بعد
+             (لغير الضيوف فقط): حتى لا يتخطّى حارس أول مزامنة كتابات صاحب الحساب نفسه */
+          if (!accountUid && !isGuest && fbAuth && fbAuth.currentUser && fbAuth.currentUser.uid) accountUid = fbAuth.currentUser.uid;
           var sig = key + "|" + xp + "|" + xpLevel() + "|" + myElo + "|" + AV.char + "|" + (isGuest ? "g" : "u") + "|" + (termsApproved ? "t" : "-") + "|" + myCupTitles + "|" + (myCupChampWeek || "") + "|" + trainDays.join(",") + "|" + JSON.stringify(trainLog) + "|" + myWins + "|" + myLosses + "|" + myAch.join(",") + "|" + (myTitle || "") + "|" + myLvlTitles.join(",") + "|" + (accountUid || "") + "|" + (pushToken || "-") + "|" + JSON.stringify(notifPrefsNow());
           if (sig !== fbLastSig) {
             var first = fbLastSig === null;
@@ -11778,7 +11786,9 @@
             if (accountUid) payload.uid = accountUid;
             var fbSkipWrite = false;
             var write = function () {
-              if (fbSkipWrite) return;
+              /* إن تُخطّيت الكتابة فقط لأن هوية المصادقة لم تُختم بعد، ننسى التوقيع
+                 فتُعاد المحاولة كمزامنة أولى بدل فقدان هذه الحالة نهائيًا */
+              if (fbSkipWrite) { if (!accountUid) fbLastSig = null; return; }
               try { fbDb.collection("players").doc(key).set(payload, { merge: true }).catch(function () {}); } catch (e) {}
             };
             if (first) {
