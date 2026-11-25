@@ -7843,6 +7843,9 @@
             if (saved && String(saved.username || "").trim().toLowerCase() === infoKey) {
               accountName = saved.username; accountDob = saved.dob || null;
               restoreAvatar(saved);
+              /* الـ uid الطازج من التسجيل/الدخول المكتمل للتوّ يعلو على أي uid
+                 قديم في الحفظ المحلي — هوية المسجَّل فعليًا هي المرجع دائمًا */
+              if (typeof info.uid === "string" && info.uid) accountUid = info.uid;
             } else {
               /* التسجيل بعد اللعب كضيف: XP وأيام التدريب وELO ديال الضيف كيتنقلو للحساب الجديد */
               var carryXp = isGuest ? xp : 0;
@@ -11747,9 +11750,9 @@
         function fbSyncMe() {
           var key = fbMyKey();
           if (!fbDb || !key) return;
-          /* اشتقاق هوية المصادقة من جلسة Firebase الحية إن لم تُختم الهوية المحلية بعد
-             (لغير الضيوف فقط): حتى لا يتخطّى حارس أول مزامنة كتابات صاحب الحساب نفسه */
-          if (!accountUid && !isGuest && fbAuth && fbAuth.currentUser && fbAuth.currentUser.uid) accountUid = fbAuth.currentUser.uid;
+          /* هوية جلسة Firebase الحية هي المرجع (لغير الضيوف): أي uid قديم من حفظ
+             محلي سابق لا يعلو على الحساب المسجَّل فعليًا، وإلا تخطّى الحارس كتاباته */
+          if (!isGuest && fbAuth && fbAuth.currentUser && fbAuth.currentUser.uid && accountUid !== fbAuth.currentUser.uid) accountUid = fbAuth.currentUser.uid;
           var sig = key + "|" + xp + "|" + xpLevel() + "|" + myElo + "|" + AV.char + "|" + (isGuest ? "g" : "u") + "|" + (termsApproved ? "t" : "-") + "|" + myCupTitles + "|" + (myCupChampWeek || "") + "|" + trainDays.join(",") + "|" + JSON.stringify(trainLog) + "|" + myWins + "|" + myLosses + "|" + myAch.join(",") + "|" + (myTitle || "") + "|" + myLvlTitles.join(",") + "|" + (accountUid || "") + "|" + (pushToken || "-") + "|" + JSON.stringify(notifPrefsNow());
           if (sig !== fbLastSig) {
             var first = fbLastSig === null;
