@@ -3209,6 +3209,41 @@
       }
       .chal-cancel:active { transform: translateY(2px); }
 
+      /* ---------- منتقي التحدي: الخصم (بوت/حقيقي) ثم النوع (بوش أب/مشي/جري) ---------- */
+      .cp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+      .cp-grid.three { grid-template-columns: 1fr 1fr 1fr; }
+      .cp-opt {
+        border: 1.5px solid #3d3191; border-radius: 18px; cursor: pointer; font-family: inherit;
+        background: linear-gradient(160deg, #2b1f5c, #1d1545); color: #fff;
+        padding: 18px 8px 14px; display: flex; flex-direction: column; align-items: center; gap: 6px;
+        min-height: 104px;
+      }
+      .cp-opt svg { color: var(--orange-soft); }
+      .cp-opt .cp-nm { font-size: 1.12rem; font-weight: 900; }
+      .cp-opt .cp-sb { color: #cdc6ec; font-size: 0.8rem; font-weight: 700; line-height: 1.5; text-align: center; }
+      .cp-opt:active { transform: scale(0.97); }
+      .cp-back {
+        margin-top: 14px; border: 1px solid #57489f; background: #241a52; color: #e8e4ff;
+        font-family: inherit; font-weight: 900; font-size: 0.95rem; border-radius: 999px;
+        padding: 9px 26px; cursor: pointer; min-height: 44px;
+      }
+      .cp-back:active { transform: translateY(2px); }
+      .cp-friend-list { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; max-height: 46vh; overflow-y: auto; }
+      .cp-friend-row {
+        display: flex; align-items: center; gap: 10px; width: 100%; text-align: start;
+        border: 1px solid #3d3191; border-radius: 14px; cursor: pointer; font-family: inherit;
+        background: #241a52; color: #fff; padding: 10px 12px; min-height: 52px;
+      }
+      .cp-friend-row:active { transform: scale(0.98); }
+      .cp-friend-row .cp-fnm { font-weight: 900; font-size: 1rem; }
+      .cp-friend-row .cp-fsb { color: #cdc6ec; font-size: 0.8rem; font-weight: 700; margin-inline-start: auto; }
+      .cp-empty { color: #aca5d4; font-weight: 700; text-align: center; padding: 16px 6px; line-height: 1.7; }
+      /* شارة عدد التحديات الواردة على زر الأصدقاء في القائمة الرئيسية */
+      .hm-nav .nav-badge { position: absolute; top: 0; inset-inline-end: 4px; z-index: 2; }
+      /* لوحة مباراة المشي/الجري: نفس شريطي عدّات الضغط لكن للخطوات */
+      .wk-match { margin-top: 18px; }
+      .wk-match[hidden] { display: none; }
+
       /* ---------- ملف اللاعب: ورقة منبثقة فوق ورقة الأصدقاء فيها أفاتاره ثلاثي الأبعاد ---------- */
       .fr-row { cursor: pointer; }
       .fr-row:active { background: #372a75; }
@@ -4133,6 +4168,7 @@
           <button type="button" id="hmNavFriends">
             <span class="hm-ic"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7.5" r="3.5"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M15.5 4.13a3.5 3.5 0 0 1 0 6.74"/></svg></span>
             <span>الأصدقاء</span>
+            <span class="chat-badge nav-badge" id="frNavBadge" hidden>0</span>
           </button>
         </nav>
 
@@ -4607,6 +4643,10 @@
               <button type="button" class="fr-tab" data-fr-tab="suggested" role="tab" aria-selected="false">الأصدقاء المقترحون</button>
             </div>
             <p class="fr-dbempty" id="frDbEmpty" hidden>لا يوجد لاعبون بعد — كن أول من يسجّل</p>
+            <div class="fr-sec" id="frSecChalIn" hidden>
+              <p class="fr-head">تحديات واردة <span class="cnt" id="frChalInCount">0</span></p>
+              <div class="fr-list" id="frChalInList"></div>
+            </div>
             <div class="fr-sec" id="frSecRequests" hidden>
               <p class="fr-head">طلبات الصداقة <span class="cnt" id="frRequestsCount">0</span></p>
               <div class="fr-list" id="frRequestsList"></div>
@@ -4670,14 +4710,70 @@
           </div>
         </div>
 
-        <!-- شاشة انتظار قبول التحدي: قرص دوّار ورسالة حتى يوافق الخصم (مدة عشوائية) -->
+        <!-- شاشة انتظار قبول التحدي: قرص دوّار ورسالة حتى يوافق الخصم —
+             للبوتات مدة عشوائية، وللاعبين الحقيقيين انتظار فعلي لقبولهم -->
         <div id="chalWait" hidden role="dialog" aria-label="جارٍ إرسال التحدي">
           <div class="chal-card">
             <div class="chal-disc" aria-hidden="true"></div>
             <p class="chal-title">جارٍ إرسال التحدي…</p>
-            <p class="chal-sub">بانتظار موافقة الخصم</p>
+            <p class="chal-sub" id="chalWaitSub">بانتظار موافقة الخصم</p>
             <p class="chal-name" id="chalWaitName"></p>
             <button type="button" class="chal-cancel" id="chalWaitCancel">إلغاء</button>
+          </div>
+        </div>
+
+        <!-- منتقي التحدي: اختيار الخصم (بوت/لاعب حقيقي) ثم نوع التحدي (بوش أب/مشي/جري) -->
+        <div class="hm-sheet-wrap" id="chalPickSheet" hidden>
+          <div class="hm-sheet" role="dialog" aria-label="إعداد التحدي">
+            <button type="button" class="hm-sheet-x" data-close-sheet="chalPickSheet" aria-label="إغلاق">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg>
+            </button>
+            <h3 id="chalPickTitle">إعداد التحدي</h3>
+            <p class="sheet-sub" id="chalPickSub">اختر نوع التحدي</p>
+
+            <div id="chalPickOpp" hidden>
+              <div class="cp-grid">
+                <button type="button" class="cp-opt" id="chalPickBot">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 8V4M8 4h8"/><circle cx="9" cy="14" r="1.2" fill="currentColor" stroke="none"/><circle cx="15" cy="14" r="1.2" fill="currentColor" stroke="none"/></svg>
+                  <span class="cp-nm">بوت</span>
+                  <span class="cp-sb">مباراة فورية ضد خصم آلي</span>
+                </button>
+                <button type="button" class="cp-opt" id="chalPickReal">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7.5" r="3.5"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M15.5 4.13a3.5 3.5 0 0 1 0 6.74"/></svg>
+                  <span class="cp-nm">لاعب حقيقي</span>
+                  <span class="cp-sb">تحدَّ صديقًا وانتظر قبوله</span>
+                </button>
+              </div>
+            </div>
+
+            <div id="chalPickFriend" hidden>
+              <div class="cp-friend-list" id="chalPickFriendList"></div>
+              <p class="cp-empty" id="chalPickFriendEmpty" hidden>لا يوجد أصدقاء حقيقيون بعد — أضف أصدقاء من صفحة الأصدقاء أولًا</p>
+              <button type="button" class="cp-back" id="chalPickBack1">رجوع</button>
+            </div>
+
+            <div id="chalPickType" hidden>
+              <div class="cp-grid three">
+                <button type="button" class="cp-opt" data-chal-type="pushup">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17h16M6 17v-3a6 6 0 0 1 12 0v3"/><path d="M12 8V5M9 5h6"/></svg>
+                  <span class="cp-nm">بوش أب</span>
+                  <span class="cp-sb">الأول إلى 20 عدّة</span>
+                </button>
+                <button type="button" class="cp-opt" data-chal-type="walk">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="13" cy="4.5" r="1.8"/><path d="M13 8l-2 5 3 3v5M11 13l-3 2-1 5M14 16l3 2 1 4"/></svg>
+                  <span class="cp-nm">مشي</span>
+                  <span class="cp-sb">الأول إلى 300 خطوة</span>
+                </button>
+                <button type="button" class="cp-opt" data-chal-type="run">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="14.5" cy="4.5" r="1.8"/><path d="M14 8l-3 4 2 4-1 5M11 12l-4 1-2 4M13 16l4 1 2 4"/></svg>
+                  <span class="cp-nm">جري</span>
+                  <span class="cp-sb">الأول إلى 600 خطوة</span>
+                </button>
+              </div>
+              <button type="button" class="cp-back" id="chalPickBack2" hidden>رجوع</button>
+            </div>
+
+            <button type="button" class="hm-sheet-close" data-close-sheet="chalPickSheet">إغلاق</button>
           </div>
         </div>
 
@@ -5049,6 +5145,23 @@
             </div>
 
             <div id="walkSession" hidden>
+              <!-- لوحة مباراة المشي/الجري: شريطا الخطوات جنبًا إلى جنب -->
+              <div class="pu-match wk-match" id="wkMatch" hidden>
+                <div class="pm-bars">
+                  <div class="pm-side">
+                    <span class="pm-nm" id="wkMyName">أنت</span>
+                    <span class="pm-reps"><b id="wkMySteps">0</b> <small id="wkMyGoal">/ 300 خطوة</small></span>
+                    <div class="pm-bar"><div class="pm-fill me" id="wkMyBar"></div></div>
+                  </div>
+                  <span class="pm-vs">VS</span>
+                  <div class="pm-side">
+                    <span class="pm-nm"><span id="wkOppName">الخصم</span></span>
+                    <span class="pm-reps"><b id="wkOppSteps">0</b> <small id="wkOppGoal">/ 300 خطوة</small></span>
+                    <div class="pm-bar"><div class="pm-fill bot" id="wkOppBar"></div></div>
+                  </div>
+                </div>
+                <p class="pm-goal" id="wkMatchGoal">الأول إلى 300 خطوة يفوز</p>
+              </div>
               <div class="walk-steps">
                 <b id="walkSteps">0</b>
                 <span>خطوة</span>
@@ -6161,6 +6274,35 @@
           "إلغاء": "Cancel",
           "طلب الصداقة بانتظار القبول": "Your friend request is awaiting acceptance",
           "قبل الخصم التحدي — استعد!": "Your opponent accepted the challenge — get ready!",
+          "إعداد التحدي": "Challenge setup",
+          "تحدٍّ جديد": "New challenge",
+          "اختر نوع التحدي": "Choose the challenge type",
+          "اختر خصمك أولًا": "Choose your opponent first",
+          "اختر صديقًا لتحدّيه": "Choose a friend to challenge",
+          "بوت": "Bot",
+          "مباراة فورية ضد خصم آلي": "Instant match vs a bot",
+          "لاعب حقيقي": "Real player",
+          "تحدَّ صديقًا وانتظر قبوله": "Challenge a friend and wait for them to accept",
+          "بوش أب": "Push-ups",
+          "الأول إلى 20 عدّة": "First to 20 reps",
+          "الأول إلى 300 خطوة": "First to 300 steps",
+          "الأول إلى 600 خطوة": "First to 600 steps",
+          "الأول إلى 300 خطوة يفوز": "First to 300 steps wins",
+          "الأول إلى 600 خطوة يفوز": "First to 600 steps wins",
+          "رجوع": "Back",
+          "ابدأ التحدي": "Start challenge",
+          "لا يوجد أصدقاء حقيقيون بعد — أضف أصدقاء من صفحة الأصدقاء أولًا": "No real friends yet — add friends from the Friends page first",
+          "تحديات واردة": "Incoming challenges",
+          "رفض الخصم التحدي": "Your opponent declined the challenge",
+          "انتهت مهلة التحدي دون رد من الخصم": "The challenge expired with no reply from your opponent",
+          "انتهت مهلة هذا التحدي": "This challenge has expired",
+          "تعذّر إرسال التحدي — تحقق من الاتصال وحاول مجددًا": "Couldn't send the challenge — check your connection and try again",
+          "تعذّر قبول التحدي — تحقق من الاتصال": "Couldn't accept the challenge — check your connection",
+          "التحديات الحقيقية تتطلب الاتصال بالإنترنت": "Real challenges require an internet connection",
+          "سجّل حسابك أولًا لتحدّي لاعبين حقيقيين": "Register an account first to challenge real players",
+          "لديك تحدٍّ جارٍ بالفعل": "You already have a challenge in progress",
+          "انتهى وقتك — بانتظار انتهاء الخصم…": "Your time is up — waiting for your opponent to finish…",
+          "انتهت جلستك — بانتظار انتهاء الخصم…": "Your session ended — waiting for your opponent to finish…",
           "تم الاختيار: أنثى — اختر شخصيتك من الأسفل": "Selected: Female — choose your character below",
           "تم الاختيار: ذكر — اختر شخصيتك من الأسفل": "Selected: Male — choose your character below",
           "تم حفظ شخصيتك ✓": "Your character has been saved ✓",
@@ -9012,7 +9154,7 @@
         document.querySelectorAll("[data-close-sheet]").forEach(function (b) {
           b.addEventListener("click", function () { closeSheet(b.getAttribute("data-close-sheet")); });
         });
-        ["profSheet", "sectionsSheet", "rankSheet", "friendsSheet", "settingsSheet", "meSheet", "trainSheet", "addEmailSheet", "editProfileSheet", "deleteAccountSheet"].forEach(function (id) {
+        ["profSheet", "sectionsSheet", "rankSheet", "friendsSheet", "settingsSheet", "meSheet", "trainSheet", "addEmailSheet", "editProfileSheet", "deleteAccountSheet", "chalPickSheet"].forEach(function (id) {
           el(id).addEventListener("click", function (e) { if (e.target === el(id)) closeSheet(id); });
         });
         /* ---------- صفحة التمارين المستقلة + صفحتا التحديات اليومية والبطولة الأسبوعية ---------- */
@@ -9205,6 +9347,9 @@
         function closePuPage() {
           if (!pu.open) return;
           pu.open = false;
+          /* مغادرة مباراة حقيقية جارية = إنهاء محلي: تُكتب النتيجة في المستند
+             ويبقى المستمع حيًا ليحسم المكافآت عند انتهاء الخصم */
+          if (chalReal && !chalReal.over && chalReal.type === "pushup") chalRealLocalEnd("loss");
           puStopSession();
           pu.match = null;
           botGlStop();
@@ -9637,16 +9782,26 @@
         }
         /* ==== /CHALLENGE WAIT ==== */
 
-        /* ---------- طلب تحدٍّ واقعي: شاشة انتظار بالقرص الدوّار ----------
-           الضغط على «تحدٍّ» عند أي لاعب — بوتًا كان أو حقيقيًا — لا يدخل
-           المباراة فورًا: تظهر شاشة «جارٍ إرسال التحدي… بانتظار موافقة الخصم»
-           بقرص دوّار لمدة عشوائية (3–15 ثانية)، ثم «يقبل» الخصم فتبدأ المباراة
-           كالعادة. زر «إلغاء» يوقف الانتظار فلا تبدأ أي مباراة. */
+        /* ---------- طلب تحدِّي بوت: شاشة انتظار بالقرص الدوّار ----------
+           للبوتات فقط: تظهر شاشة «جارٍ إرسال التحدي… بانتظار موافقة الخصم»
+           بقرص دوّار لمدة عشوائية (3–15 ثانية)، ثم «يقبل» البوت فتبدأ مباراة
+           الضغط كالعادة. زر «إلغاء» يوقف الانتظار فلا تبدأ أي مباراة.
+           تحديات المشي/الجري ضد البوت تدخل صفحة الخطوات مباشرة (بلا انتظار)
+           حتى يبقى طلب إذن حساسات الحركة داخل ضغطة اللاعب نفسها.
+           اللاعبون الحقيقيون لا يمرّون من هنا أبدًا — قبولهم فعلي عبر Firestore
+           (انظر قسم «التحديات الحقيقية» أسفله). */
         var chalWaitTimer = 0;
-        function requestChallenge(p, after) {
+        function requestBotChallenge(p, after, type) {
           if (!p) return;
+          type = type || "pushup";
+          if (type === "walk" || type === "run") {
+            startBotStepsMatch(p, type);
+            if (after) after();
+            return;
+          }
           cancelChallengeWait();
           el("chalWaitName").textContent = p.name;
+          el("chalWaitSub").textContent = "بانتظار موافقة الخصم";
           el("chalWait").hidden = false;
           chalWaitTimer = setTimeout(function () {
             chalWaitTimer = 0;
@@ -9657,11 +9812,597 @@
           }, chalWaitMs());
         }
         function cancelChallengeWait() {
+          if (chalRealWait) { chalCancelRealWait(); return; }
           if (chalWaitTimer) { clearTimeout(chalWaitTimer); chalWaitTimer = 0; }
           var w = el("chalWait");
           if (w) w.hidden = true;
         }
         el("chalWaitCancel").addEventListener("click", cancelChallengeWait);
+
+        /* ==== REAL CHALLENGES ==== */
+        /* ================= التحديات الحقيقية: قبول فعلي عبر Firestore =================
+           تحدّي لاعب حقيقي لا يبدأ فورًا أبدًا: يُنشأ مستند في مجموعة challenges
+           بحالة pending، ولا تبدأ المباراة إلا بعد قبول الخصم فعليًا (accepted).
+           كل طرف يعدّ أداءه وحده (كاميرا للضغط، حساسات حركة للخطوات) ويكتب
+           نتيجته مخفّضة التكرار (مرة في الثانية كحد أقصى)، ويستمع لنتيجة خصمه
+           حيًا. الأول إلى الهدف يفوز، ومن انتهى وقته/جلسته يعلّم done فتُحسم
+           النتيجة للأعلى عند اكتمال الطرفين. التحديات المعلّقة الأقدم من
+           10 دقائق منتهية وتُتجاهل عند القراءة. */
+        var CHAL_TARGETS = { pushup: 20, walk: 300, run: 600 };
+        var CHAL_TYPE_AR = { pushup: "بوش أب", walk: "مشي", run: "جري" };
+        var CHAL_PENDING_MS = 10 * 60 * 1000;
+        var chalPick = { opp: null, mode: "known", after: null, oppKind: null };
+        var chalRealWait = null;   /* {id, unsub, expTimer, opp, type, after} أثناء انتظار قبول الخصم */
+        var chalReal = null;       /* مباراة حقيقية جارية {id, type, myKey, oppKey, opp, myField, oppField, myDoneField, oppDoneField, unsub, lastWriteTs, lastScore, over, myDone, oppScore, oppDone} */
+        var chalInUnsub = null;    /* مستمع التحديات الواردة (يحرس من التكرار) */
+        var chalInList = [];       /* التحديات الواردة المعلّقة غير المنتهية */
+
+        function chalIsRealPlayer(p) {
+          return !!(p && p.key && !p.bot && !p.botId && String(p.key).indexOf("bot:") !== 0);
+        }
+        function chalTsMs(ts) {
+          if (!ts) return 0;
+          if (typeof ts.toMillis === "function") return ts.toMillis();
+          if (typeof ts === "number") return ts;
+          return 0;
+        }
+        function chalExpired(d, nowMs) {
+          var c = chalTsMs(d && d.createdAt);
+          return !!(c && nowMs - c > CHAL_PENDING_MS);
+        }
+        function chalServerTs() {
+          return firebase.firestore.FieldValue.serverTimestamp();
+        }
+        function chalDocRef(id) { return fbDb.collection("challenges").doc(id); }
+        function chalGuardOnline() {
+          if (!fbDb || !fbMyKey()) { showToast("التحديات الحقيقية تتطلب الاتصال بالإنترنت"); return false; }
+          if (isGuest) { showToast("سجّل حسابك أولًا لتحدّي لاعبين حقيقيين"); return false; }
+          return true;
+        }
+        function chalPlayerByKey(key) {
+          var pools = [FR_PLAYERS, FR_ALL, BOT_PLAYERS];
+          for (var i = 0; i < pools.length; i++) {
+            for (var j = 0; j < pools[i].length; j++) {
+              if (pools[i][j].key === key) return pools[i][j];
+            }
+          }
+          return { name: key, key: key, xp: 0, elo: 1200, char: null, gender: null };
+        }
+        function chalPlayerDoc(key, cb) {
+          var local = chalPlayerByKey(key);
+          if (!fbDb) { cb(local); return; }
+          fbDb.collection("players").doc(key).get().then(function (snap) {
+            var d = snap.data() || {};
+            cb({
+              name: (typeof d.displayName === "string" && d.displayName) ? d.displayName : local.name,
+              key: key,
+              xp: typeof d.xp === "number" ? d.xp : (local.xp || 0),
+              elo: typeof d.elo === "number" ? d.elo : (typeof local.elo === "number" ? local.elo : 1200),
+              char: d.character || local.char || null,
+              gender: local.gender || null
+            });
+          }).catch(function () { cb(local); });
+        }
+
+        /* ---------- منتقي التحدي: الخصم ثم النوع ---------- */
+        function chalPickShow(step) {
+          el("chalPickOpp").hidden = step !== "opp";
+          el("chalPickFriend").hidden = step !== "friend";
+          el("chalPickType").hidden = step !== "type";
+          el("chalPickBack2").hidden = !(step === "type" && chalPick.mode === "arena");
+        }
+        function openChallengePicker(p, after) {
+          if (!p) return;
+          chalPick = { opp: p, mode: "known", after: after || null, oppKind: chalIsRealPlayer(p) ? "real" : "bot" };
+          el("chalPickTitle").textContent = "تحدي " + p.name;
+          el("chalPickSub").textContent = "اختر نوع التحدي";
+          chalPickShow("type");
+          openSheet("chalPickSheet");
+        }
+        function openArenaPicker() {
+          chalPick = { opp: null, mode: "arena", after: null, oppKind: null };
+          el("chalPickTitle").textContent = "تحدٍّ جديد";
+          el("chalPickSub").textContent = "اختر خصمك أولًا";
+          chalPickShow("opp");
+          openSheet("chalPickSheet");
+        }
+        function chalPickRenderFriends() {
+          var list = el("chalPickFriendList");
+          list.innerHTML = "";
+          var friends = FR_FRIENDS.filter(chalIsRealPlayer);
+          el("chalPickFriendEmpty").hidden = friends.length > 0;
+          friends.forEach(function (p) {
+            var b = document.createElement("button");
+            b.type = "button";
+            b.className = "cp-friend-row";
+            var nm = document.createElement("span");
+            nm.className = "cp-fnm";
+            nm.textContent = p.name;
+            var sb = document.createElement("span");
+            sb.className = "cp-fsb";
+            sb.textContent = "مستوى " + lbLevel(p.xp) + (typeof p.elo === "number" ? " · ELO " + p.elo : "");
+            b.appendChild(nm); b.appendChild(sb);
+            b.addEventListener("click", function () {
+              chalPick.opp = p;
+              chalPick.oppKind = "real";
+              el("chalPickTitle").textContent = "تحدي " + p.name;
+              el("chalPickSub").textContent = "اختر نوع التحدي";
+              chalPickShow("type");
+            });
+            list.appendChild(b);
+          });
+        }
+        function chalPickChooseType(type) {
+          var p = chalPick.opp;
+          var after = chalPick.after;
+          closeSheet("chalPickSheet");
+          if (!p) return;
+          if (chalIsRealPlayer(p)) sendRealChallenge(p, type, after);
+          else requestBotChallenge(p, after, type);
+        }
+        el("chalPickBot").addEventListener("click", function () {
+          var pool = BOT_PLAYERS.filter(function (b) { return b.online; });
+          if (!pool.length) pool = BOT_PLAYERS;
+          chalPick.opp = pool[Math.floor(Math.random() * pool.length)];
+          chalPick.oppKind = "bot";
+          el("chalPickTitle").textContent = "تحدي " + chalPick.opp.name;
+          el("chalPickSub").textContent = "اختر نوع التحدي";
+          chalPickShow("type");
+        });
+        el("chalPickReal").addEventListener("click", function () {
+          chalPickRenderFriends();
+          el("chalPickSub").textContent = "اختر صديقًا لتحدّيه";
+          chalPickShow("friend");
+        });
+        el("chalPickBack1").addEventListener("click", function () {
+          el("chalPickSub").textContent = "اختر خصمك أولًا";
+          chalPickShow("opp");
+        });
+        el("chalPickBack2").addEventListener("click", function () {
+          if (chalPick.oppKind === "real") {
+            chalPickRenderFriends();
+            el("chalPickSub").textContent = "اختر صديقًا لتحدّيه";
+            chalPickShow("friend");
+          } else {
+            el("chalPickSub").textContent = "اختر خصمك أولًا";
+            chalPickShow("opp");
+          }
+        });
+        document.querySelectorAll("[data-chal-type]").forEach(function (b) {
+          b.addEventListener("click", function () { chalPickChooseType(b.getAttribute("data-chal-type")); });
+        });
+
+        /* ---------- إرسال تحدٍّ حقيقي وانتظار القبول فعليًا ---------- */
+        function sendRealChallenge(p, type, after) {
+          if (!chalGuardOnline()) return;
+          if (chalRealWait || chalReal) { showToast("لديك تحدٍّ جارٍ بالفعل"); return; }
+          var myKey = fbMyKey();
+          if (!p.key || p.key === myKey) return;
+          var doc = {
+            from: myKey, to: p.key, type: type, status: "pending",
+            fromScore: 0, toScore: 0, fromDone: false, toDone: false,
+            winner: null, createdAt: chalServerTs(), updatedAt: chalServerTs()
+          };
+          fbDb.collection("challenges").add(doc).then(function (ref) {
+            chalWaitReal(ref.id, p, type, after);
+          }).catch(function () {
+            showToast("تعذّر إرسال التحدي — تحقق من الاتصال وحاول مجددًا");
+          });
+        }
+        function chalWaitReal(id, p, type, after) {
+          chalRealWait = { id: id, opp: p, type: type, after: after || null, unsub: null, expTimer: 0 };
+          el("chalWaitName").textContent = p.name;
+          el("chalWaitSub").textContent = "بانتظار موافقة الخصم — " + CHAL_TYPE_AR[type];
+          el("chalWait").hidden = false;
+          try {
+            chalRealWait.unsub = chalDocRef(id).onSnapshot(function (snap) {
+              if (!chalRealWait || chalRealWait.id !== id) return;
+              var d = snap.data() || {};
+              if (d.status === "accepted") {
+                var w = chalRealWait;
+                chalClearRealWait();
+                showToast("قبل الخصم التحدي — استعد!");
+                chalEnterMatch(id, d, w.opp, w.after);
+              } else if (d.status === "declined") {
+                chalClearRealWait();
+                showToast("رفض الخصم التحدي");
+              } else if (d.status === "cancelled") {
+                chalClearRealWait();
+              } else if (d.status === "pending" && chalExpired(d, Date.now())) {
+                chalExpireRealWait();
+              }
+            }, function () {});
+          } catch (e) {}
+          chalRealWait.expTimer = setTimeout(function () {
+            if (chalRealWait && chalRealWait.id === id) chalExpireRealWait();
+          }, CHAL_PENDING_MS + 1000);
+        }
+        function chalClearRealWait() {
+          if (!chalRealWait) return;
+          if (chalRealWait.unsub) { try { chalRealWait.unsub(); } catch (e) {} }
+          if (chalRealWait.expTimer) clearTimeout(chalRealWait.expTimer);
+          chalRealWait = null;
+          el("chalWait").hidden = true;
+        }
+        function chalCancelRealWait() {
+          if (!chalRealWait) return;
+          var id = chalRealWait.id;
+          chalClearRealWait();
+          try { chalDocRef(id).update({ status: "cancelled", updatedAt: chalServerTs() }).catch(function () {}); } catch (e) {}
+        }
+        function chalExpireRealWait() {
+          if (!chalRealWait) return;
+          var id = chalRealWait.id;
+          chalClearRealWait();
+          try { chalDocRef(id).update({ status: "cancelled", updatedAt: chalServerTs() }).catch(function () {}); } catch (e) {}
+          showToast("انتهت مهلة التحدي دون رد من الخصم");
+        }
+
+        /* ---------- التحديات الواردة: مستمع حي + شارة + قائمة في ورقة الأصدقاء ---------- */
+        function chalStartIncoming() {
+          if (!fbDb || !accountName || chalInUnsub) return;
+          var myKey = fbMyKey();
+          if (!myKey) return;
+          try {
+            chalInUnsub = fbDb.collection("challenges")
+              .where("to", "==", myKey)
+              .where("status", "==", "pending")
+              .onSnapshot(function (snap) {
+                var now = Date.now();
+                var list = [];
+                snap.forEach(function (doc) {
+                  var d = doc.data() || {};
+                  if (chalExpired(d, now)) return;
+                  list.push({ id: doc.id, from: d.from, type: d.type, createdAt: chalTsMs(d.createdAt) });
+                });
+                list.sort(function (a, b) { return a.createdAt - b.createdAt; });
+                chalInList = list;
+                chalRenderIncoming();
+              }, function () {});
+          } catch (e) {}
+        }
+        function chalRenderIncoming() {
+          var sec = el("frSecChalIn");
+          var list = el("frChalInList");
+          var badge = el("frNavBadge");
+          if (badge) { badge.hidden = !chalInList.length; badge.textContent = chalInList.length; }
+          if (!sec || !list) return;
+          sec.hidden = !chalInList.length;
+          el("frChalInCount").textContent = chalInList.length;
+          list.innerHTML = "";
+          chalInList.forEach(function (c) {
+            var p = chalPlayerByKey(c.from);
+            var row = document.createElement("div");
+            row.className = "fr-row";
+            var ava = document.createElement("span");
+            ava.className = "f-ava";
+            ava.style.background = lbColor(p.name);
+            ava.textContent = frInitial(p.name);
+            var tx = document.createElement("span");
+            tx.className = "f-tx";
+            var nm = document.createElement("span");
+            nm.className = "f-nm";
+            nm.textContent = p.name;
+            var sb = document.createElement("span");
+            sb.className = "f-sb";
+            sb.textContent = "تحدي " + (CHAL_TYPE_AR[c.type] || c.type) + " — الأول إلى " + (CHAL_TARGETS[c.type] || 0);
+            tx.appendChild(nm); tx.appendChild(sb);
+            var btns = document.createElement("span");
+            btns.className = "fr-req-btns";
+            var acc = document.createElement("button");
+            acc.type = "button"; acc.className = "fr-add"; acc.textContent = "قبول";
+            acc.addEventListener("click", function (e) { e.stopPropagation(); chalAccept(c); });
+            var dec = document.createElement("button");
+            dec.type = "button"; dec.className = "fr-decline"; dec.textContent = "رفض";
+            dec.addEventListener("click", function (e) { e.stopPropagation(); chalDecline(c); });
+            btns.appendChild(acc); btns.appendChild(dec);
+            row.appendChild(ava); row.appendChild(tx); row.appendChild(btns);
+            list.appendChild(row);
+          });
+        }
+        function chalAccept(c) {
+          if (!chalGuardOnline()) return;
+          if (chalReal || chalRealWait) { showToast("لديك تحدٍّ جارٍ بالفعل"); return; }
+          var ref = chalDocRef(c.id);
+          ref.get().then(function (snap) {
+            var d = snap.data() || {};
+            if (d.status !== "pending" || chalExpired(d, Date.now())) { showToast("انتهت مهلة هذا التحدي"); return; }
+            return ref.update({ status: "accepted", updatedAt: chalServerTs() }).then(function () {
+              closeSheet("friendsSheet");
+              chalPlayerDoc(c.from, function (opp) {
+                chalEnterMatch(c.id, d, opp, null);
+              });
+            });
+          }).catch(function () { showToast("تعذّر قبول التحدي — تحقق من الاتصال"); });
+        }
+        function chalDecline(c) {
+          try { chalDocRef(c.id).update({ status: "declined", updatedAt: chalServerTs() }).catch(function () {}); } catch (e) {}
+        }
+
+        /* ---------- دخول المباراة الحقيقية ومزامنتها ---------- */
+        function chalEnterMatch(id, d, opp, after) {
+          var myKey = fbMyKey();
+          var iAmFrom = d.from === myKey;
+          chalReal = {
+            id: id, type: d.type, myKey: myKey, oppKey: iAmFrom ? d.to : d.from, opp: opp,
+            myField: iAmFrom ? "fromScore" : "toScore",
+            oppField: iAmFrom ? "toScore" : "fromScore",
+            myDoneField: iAmFrom ? "fromDone" : "toDone",
+            oppDoneField: iAmFrom ? "toDone" : "fromDone",
+            unsub: null, lastWriteTs: 0, lastScore: -1, over: false,
+            myDone: false, oppScore: 0, oppDone: false
+          };
+          try {
+            chalReal.unsub = chalDocRef(id).onSnapshot(function (snap) {
+              chalRealOnDoc(snap.data() || {});
+            }, function () {});
+          } catch (e) {}
+          if (d.type === "pushup") {
+            pu.match = { bot: opp, botReps: 0, started: false, over: false, timer: 0, startTs: 0, real: true, chalId: id };
+            openPuPage();
+          } else {
+            wk.match = { bot: opp, botSteps: 0, botStepsFloat: 0, over: false, started: false, real: true, chalId: id, type: d.type, target: CHAL_TARGETS[d.type], timerInt: 0 };
+            openWalkPage();
+            wkChooseMode(d.type);
+          }
+          if (after) after();
+        }
+        function chalRealOnDoc(d) {
+          var r = chalReal;
+          if (!r || r.over) return;
+          var oppScore = typeof d[r.oppField] === "number" ? d[r.oppField] : 0;
+          r.oppScore = oppScore;
+          r.oppDone = !!d[r.oppDoneField];
+          if (r.type === "pushup") {
+            if (pu.match && pu.match.real) { pu.match.botReps = oppScore; puMatchUi(); }
+          } else if (wk.match && wk.match.real) {
+            wk.match.botSteps = oppScore;
+            wkMatchUi();
+          }
+          if (d.status === "done") {
+            var result = d.winner === r.myKey ? "win" : (d.winner === r.oppKey ? "loss" : "draw");
+            chalRealFinalize(result, d);
+            return;
+          }
+          /* الطرفان انتهيا دون بلوغ الهدف: الأعلى نتيجة يفوز — من يرى الاكتمال أولًا يحسم */
+          if (d.fromDone && d.toDone && d.status === "accepted") {
+            var myScore = typeof d[r.myField] === "number" ? d[r.myField] : 0;
+            var winner = myScore > oppScore ? r.myKey : (oppScore > myScore ? r.oppKey : null);
+            var upd = { status: "done", winner: winner, updatedAt: chalServerTs() };
+            try { chalDocRef(r.id).update(upd).catch(function () {}); } catch (e) {}
+          }
+        }
+        function chalRealScore(score) {
+          var r = chalReal;
+          if (!r || r.over || r.myDone) return;
+          if (score >= CHAL_TARGETS[r.type]) { chalRealReachTarget(score); return; }
+          var now = Date.now();
+          if (score === r.lastScore) return;
+          if (now - r.lastWriteTs < 1000) return;
+          r.lastWriteTs = now;
+          r.lastScore = score;
+          var upd = { updatedAt: chalServerTs() };
+          upd[r.myField] = score;
+          try { chalDocRef(r.id).update(upd).catch(function () {}); } catch (e) {}
+        }
+        function chalRealReachTarget(score) {
+          var r = chalReal;
+          if (!r || r.over || r.myDone) return;
+          r.myDone = true;
+          r.lastScore = score;
+          var upd = { status: "done", winner: r.myKey, updatedAt: chalServerTs() };
+          upd[r.myField] = score;
+          upd[r.myDoneField] = true;
+          try { chalDocRef(r.id).update(upd).catch(function () {}); } catch (e) {}
+          /* الإنهاء المحلي يأتي من المستمع عند رؤية done — وإن تأخر، ننهي بعد مهلة قصيرة */
+          setTimeout(function () {
+            if (chalReal === r && !r.over) chalRealFinalize("win", null);
+          }, 2500);
+        }
+        /* انتهاء محلي (مؤقّت/انسحاب/إنهاء/مغادرة): أكتب نتيجتي النهائية وأعلّم
+           done، والحسم يأتي من المستند عند اكتمال الطرفين أو بلوغ أحدهما الهدف */
+        function chalRealLocalEnd(result) {
+          var r = chalReal;
+          if (!r || r.over) return;
+          if (!r.myDone) {
+            r.myDone = true;
+            var score = r.type === "pushup" ? pu.reps : wk.steps;
+            var upd = { updatedAt: chalServerTs() };
+            upd[r.myField] = score;
+            upd[r.myDoneField] = true;
+            r.lastScore = score;
+            try { chalDocRef(r.id).update(upd).catch(function () {}); } catch (e) {}
+          }
+          if (r.type === "pushup") {
+            pu.counting = false;
+            if (pu.timerInt) { clearInterval(pu.timerInt); pu.timerInt = 0; }
+            el("puFinishBtn").hidden = true;
+            el("puStartBtn").hidden = false;
+            puSetStatus("انتهى وقتك — بانتظار انتهاء الخصم…");
+          } else {
+            wkStop();
+            el("walkFinishBtn").hidden = true;
+            el("walkStartBtn").hidden = false;
+            wkSetStatus("انتهت جلستك — بانتظار انتهاء الخصم…");
+          }
+        }
+        function chalRealFinalize(result, d) {
+          var r = chalReal;
+          if (!r || r.over) return;
+          r.over = true;
+          if (r.unsub) { try { r.unsub(); } catch (e) {} r.unsub = null; }
+          var opp = r.opp || {};
+          var oppName = opp.name || r.oppKey;
+          var oppElo = typeof opp.elo === "number" ? opp.elo : 1200;
+          var myScore = r.type === "pushup" ? pu.reps : wk.steps;
+          var oppScore = r.oppScore;
+          if (d && typeof d[r.myField] === "number") myScore = d[r.myField];
+          if (d && typeof d[r.oppField] === "number") oppScore = d[r.oppField];
+          var score = result === "win" ? 1 : (result === "draw" ? 0.5 : 0);
+          var delta = eloDelta(myElo, oppElo, score);
+          myElo = Math.max(100, myElo + delta);
+          eloUnset = false;
+          if (result === "win") myWins++;
+          if (result === "loss") myLosses++;
+          var line = "النتيجة: أنت " + myScore + " — " + oppScore + " " + oppName +
+            " · ELO " + (delta >= 0 ? "+" : "") + delta + " (أصبح " + myElo + ")";
+          if (r.type === "pushup") {
+            if (pu.match && pu.match.real) pu.match.over = true;
+            pu.counting = false;
+            if (pu.timerInt) { clearInterval(pu.timerInt); pu.timerInt = 0; }
+            if (result === "win") { xp += 100; pu.sessionXp += 100; }
+            persist();
+            updateProgressUI();
+            fbSyncMe();
+            FR_PLAYED.unshift(frPlayedCopy(opp, "اليوم"));
+            if (FR_PLAYED.length > 10) FR_PLAYED.length = 10;
+            if (pu.open) {
+              el("puFinishBtn").hidden = true;
+              el("puStartBtn").hidden = false;
+              el("puSumTitle").textContent = result === "win" ? "فزت بالمباراة!" : (result === "draw" ? "تعادل!" : "فاز " + oppName + " بالمباراة");
+              el("puSumReps").textContent = myScore;
+              el("puSumXp").textContent = "+" + pu.sessionXp;
+              el("puSumTime").textContent = puFmtTime(pu.elapsed);
+              var sm = el("puSumMatch");
+              sm.hidden = false;
+              sm.textContent = line;
+              el("puSummary").hidden = false;
+              puSetStatus(result === "win" ? "أحسنت! فزت على " + oppName : "انتهت المباراة");
+            } else {
+              showToast(result === "win" ? "فزت بتحدي " + oppName + "!" : "انتهى تحدي " + oppName);
+            }
+            if (window.HALBA) HALBA.sfx(result === "win" ? "win" : "lose");
+            markTrainingDay(pu.reps, pu.sessionXp);
+            achEvaluate();
+          } else {
+            if (wk.match && wk.match.real) wk.match.over = true;
+            wkStop();
+            if (result === "win") { xp += 100; wk.sessionXp += 100; }
+            persist();
+            updateProgressUI();
+            fbSyncMe();
+            FR_PLAYED.unshift(frPlayedCopy(opp, "اليوم"));
+            if (FR_PLAYED.length > 10) FR_PLAYED.length = 10;
+            if (wk.open) {
+              el("walkFinishBtn").hidden = true;
+              el("walkStartBtn").hidden = false;
+              el("walkSumSteps").textContent = myScore;
+              el("walkSumXp").textContent = "+" + wk.sessionXp;
+              el("walkSumTime").textContent = puFmtTime(wk.elapsed);
+              el("walkSumDist").textContent = (result === "win" ? "فزت بالمباراة! " : (result === "draw" ? "تعادل! " : "فاز " + oppName + " بالمباراة. ")) + line;
+              el("walkSummary").hidden = false;
+              wkSetStatus(result === "win" ? "أحسنت! فزت على " + oppName : "انتهت المباراة");
+            } else {
+              showToast(result === "win" ? "فزت بتحدي " + oppName + "!" : "انتهى تحدي " + oppName);
+            }
+            if (window.HALBA) HALBA.sfx(result === "win" ? "win" : "lose");
+            markTrainingDay(0, wk.sessionXp);
+            achEvaluate();
+          }
+          chalReal = null;
+        }
+
+        /* ---------- مباريات المشي/الجري ضد البوت: إيقاع خطوات محاكى ---------- */
+        function startBotStepsMatch(botPlayer, type) {
+          var bot = botById(botPlayer.botId) || botPlayer;
+          wk.match = { bot: bot, botSteps: 0, botStepsFloat: 0, over: false, started: false, real: false, type: type, target: CHAL_TARGETS[type], timerInt: 0 };
+          openWalkPage();
+          wkChooseMode(type);
+        }
+        function wkMatchResetUi() {
+          var panel = el("wkMatch");
+          var m = wk.match;
+          if (!m) { if (panel) panel.hidden = true; return; }
+          if (panel) panel.hidden = false;
+          el("wkMyName").textContent = accountName || "أنت";
+          el("wkOppName").textContent = m.bot.name;
+          var goal = "/ " + m.target + " خطوة";
+          el("wkMyGoal").textContent = goal;
+          el("wkOppGoal").textContent = goal;
+          el("wkMatchGoal").textContent = "الأول إلى " + m.target + " خطوة يفوز";
+          wkMatchUi();
+        }
+        function wkMatchUi() {
+          var m = wk.match;
+          if (!m) return;
+          el("wkMySteps").textContent = wk.steps;
+          el("wkOppSteps").textContent = m.botSteps;
+          el("wkMyBar").style.width = Math.min(100, wk.steps / m.target * 100) + "%";
+          el("wkOppBar").style.width = Math.min(100, m.botSteps / m.target * 100) + "%";
+        }
+        function wkMatchBegin() {
+          var m = wk.match;
+          if (!m || m.started || m.over) return;
+          m.started = true;
+          if (m.real) return;
+          /* إيقاع خطوات البوت: أساس حسب النوع × عامل مستوى الخصم (من oppPaceMs) */
+          var base = m.type === "run" ? 2.7 : 1.7;
+          var ms = oppPaceMs(m.bot);
+          var f = ms <= BOT_PACE.hard ? 1.25 : (ms <= BOT_PACE.medium ? 1.0 : 0.8);
+          var rate = base * f;
+          m.timerInt = setInterval(function () {
+            if (!wk.match || wk.match !== m || m.over || !wk.counting) return;
+            m.botStepsFloat += rate * 0.5 * (0.85 + Math.random() * 0.3);
+            m.botSteps = Math.floor(m.botStepsFloat);
+            wkMatchUi();
+            if (m.botSteps >= m.target) wkMatchEndBot("loss");
+          }, 500);
+        }
+        function wkMatchOnStep() {
+          var m = wk.match;
+          if (!m || m.over || !m.started) return;
+          wkMatchUi();
+          if (m.real) { chalRealScore(wk.steps); return; }
+          if (wk.steps >= m.target) wkMatchEndBot("win");
+        }
+        function wkMatchFinish() {
+          var m = wk.match;
+          if (!m || m.over) return;
+          if (m.real) { chalRealLocalEnd("loss"); return; }
+          if (!m.started) { wk.match = null; closeWalkPage(); return; }
+          wkMatchEndBot(wk.steps > m.botSteps ? "win" : (wk.steps < m.botSteps ? "loss" : "draw"));
+        }
+        function wkMatchLeave() {
+          var m = wk.match;
+          if (!m || m.over) return;
+          if (m.timerInt) { clearInterval(m.timerInt); m.timerInt = 0; }
+          if (m.real) chalRealLocalEnd("loss");
+          wk.match = null;
+        }
+        function wkMatchEndBot(result) {
+          var m = wk.match;
+          if (!m || m.over || m.real) return;
+          m.over = true;
+          if (m.timerInt) { clearInterval(m.timerInt); m.timerInt = 0; }
+          wkStop();
+          el("walkFinishBtn").hidden = true;
+          el("walkStartBtn").hidden = false;
+          var score = result === "win" ? 1 : (result === "draw" ? 0.5 : 0);
+          var oppElo = typeof m.bot.elo === "number" ? m.bot.elo : 1200;
+          var delta = eloDelta(myElo, oppElo, score);
+          myElo = Math.max(100, myElo + delta);
+          eloUnset = false;
+          if (result === "win") myWins++;
+          if (result === "loss") myLosses++;
+          if (result === "win") { xp += 100; wk.sessionXp += 100; }
+          persist();
+          updateProgressUI();
+          fbSyncMe();
+          FR_PLAYED.unshift(frPlayedCopy(m.bot, "اليوم"));
+          if (FR_PLAYED.length > 10) FR_PLAYED.length = 10;
+          el("walkSumSteps").textContent = wk.steps;
+          el("walkSumXp").textContent = "+" + wk.sessionXp;
+          el("walkSumTime").textContent = puFmtTime(wk.elapsed);
+          el("walkSumDist").textContent = (result === "win" ? "فزت بالمباراة! " : (result === "draw" ? "تعادل! " : "فاز " + m.bot.name + " بالمباراة. ")) +
+            "النتيجة: أنت " + wk.steps + " — " + m.botSteps + " " + m.bot.name +
+            " · ELO " + (delta >= 0 ? "+" : "") + delta + " (أصبح " + myElo + ")";
+          el("walkSummary").hidden = false;
+          if (window.HALBA) HALBA.sfx(result === "win" ? "win" : "lose");
+          wkSetStatus(result === "win" ? "أحسنت! فزت على " + m.bot.name : "انتهت المباراة");
+          markTrainingDay(0, wk.sessionXp);
+          achEvaluate();
+        }
+        /* ==== /REAL CHALLENGES ==== */
 
         /* بدء مباراة الخصم: بوت أو لاعب حقيقي — نفس الشاشة ونفس القواعد،
            والخصم يُعرَّف من كائن اللاعب نفسه (شخصيته، مستواه، نقاطه) */
@@ -9675,7 +10416,8 @@
           if (!m || m.started || m.over) return;
           m.started = true;
           m.startTs = Date.now();
-          puBotSchedule();
+          /* المباراة الحقيقية: عدّات الخصم تأتي من مستند التحدي لا من مؤقّت محلي */
+          if (!m.real) puBotSchedule();
         }
         /* عدّات البوت: كل عدّة بعد إيقاع مستواه × (0.8 إلى 1.3) عشوائيًا */
         function puBotSchedule() {
@@ -9695,11 +10437,15 @@
           var m = pu.match;
           if (!m) return;
           puMatchUi();
+          if (m.real) { if (m.started && !m.over) chalRealScore(pu.reps); return; }
           if (m.started && !m.over && pu.reps >= PU_MATCH_TARGET) puMatchEnd("win");
         }
         function puMatchEnd(result) {
           var m = pu.match;
           if (!m || m.over) return;
+          /* المباراة الحقيقية: الإنهاء المحلي يكتب النتيجة في المستند فقط،
+             والحسم النهائي يأتي من مستند التحدي (chalRealFinalize) */
+          if (m.real) { chalRealLocalEnd(result); return; }
           m.over = true;
           if (m.timer) { clearTimeout(m.timer); m.timer = 0; }
           pu.counting = false;
@@ -10093,6 +10839,7 @@
           if (mag > th && wk.lastMag <= th && now - wk.lastStepTs > 220) {
             wk.lastStepTs = now;
             wk.steps++;
+            wkMatchOnStep();
             wk.stepTimes.push(now);
             /* كل خطوة تُحتسب بمعدل إيقاعها لحظتها: في وضع الجري، الخطوة
                بسرعة الجري تُحتسب بمعدل الجري، ودون العتبة بمعدل المشي */
@@ -10146,6 +10893,7 @@
           el("walkPermErr").hidden = true;
           el("walkStartBtn").hidden = false;
           el("walkFinishBtn").hidden = true;
+          wkMatchResetUi();
           wkUpdateUi();
         }
         function openWalkPage() {
@@ -10165,11 +10913,17 @@
         function closeWalkPage() {
           if (!wk.open) return;
           wk.open = false;
+          if (wk.match && !wk.match.over) wkMatchLeave();
           wkStop();
           var p = el("walkPage");
           if (p) p.hidden = true;
         }
         function wkChooseMode(mode) {
+          /* في مباراة خطوات: النوع محدد من التحدي نفسه ولا يُبدَّل */
+          if (wk.match && wk.match.type && mode !== wk.match.type) {
+            showToast("نوع هذا التحدي محدد: " + CHAL_TYPE_AR[wk.match.type]);
+            return;
+          }
           wk.mode = mode;
           var err = el("walkPermErr");
           err.hidden = true;
@@ -10217,8 +10971,10 @@
           el("walkFinishBtn").hidden = false;
           wkSetStatus("جارٍ عدّ خطواتك — واصل الحركة");
           if (window.HALBA) HALBA.sfx("tap");
+          if (wk.match) wkMatchBegin();
         }
         function wkFinish() {
+          if (wk.match && !wk.match.over) { wkMatchFinish(); return; }
           if (!wk.started) { closeWalkPage(); return; }
           wkStop();
           el("walkFinishBtn").hidden = true;
@@ -11030,9 +11786,9 @@
           var opp = cur.opp;
           var oppObj = opp.botId ? (botById(opp.botId) || opp)
             : { name: opp.name, xp: opp.xp, elo: opp.elo, char: opp.char, gender: opp.gender, key: opp.key || null };
-          /* نفس انتظار قبول التحدي الواقعي، ووسم مباراة البطولة يُعلَّق على
-             المباراة لحظة بدئها فعليًا بعد قبول الخصم */
-          requestChallenge(oppObj, function () {
+          /* مباريات البطولة تسلك مسار البوت مباشرة (بلا منتقي وبلا قبول حقيقي)،
+             ووسم مباراة البطولة يُعلَّق على المباراة لحظة بدئها فعليًا */
+          requestBotChallenge(oppObj, function () {
             if (pu.match) pu.match.cupIdx = cur.idx;
           });
         }
@@ -11272,7 +12028,10 @@
         });
         /* أزرار «ادخل» ديال الأقسام: الصفحات ديالهم مازال ما تبناوش — غير كيبانو دابا */
         document.querySelectorAll("[data-sec-enter]").forEach(function (b) {
-          b.addEventListener("click", function () { showToast(b.getAttribute("data-sec-enter") + " — قريبًا"); });
+          b.addEventListener("click", function () {
+            var t = b.getAttribute("data-sec-enter");
+            if (t) showToast(t + " — قريبًا");
+          });
         });
         /* ---------- لاعب ضد لاعب: نوعان منفصلان — كامل الجسم أو ملاكمة ----------
            الاختيار كيبدّل الصورة والشرح والخصم وزر البحث، فكل نوع عندو مبارياتو وخصومو بوحدو */
@@ -11333,14 +12092,27 @@
           }
           var btn = el("vsEnterBtn");
           if (btn) {
-            btn.setAttribute("data-sec-enter", d.enter);
-            btn.textContent = d.btn;
+            if (vsMode === "body") {
+              /* كامل الجسم: التحديات الحقيقية مبنية — الزر يفتح منتقي التحدي */
+              btn.removeAttribute("data-sec-enter");
+              btn.classList.remove("soon");
+              btn.textContent = "ابدأ التحدي";
+            } else {
+              btn.setAttribute("data-sec-enter", d.enter);
+              btn.classList.add("soon");
+              btn.textContent = d.btn;
+            }
           }
         }
         document.querySelectorAll("[data-vs-mode]").forEach(function (b) {
           b.addEventListener("click", function () { setVsMode(b.getAttribute("data-vs-mode")); });
         });
         setVsMode("body");
+        el("vsEnterBtn").addEventListener("click", function () {
+          if (vsMode !== "body") return;
+          closeSheet("sectionsSheet");
+          openArenaPicker();
+        });
         /* حبة «اليوم» في الأعلى جزء من واجهة الأيام: ضغطها يفتح سجلّ أيام
            التمرين نفسه — لا ملف اللاعب (كان هذا هو الخلط الذي فتح «ملفي»
            عند ضغط الأيام) */
@@ -11928,6 +12700,9 @@
           /* مستمع التصنيف العالمي الحي يبدأ مع أول مزامنة أيضًا (lbStartLive
              محروسة بـ lbUnsub: لا تبدأ إلا مع حساب وFirestore، ولا تتكرر) */
           lbStartLive();
+          /* مستمع التحديات الحقيقية الواردة يبدأ مع أول مزامنة أيضًا
+             (chalStartIncoming محروسة بـ chalInUnsub بنفس النمط) */
+          chalStartIncoming();
         }
 
         /* ================= إشعارات الهاتف (Push عبر FCM) — جهة العميل =================
@@ -13195,11 +13970,10 @@
           btn.textContent = "تحدٍّ";
           btn.addEventListener("click", function (e) {
             e.stopPropagation();
-            /* تحدي أي لاعب — بوت أو حقيقي بلا فرق: أولًا شاشة انتظار واقعية
-               (قرص دوّار ومدة عشوائية 3–15 ثانية حتى «يوافق» الخصم)، ثم مباراة
-               ضغط بعدّات حقيقية بالكاميرا وهو بإيقاع مستواه */
+            /* التحدي يمرّ بالمنتقي أولًا (اختيار النوع): البوت مباراة فورية،
+               واللاعب الحقيقي لا يبدأ إلا بعد قبوله الفعلي عبر Firestore */
             closeSheet("friendsSheet");
-            requestChallenge(p);
+            openChallengePicker(p);
           });
           /* زر الحالة الواحد: طلب صداقة ← بانتظار القبول ← إرسال رسالة */
           row.appendChild(ava); row.appendChild(tx); row.appendChild(frStateBtn(p)); row.appendChild(btn);
@@ -13965,7 +14739,7 @@
           if (opener === "rank") closeSheet("rankSheet");
           else if (opener === "friends") closeSheet("friendsSheet");
           else { closeSheet("friendsSheet"); closeSheet("rankSheet"); }
-          requestChallenge(p);
+          openChallengePicker(p);
         });
         el("pfFriendBtn").addEventListener("click", function () {
           if (!pfCurrent || !pfCurrent.friend) return;
