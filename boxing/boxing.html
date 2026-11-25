@@ -11765,14 +11765,11 @@
               elo: myElo,
               character: AV.char,
               cupTitles: myCupTitles,
-              cupChampWeek: myCupChampWeek || null,
               wins: myWins,
               losses: myLosses,
-              matches: myWins + myLosses,
               xp10: true,
               achievements: myAch.slice(),
               lvlTitles: myLvlTitles.slice(),
-              achTitle: myTitle || null,
               trainDays: trainDays.slice(),
               trainLog: trainLog,
               guest: !!isGuest,
@@ -11780,6 +11777,10 @@
               notifPrefs: notifPrefsNow(),
               lastSeen: firebase.firestore.FieldValue.serverTimestamp()
             };
+            /* أسبوع لقب البطل ولقب الإنجاز: نصّان اختياريان يُكتبان متى وُجدا
+               فقط — قواعد Firestore ترفض القيمة الفارغة (null) لهذين الحقلين */
+            if (myCupChampWeek) payload.cupChampWeek = myCupChampWeek;
+            if (myTitle) payload.achTitle = myTitle;
             /* رمز إشعارات الهاتف (FCM) يُكتب متى جُلب بنجاح — بدونه لا يستطيع
                مُشغّل الخادم إرسال أي إشعار لهذا اللاعب */
             if (pushToken) payload.fcmToken = pushToken;
@@ -11874,8 +11875,7 @@
                       payload.lvlTitles = myLvlTitles.slice();
                       payload.wins = myWins;
                       payload.losses = myLosses;
-                      payload.matches = myWins + myLosses;
-                      payload.achTitle = myTitle || null;
+                      if (myTitle) payload.achTitle = myTitle;
                       persist();
                       renderAchGrid();
                     }
@@ -12582,6 +12582,11 @@
           out.name = newKey;
           out.displayName = displayName;
           delete out.email;
+          /* حقل matches القديم والحقول النصية الفارغة (null) ترفضها قواعد
+             Firestore — تُحذف دفاعيًا فلا يفشل ترحيل مستند قديم بسببهما */
+          delete out.matches;
+          if (typeof out.cupChampWeek !== "string" || !out.cupChampWeek) delete out.cupChampWeek;
+          if (typeof out.achTitle !== "string" || !out.achTitle) delete out.achTitle;
           return out;
         }
         /* ===== PROFILE-CORE-END ===== */
@@ -12717,14 +12722,11 @@
                 elo: myElo,
                 character: AV.char,
                 cupTitles: myCupTitles,
-                cupChampWeek: myCupChampWeek || null,
                 wins: myWins,
                 losses: myLosses,
-                matches: myWins + myLosses,
                 xp10: true,
                 achievements: myAch.slice(),
                 lvlTitles: myLvlTitles.slice(),
-                achTitle: myTitle || null,
                 trainDays: trainDays.slice(),
                 trainLog: trainLog,
                 guest: !!isGuest,
@@ -12735,6 +12737,8 @@
                 friendReqOut: frMyReqOut.slice(),
                 playedWith: frMyPlayed.slice()
               };
+              if (myCupChampWeek) data.cupChampWeek = myCupChampWeek;
+              if (myTitle) data.achTitle = myTitle;
               if (pushToken) data.fcmToken = pushToken;
               if (accountUid) data.uid = accountUid;
               return profMigrateDoc(oldKey, chk.key, chk.display, data);
