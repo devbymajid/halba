@@ -1265,6 +1265,29 @@
       .set-notif-types.off .set-row.sub .set-switch { pointer-events: none; }
       .set-notif-status { font-size: 0.8rem; font-weight: 600; color: #b6b1da; line-height: 1.55; margin: 8px 2px 0; }
       .set-notif-status:empty { display: none; }
+      /* قسم «الأذونات»: حالة كل إذن يستعمله التطبيق وزر تفعيله في مكان واحد */
+      .set-perms { display: flex; flex-direction: column; gap: 8px; }
+      .set-row.perm { min-height: 56px; }
+      .set-perm-act { display: flex; align-items: center; gap: 9px; flex: none; }
+      .set-perm-st { font-size: 0.82rem; font-weight: 800; color: #b6b1da; white-space: nowrap; }
+      .set-perm-st.ok { color: #8be89a; }
+      .set-perm-st.denied { color: var(--error); }
+      .set-perm-btn {
+        background: linear-gradient(135deg, #ffb020, #ff7a00);
+        border: none;
+        border-radius: 999px;
+        color: #1a0d00;
+        font-family: inherit;
+        font-size: 0.85rem;
+        font-weight: 900;
+        padding: 7px 16px;
+        cursor: pointer;
+        min-height: 34px;
+      }
+      .set-perm-btn:active { transform: scale(0.96); }
+      .set-perm-btn[hidden] { display: none; }
+      .set-perm-note { font-size: 0.8rem; font-weight: 600; color: #b6b1da; line-height: 1.55; margin: 8px 2px 0; }
+      .set-perm-note:empty { display: none; }
       .set-about {
         background: linear-gradient(135deg, #2a1c5e, #1f1547);
         border: 1.5px solid #3d3191;
@@ -4585,25 +4608,46 @@
             <p class="set-sec">الإشعارات</p>
             <div class="set-row">
               <span class="set-row-tx"><span class="set-row-nm">الإشعارات</span><span class="set-row-sb">تنبيهات تصل إلى هاتفك حتى والتطبيق مغلق</span></span>
-              <button type="button" class="set-switch on" id="setNotifSw" role="switch" aria-checked="true" aria-label="الإشعارات"><span class="set-knob"></span></button>
+              <button type="button" class="set-switch" id="setNotifSw" role="switch" aria-checked="false" aria-label="الإشعارات"><span class="set-knob"></span></button>
             </div>
             <div class="set-notif-types" id="setNotifTypes">
               <div class="set-subrows">
                 <div class="set-row sub">
                   <span class="set-row-tx"><span class="set-row-nm">الرسائل</span><span class="set-row-sb">رسالة جديدة من صديق</span></span>
-                  <button type="button" class="set-switch on" id="setNotifMsgSw" role="switch" aria-checked="true" aria-label="إشعارات الرسائل"><span class="set-knob"></span></button>
+                  <button type="button" class="set-switch" id="setNotifMsgSw" role="switch" aria-checked="false" aria-label="إشعارات الرسائل"><span class="set-knob"></span></button>
                 </div>
                 <div class="set-row sub">
                   <span class="set-row-tx"><span class="set-row-nm">طلبات الصداقة</span><span class="set-row-sb">طلب صداقة جديد يصلك</span></span>
-                  <button type="button" class="set-switch on" id="setNotifFriendSw" role="switch" aria-checked="true" aria-label="إشعارات طلبات الصداقة"><span class="set-knob"></span></button>
+                  <button type="button" class="set-switch" id="setNotifFriendSw" role="switch" aria-checked="false" aria-label="إشعارات طلبات الصداقة"><span class="set-knob"></span></button>
                 </div>
                 <div class="set-row sub">
                   <span class="set-row-tx"><span class="set-row-nm">التحديات</span><span class="set-row-sb">دعوة إلى مباراة من لاعب آخر</span></span>
-                  <button type="button" class="set-switch on" id="setNotifChalSw" role="switch" aria-checked="true" aria-label="إشعارات التحديات"><span class="set-knob"></span></button>
+                  <button type="button" class="set-switch" id="setNotifChalSw" role="switch" aria-checked="false" aria-label="إشعارات التحديات"><span class="set-knob"></span></button>
                 </div>
               </div>
               <p class="set-notif-status" id="setNotifStatus"></p>
             </div>
+
+            <p class="set-sec">الأذونات</p>
+            <div class="set-perms" id="setPerms">
+              <div class="set-row perm">
+                <span class="set-row-tx"><span class="set-row-nm">الكاميرا</span><span class="set-row-sb">لعدّ عدّات الضغط وتتبع حركتك في الملاكمة</span></span>
+                <span class="set-perm-act"><span class="set-perm-st" id="permCamSt">غير مفعّل</span><button type="button" class="set-perm-btn" id="permCamBtn" aria-label="تفعيل الكاميرا">تفعيل</button></span>
+              </div>
+              <div class="set-row perm">
+                <span class="set-row-tx"><span class="set-row-nm">الحركة والخطوات</span><span class="set-row-sb">لعدّ خطواتك في المشي والجري</span></span>
+                <span class="set-perm-act"><span class="set-perm-st" id="permMotSt">غير مفعّل</span><button type="button" class="set-perm-btn" id="permMotBtn" aria-label="تفعيل الحركة والخطوات">تفعيل</button></span>
+              </div>
+              <div class="set-row perm">
+                <span class="set-row-tx"><span class="set-row-nm">الإشعارات</span><span class="set-row-sb">تنبيهات تصل إلى هاتفك حتى والتطبيق مغلق</span></span>
+                <span class="set-perm-act"><span class="set-perm-st" id="permNotSt">غير مفعّل</span><button type="button" class="set-perm-btn" id="permNotBtn" aria-label="تفعيل الإشعارات">تفعيل</button></span>
+              </div>
+              <div class="set-row perm">
+                <span class="set-row-tx"><span class="set-row-nm">الموقع (GPS)</span><span class="set-row-sb">لقياس سرعتك في الجري</span></span>
+                <span class="set-perm-act"><span class="set-perm-st" id="permGpsSt">غير مفعّل</span><button type="button" class="set-perm-btn" id="permGpsBtn" aria-label="تفعيل الموقع">تفعيل</button></span>
+              </div>
+            </div>
+            <p class="set-perm-note" id="setPermNote"></p>
 
             <p class="set-sec">الحساب</p>
             <button type="button" class="set-navrow" id="setEditProfileBtn">
@@ -6126,7 +6170,12 @@
       (function () {
         var SETTINGS_LS = "halba_settings_v1";
         var APP_VERSION = "1.0";
-        var settings = { lang: "ar", sound: true, notif: true, notifMsg: true, notifFriend: true, notifChal: true };
+        /* الإشعارات مغلقة افتراضيًا للحسابات الجديدة (قرار المالك): المفتاح
+           الرئيسي وأنواعه تبدأ كلها مغلقة، فلا يرى اللاعب الجديد مفتاحًا
+           مفعّلًا لم يختره ولا يضيع عليه طلب إذن الهاتف — عند تفعيله المفتاح
+           بنفسه يُطلب الإذن ويُجلب رمز FCM. من حفظ إعداداته من قبل تبقى
+           كما هي (تُقرأ من localStorage أدناه وتغلِب الافتراضي) */
+        var settings = { lang: "ar", sound: true, notif: false, notifMsg: false, notifFriend: false, notifChal: false };
         try {
           var savedSet = JSON.parse(localStorage.getItem(SETTINGS_LS) || "null");
           if (savedSet) {
@@ -6213,6 +6262,23 @@
           "تنبيهات تصل إلى هاتفك حتى والتطبيق مغلق": "Alerts that reach your phone even when the app is closed",
           "إذن إشعارات الهاتف لم يُمنح بعد — أطفئ المفتاح أعلاه ثم فعّله لمنح الإذن": "Phone notification permission is not granted yet — turn the switch above off, then on again, to grant it",
           "لم يُمنح إذن الإشعارات — فعّل المفتاح أعلاه ووافق على طلب الإذن لتصلك التنبيهات على هاتفك": "Notification permission was not granted — turn the switch above on and accept the permission request to get alerts on your phone",
+          "الأذونات": "Permissions",
+          "الكاميرا": "Camera",
+          "لعدّ عدّات الضغط وتتبع حركتك في الملاكمة": "For counting push-ups and tracking your movement in boxing",
+          "الحركة والخطوات": "Motion and steps",
+          "لعدّ خطواتك في المشي والجري": "For counting your steps while walking and running",
+          "الموقع (GPS)": "Location (GPS)",
+          "لقياس سرعتك في الجري": "For measuring your speed while running",
+          "مفعّل": "Enabled",
+          "غير مفعّل": "Not enabled",
+          "مرفوض": "Denied",
+          "غير متاح": "Unavailable",
+          "تفعيل": "Enable",
+          "تفعيل الكاميرا": "Enable camera",
+          "تفعيل الحركة والخطوات": "Enable motion and steps",
+          "تفعيل الإشعارات": "Enable notifications",
+          "تفعيل الموقع": "Enable location",
+          "يمكنك إعادة تفعيل أي إذن مرفوض من إعدادات المتصفح أو إعدادات الموقع": "You can re-enable any denied permission from your browser or site settings",
           "عن اللعبة": "About",
           "الإصدار": "Version",
           "مباريات لياقة بالكاميرا — تحدَّ أصدقاءك في عدّات الضغط، واجمع XP واصعد في التصنيف العالمي.": "Camera fitness battles — challenge your friends in push-up reps, earn XP and climb the global ranking.",
@@ -6938,6 +7004,7 @@
           var typesBox = document.getElementById("setNotifTypes");
           if (typesBox) typesBox.classList.toggle("off", !settings.notif);
           refreshNotifStatus();
+          refreshPerms();
           var v = document.getElementById("setVersion");
           if (v) v.textContent = APP_VERSION;
         }
@@ -7048,6 +7115,140 @@
             sfx("tap");
             if (window.__halbaNotifPrefsChanged) { try { window.__halbaNotifPrefsChanged(); } catch (e) {} }
           });
+        });
+
+        /* ---------- قسم «الأذونات»: حالة حية لكل إذن يستعمله التطبيق ----------
+           الكاميرا (عدّ الضغط والملاكمة) والحركة والخطوات (المشي والجري)
+           والإشعارات والموقع GPS (سرعة الجري) — يمنحها اللاعب مرة واحدة من
+           هنا بدل أن تُطلب منه وسط المباراة. الحالة تُقرأ من واجهة أذونات
+           المتصفح حيث توجد، ومن حالة التطبيق نفسه حيث لا توجد (الحركة في
+           آيفون). أزرار التفعيل تستدعي مسارات الطلب نفسها المستعملة في
+           اللعبة: getUserMedia للكاميرا (تسخين يمنح الإذن دون بدء مباراة)،
+           وDeviceMotionEvent.requestPermission للحركة، ومسار مفتاح
+           الإشعارات أعلاه للإشعارات، وطلب موقع واحد لـ GPS (الإذن نفسه الذي
+           تحتاجه مراقبة السرعة في وضع الجري) */
+        var permMotionState = null; /* آيفون: لا واجهة استعلام للحركة — تُحفظ نتيجة الطلب في الجلسة */
+        var permWatched = {};
+        function permSetRow(stId, btnId, state) {
+          var st = document.getElementById(stId);
+          var btn = document.getElementById(btnId);
+          if (!st || !btn) return;
+          if (state === "granted") {
+            st.textContent = "مفعّل";
+            st.className = "set-perm-st ok";
+            btn.hidden = true;
+          } else if (state === "denied") {
+            st.textContent = "مرفوض";
+            st.className = "set-perm-st denied";
+            btn.hidden = true;
+          } else if (state === "unavailable") {
+            st.textContent = "غير متاح";
+            st.className = "set-perm-st";
+            btn.hidden = true;
+          } else {
+            st.textContent = "غير مفعّل";
+            st.className = "set-perm-st";
+            btn.hidden = false;
+          }
+        }
+        function permNote(anyDenied) {
+          var note = document.getElementById("setPermNote");
+          if (!note) return;
+          note.textContent = anyDenied ? "يمكنك إعادة تفعيل أي إذن مرفوض من إعدادات المتصفح أو إعدادات الموقع" : "";
+        }
+        function permQuery(name, cb) {
+          if (!navigator.permissions || !navigator.permissions.query) { cb("prompt"); return; }
+          try {
+            navigator.permissions.query({ name: name }).then(function (ps) {
+              cb(ps.state);
+              if (!permWatched[name]) {
+                permWatched[name] = true;
+                try { ps.addEventListener("change", function () { refreshPerms(); }); }
+                catch (e2) { try { ps.onchange = function () { refreshPerms(); }; } catch (e3) {} }
+              }
+            }).catch(function () { cb("prompt"); });
+          } catch (e) { cb("prompt"); }
+        }
+        function refreshPerms() {
+          var denied = { cam: false, mot: false, not: false, gps: false };
+          function done() { permNote(denied.cam || denied.mot || denied.not || denied.gps); }
+          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            permSetRow("permCamSt", "permCamBtn", "unavailable");
+          } else {
+            permQuery("camera", function (s) {
+              denied.cam = s === "denied";
+              permSetRow("permCamSt", "permCamBtn", s);
+              done();
+            });
+          }
+          if (typeof DeviceMotionEvent === "undefined") {
+            permSetRow("permMotSt", "permMotBtn", "unavailable");
+          } else if (typeof DeviceMotionEvent.requestPermission === "function") {
+            denied.mot = permMotionState === "denied";
+            permSetRow("permMotSt", "permMotBtn", permMotionState || "prompt");
+            done();
+          } else {
+            permSetRow("permMotSt", "permMotBtn", "granted");
+          }
+          if (!("Notification" in window)) {
+            permSetRow("permNotSt", "permNotBtn", "unavailable");
+          } else if (Notification.permission === "denied") {
+            denied.not = true;
+            permSetRow("permNotSt", "permNotBtn", "denied");
+            done();
+          } else if (Notification.permission === "granted" && settings.notif) {
+            permSetRow("permNotSt", "permNotBtn", "granted");
+          } else {
+            permSetRow("permNotSt", "permNotBtn", "prompt");
+          }
+          if (!navigator.geolocation) {
+            permSetRow("permGpsSt", "permGpsBtn", "unavailable");
+          } else {
+            permQuery("geolocation", function (s) {
+              denied.gps = s === "denied";
+              permSetRow("permGpsSt", "permGpsBtn", s);
+              done();
+            });
+          }
+          done();
+        }
+        var permCamBtn = document.getElementById("permCamBtn");
+        if (permCamBtn) permCamBtn.addEventListener("click", function () {
+          sfx("tap");
+          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { refreshPerms(); return; }
+          navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: "user" } }).then(function (stream) {
+            stream.getTracks().forEach(function (t) { t.stop(); });
+            refreshPerms();
+          }).catch(function () { refreshPerms(); });
+        });
+        var permMotBtn = document.getElementById("permMotBtn");
+        if (permMotBtn) permMotBtn.addEventListener("click", function () {
+          sfx("tap");
+          if (typeof DeviceMotionEvent !== "undefined" && typeof DeviceMotionEvent.requestPermission === "function") {
+            DeviceMotionEvent.requestPermission().then(function (r) {
+              permMotionState = r === "granted" ? "granted" : "denied";
+              refreshPerms();
+            }).catch(function () { permMotionState = "denied"; refreshPerms(); });
+          } else {
+            refreshPerms();
+          }
+        });
+        var permNotBtn = document.getElementById("permNotBtn");
+        if (permNotBtn) permNotBtn.addEventListener("click", function () {
+          sfx("tap");
+          /* مسار مفتاح الإشعارات نفسه عند التفعيل: حفظ ومزامنة ثم طلب إذن
+             الهاتف وجلب رمز FCM — والرفض يُرجع المفتاح إلى الإيقاف */
+          settings.notif = true;
+          saveSettings();
+          refreshSettingsUI();
+          if (window.__halbaNotifPrefsChanged) { try { window.__halbaNotifPrefsChanged(); } catch (e) {} }
+          if (window.__halbaPushEnable) { try { window.__halbaPushEnable(); } catch (e) {} }
+        });
+        var permGpsBtn = document.getElementById("permGpsBtn");
+        if (permGpsBtn) permGpsBtn.addEventListener("click", function () {
+          sfx("tap");
+          if (!navigator.geolocation) { refreshPerms(); return; }
+          navigator.geolocation.getCurrentPosition(function () { refreshPerms(); }, function () { refreshPerms(); }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
         });
 
         /* تطبيق اللغة المحفوظة عند كل فتح — بلا إعادة تحميل */
@@ -12929,7 +13130,7 @@
         var pushMsgHooked = false;
         function notifPrefsNow() {
           if (window.HALBA && HALBA.notifPrefs) { try { return HALBA.notifPrefs(); } catch (e) {} }
-          return { master: true, messages: true, friendRequests: true, challenges: true };
+          return { master: false, messages: false, friendRequests: false, challenges: false };
         }
         function notifTypeOn(prefs, type) {
           if (!prefs || !prefs.master) return false;
