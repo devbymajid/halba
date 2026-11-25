@@ -61,7 +61,7 @@ async function main() {
   if (raw) {
     admin.initializeApp({ credential: admin.credential.cert(JSON.parse(raw)) });
   } else {
-    admin.initializeApp(); // Application Default Credentials (GitHub Actions OIDC / Workload Identity)
+    admin.initializeApp({ projectId: 'studio-5633829332-99f59' }); // Application Default Credentials (GitHub Actions OIDC / Workload Identity) — projectId is explicit because the WIF credentials file has none
   }
   const db = admin.firestore();
   const messaging = admin.messaging();
