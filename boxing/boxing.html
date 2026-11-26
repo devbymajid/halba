@@ -6560,6 +6560,8 @@
           "تعذّر قبول التحدي — تحقق من الاتصال": "Couldn't accept the challenge — check your connection",
           "التحديات الحقيقية تتطلب الاتصال بالإنترنت": "Real challenges require an internet connection",
           "سجّل حسابك أولًا لتحدّي لاعبين حقيقيين": "Register an account first to challenge real players",
+          "سجّل حسابك أولًا لإضافة لاعبين حقيقيين": "Register an account first to add real players",
+          "سجّل حسابك أولًا لمراسلة لاعبين حقيقيين": "Register an account first to message real players",
           "لديك تحدٍّ جارٍ بالفعل": "You already have a challenge in progress",
           "انتهى وقتك — بانتظار انتهاء الخصم…": "Your time is up — waiting for your opponent to finish…",
           "انتهت جلستك — بانتظار انتهاء الخصم…": "Your session ended — waiting for your opponent to finish…",
@@ -12577,7 +12579,8 @@
         /* كتابة اشتراكي في Firestore: tournaments/<weekId>/entries/<مفتاحي> */
         function cupFsJoin() {
           var key = fbMyKey();
-          if (!fbDb || !key || !cupState) return;
+          /* الضيف يشترك في البطولة محليًا فقط — لا يُكتب اشتراكه في Firestore */
+          if (!fbDb || !key || !cupState || isGuest) return;
           try {
             fbDb.collection("tournaments").doc(cupState.weekId).collection("entries").doc(key).set({
               name: key, displayName: accountName, xp: xp, elo: myElo,
@@ -13442,11 +13445,17 @@
         function fbMyKey() {
           return accountName ? String(accountName).trim().toLowerCase() : null;
         }
-        /* إنشاء/تحديث مستند اللاعب نفسه عند كل دخول (تسجيل/دخول/ضيف/رجوع)
+        /* إنشاء/تحديث مستند اللاعب نفسه عند كل دخول (تسجيل/دخول/رجوع)
            + نبضة حضور: تحديث lastSeen كل 60 ثانية ما دام التطبيق مفتوحًا */
         function fbSyncMe() {
           var key = fbMyKey();
           if (!fbDb || !key) return;
+          /* الضيف: تقدّمه محفوظ في متصفحه فقط (persist) — لا يُكتب أي شيء
+             في Firestore باسمه أبدًا، فيكون لكل ضيف تقدّمه الخاص على جهازه
+             ولا يشارك مستند «ضيف» واحدًا مع غيره. القراءات مسموحة: التصنيف
+             الحي يبدأ هنا؛ والمحادثات والتحديات الواردة لا تبدأ للضيف أصلًا
+             (كتاباتها محظورة بتنبيهات صادقة عند محاولتها) */
+          if (isGuest) { lbStartLive(); return; }
           /* هوية جلسة Firebase الحية هي المرجع (لغير الضيوف): أي uid قديم من حفظ
              محلي سابق لا يعلو على الحساب المسجَّل فعليًا، وإلا تخطّى الحارس كتاباته */
           if (!isGuest && fbAuth && fbAuth.currentUser && fbAuth.currentUser.uid && accountUid !== fbAuth.currentUser.uid) accountUid = fbAuth.currentUser.uid;
@@ -13613,7 +13622,9 @@
           if (!fbBeatTimer) {
             fbBeatTimer = setInterval(function () {
               var k = fbMyKey();
-              if (!fbDb || !k) return;
+              /* النبضة لا تكتب باسم ضيف أبدًا (جلسة مسجّلة خرجت ثم دخلت
+                 كضيف في الصفحة نفسها بلا إعادة تحميل) */
+              if (!fbDb || !k || isGuest) return;
               try {
                 fbDb.collection("players").doc(k).set({ lastSeen: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true }).catch(function () {});
               } catch (e) {}
@@ -14463,7 +14474,9 @@
           if (user && password) start = profReauthenticate(password);
           return start.then(function (r) {
             if (!r.ok) return r;
-            var docDel = (fbDb && key) ? fbDb.collection("players").doc(key).delete() : Promise.resolve();
+            /* الضيف بلا مستند في Firestore أصلًا (تقدّمه في متصفحه فقط) —
+               حذفه محلي بحت عبر logout، ولا يُحذف أي مستند باسمه أبدًا */
+            var docDel = (fbDb && key && !isGuest) ? fbDb.collection("players").doc(key).delete() : Promise.resolve();
             return docDel.then(function () {
               if (!user) return { ok: true };
               return user.delete().then(function () { return { ok: true }; }).catch(function (e) {
@@ -14989,10 +15002,19 @@
           if (p && p.fromSearch && fbDb && p.key && fbMyKey()) return false;
           return !p || !!p.bot || !frLive || !fbDb || !p.key;
         }
+        /* الضيف لا يكتب في Firestore أبدًا: أفعال الصداقة نحو لاعبين
+           حقيقيين تتوقف بتنبيه صادق كما في التحديات الحقيقية — والبوتات
+           والأطراف المحلية تبقى محلية كالمعتاد فلا يمسّها هذا الحارس */
+        function frGuestRealBlock(p) {
+          if (!isGuest || frIsLocalPeer(p)) return false;
+          showToast("سجّل حسابك أولًا لإضافة لاعبين حقيقيين");
+          return true;
+        }
         /* إرسال طلب صداقة: يصير الزر «بانتظار القبول» ولا صداقة ولا مراسلة بعد */
         function frSendRequest(p) {
           p = frResolve(p) || p;
           if (!p || p.friend || p.reqOut) return;
+          if (frGuestRealBlock(p)) return;
           if (p.reqIn) { frAcceptRequest(p); return; }
           p.reqOut = true;
           if (frIsLocalPeer(p)) {
@@ -15030,6 +15052,7 @@
         function frAcceptRequest(p) {
           p = frResolve(p) || p;
           if (!p) return;
+          if (frGuestRealBlock(p)) return;
           p.reqIn = false;
           p.reqOut = false;
           p.friend = true;
@@ -15066,6 +15089,7 @@
         function frDeclineRequest(p) {
           p = frResolve(p) || p;
           if (!p) return;
+          if (frGuestRealBlock(p)) return;
           p.reqIn = false;
           if (!frIsLocalPeer(p)) {
             var myKey = fbMyKey();
@@ -15182,7 +15206,8 @@
           p.friend = false;
           p.reqOut = false;
           p.reqIn = false;
-          if (!p.bot && fbDb && p.key && (frLive || p.fromSearch)) {
+          /* الضيف يزيل محليًا فقط — لا تُكتب الإزالة في أي مستند */
+          if (!isGuest && !p.bot && fbDb && p.key && (frLive || p.fromSearch)) {
             var myKey = fbMyKey();
             if (myKey) {
               try {
@@ -16306,6 +16331,10 @@
         function openChat(p0) {
           var p = frResolve(p0) || p0;
           if (!p) return;
+          /* الضيف لا يراسل لاعبين حقيقيين (لا كتابة في Firestore باسمه
+             أبدًا) بتنبيه صادق كما في التحديات — محادثات البوتات محلية
+             وتبقى متاحة كالمعتاد */
+          if (isGuest && !p.bot) { showToast("سجّل حسابك أولًا لمراسلة لاعبين حقيقيين"); return; }
           /* نظام الصداقة: لا تُفتح مراسلة مع من ليس صديقًا بعد — أي طريق يصل
              إلى هنا بلا صداقة يرسل طلب الصداقة (أو يقبله إن كان واردًا) بدل
              فتح المحادثة. الاستثناء الوحيد: محادثة قائمة أصلًا برسائلها
@@ -16504,7 +16533,9 @@
 
         /* ---------- مستمعو Firestore الحيون ---------- */
         function chatStart() {
-          if (!fbDb || !accountName || chatUnsubList) return;
+          /* الضيف لا يستمع للمحادثات ولا يراسل لاعبين حقيقيين — محادثاته
+             مع البوتات محلية تمامًا ولا تحتاج هذا المستمع */
+          if (!fbDb || !accountName || chatUnsubList || isGuest) return;
           var myKey = fbMyKey();
           if (!myKey) return;
           try {
