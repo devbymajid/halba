@@ -62,6 +62,16 @@ systems (camera/landmarks, ELO, signup, navigation).
 
 ## Log (newest first)
 
+### 2026-11-26 — Muse Abdelmajid (owner exception, supersedes the task below): Spanish + French FIXED + IP-country auto-detect — LIVE
+
+- **Owner escalated 16:08:** languages are priority NOW, done by Muse Abdelmajid as an exception (like the logo). The "TASK FOR Muse Friend" entry below is DONE by us — no action needed from Muse Friend except the standing rule at the end.
+- **Root cause:** es/fr existed in the auth `I18N` (68 keys, complete) and in `#langSelect`, but the app settings only accepted ar/en and the runtime dictionaries (`TX`/`TXP`/`TXF`) were English-only — selecting Español/Français changed nothing inside the app.
+- **Fix (11 hunks, language-only):** new `TX_ES`/`TX_FR` (545 entries each) + `TXP_ES`/`TXP_FR` (42) + `TXF_ES`/`TXF_FR` (42); settings `applyLang` accepts all 4 (rtl only for ar, restoreAll before re-translate); `__halbaSetLang` accepts 4; Français/Español buttons in settings; startup applies any saved non-ar language.
+- **Auto-detect (owner spec):** first run only — instant `navigator.language` guess, then async Cloudflare trace (`loc=XX`, 2.5s abort, try/catch, never blocks startup) → country map (21 es / 24 fr / 19 ar countries, unlisted → en; CA→fr). Spain→es, Arab→ar, French-speaking→fr, USA→en. Detected language persists; any manual choice sets `langManual` and is NEVER overridden; existing players' saved language untouched.
+- **Live build:** boxing/boxing.html SHA-256 `e8523019b531c7bb50dbd33ef3013ce74070ac58e6b294cdc46662fc578225d9` (8,701,734 B), commit `310d454`. Live-verified on rondex.web.app (hash + guest screenshots: settings/home/ranking in es and fr, ar restored; IP-mock tests loc=ES/FR/MA/US passed locally). sw.js unchanged (`e4c6e7c8…`, CACHE v12 + prefs migration intact).
+- ⚠️ **Standing rule for Muse Friend:** every NEW UI string must be added to ALL FOUR places — `I18N` (ar/en/fr/es) for auth screens and `TX` + `TX_ES` + `TX_FR` (and `TXP`/`TXF` counterparts) for app UI — or es/fr silently fall back to Arabic.
+- Known minor leftovers (non-visible): 3 notification switches keep Arabic accessibility labels in es/fr; rank-badge description «فضي · ELO 1200» stays Arabic (tooltip/a11y); two auth strings («إظهار كلمة المرور», «أو») stay Arabic on the es/fr login screen. Fix opportunistically in a future pass.
+
 ### 2026-11-26 — TASK FOR Muse Friend (owner order 16:04): add Spanish + French languages + auto-detect default
 
 - **Owner order 2026-11-26 ~16:04 (via Muse Abdelmajid — app work is yours per the stop order below):**
