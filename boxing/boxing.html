@@ -15485,6 +15485,32 @@
         var frMyPlayed = [];     /* أسماء من لعبت معهم كما في مستندي */
         var fbBeatTimer = null;
         var fbLastSig = null;
+        var fbSyncBusy = false; /* كتابة مزامنة جارية — لا كتابة متزامنة ثانية فوقها */
+        var fbSyncFailAt = 0; /* آخر مرة أظهرنا فيها تنبيه فشل المزامنة (يُقيَّد التكرار) */
+        /* تنبيه صادق عند فشل حفظ التقدّم في الخادم: لا يُعرض نجاح كاذب
+           أبدًا، ويُقيَّد بمرة كل دقيقة حتى لا يزعج اللاعب إن كان دون اتصال */
+        function fbSyncFailToast() {
+          var now = Date.now();
+          if (now - fbSyncFailAt < 60000) return;
+          fbSyncFailAt = now;
+          showToast("تعذّر حفظ تقدّمك في الخادم — تحقّق من اتصالك بالإنترنت");
+        }
+        /* استعادة تفضيلات الإشعارات من مستند اللاعب إلى إعدادات هذا الجهاز:
+           تُكتب في المستند في كل مزامنة لكنها لم تُستعَد منه أبدًا، فتُستعاد
+           هنا (أول مزامنة + الدخول) حتى تبقى كما اختارها اللاعب عند تغيير
+           الهاتف أو المتصفح — والحفظ يتم عبر HALBA.setNotif فيحفظ كل الإعدادات */
+        function applyNotifPrefsObj(p) {
+          if (!p || typeof p !== "object" || !window.HALBA || !window.HALBA.settings) return;
+          var s = window.HALBA.settings, changed = false;
+          if (typeof p.master === "boolean" && s.notif !== p.master) { s.notif = p.master; changed = true; }
+          if (typeof p.messages === "boolean" && s.notifMsg !== p.messages) { s.notifMsg = p.messages; changed = true; }
+          if (typeof p.friendRequests === "boolean" && s.notifFriend !== p.friendRequests) { s.notifFriend = p.friendRequests; changed = true; }
+          if (typeof p.challenges === "boolean" && s.notifChal !== p.challenges) { s.notifChal = p.challenges; changed = true; }
+          if (changed) {
+            if (window.HALBA.setNotif) { try { window.HALBA.setNotif(s.notif); } catch (e) {} }
+            else if (window.HALBA.refreshSettingsUI) { try { window.HALBA.refreshSettingsUI(); } catch (e) {} }
+          }
+        }
 
         function fbMyKey() {
           return accountName ? String(accountName).trim().toLowerCase() : null;
@@ -15505,8 +15531,9 @@
           if (!isGuest && fbAuth && fbAuth.currentUser && fbAuth.currentUser.uid && accountUid !== fbAuth.currentUser.uid) accountUid = fbAuth.currentUser.uid;
           var sig = key + "|" + xp + "|" + xpLevel() + "|" + myElo + "|" + AV.char + "|" + (isGuest ? "g" : "u") + "|" + (termsApproved ? "t" : "-") + "|" + myCupTitles + "|" + (myCupChampWeek || "") + "|" + trainDays.join(",") + "|" + JSON.stringify(trainLog) + "|" + myWins + "|" + myLosses + "|" + myAch.join(",") + "|" + (myTitle || "") + "|" + myLvlTitles.join(",") + "|" + (accountUid || "") + "|" + (pushToken || "-") + "|" + JSON.stringify(notifPrefsNow());
           if (sig !== fbLastSig) {
+            if (fbSyncBusy) return; /* كتابة جارية — تُعاد المحاولة في المزامنة التالية */
             var first = fbLastSig === null;
-            fbLastSig = sig;
+            fbSyncBusy = true;
             var payload = {
               name: key,
               displayName: accountName,
@@ -15540,10 +15567,29 @@
             if (accountUid) payload.uid = accountUid;
             var fbSkipWrite = false;
             var write = function () {
-              /* إن تُخطّيت الكتابة فقط لأن هوية المصادقة لم تُختم بعد، ننسى التوقيع
-                 فتُعاد المحاولة كمزامنة أولى بدل فقدان هذه الحالة نهائيًا */
-              if (fbSkipWrite) { if (!accountUid) fbLastSig = null; return; }
-              try { fbDb.collection("players").doc(key).set(payload, { merge: true }).catch(function () {}); } catch (e) {}
+              /* حارس الملكية: إن كان المستند يملكه uid آخر، لا نكتب فوقه
+                 أبدًا — وننسى التوقيع فتُعاد المحاولة في المزامنة التالية
+                 (بعد إصلاح الهوية بالدخول مثلًا) بدل فقدان هذه الحالة */
+              if (fbSkipWrite) { fbLastSig = null; fbSyncBusy = false; return; }
+              try {
+                fbDb.collection("players").doc(key).set(payload, { merge: true }).then(function () {
+                  /* الخادم أكّد الكتابة — الآن فقط تُعلَّم هذه الحالة كمزامَنة */
+                  fbLastSig = sig;
+                  fbSyncBusy = false;
+                  /* إن تغيّرت الحالة أثناء الكتابة، تُزامَن التغييرات الجديدة فورًا */
+                  fbSyncMe();
+                }).catch(function () {
+                  /* فشلت الكتابة — لا تُعلَّم كمزامَنة (تُعاد المحاولة في
+                     المزامنة التالية) ويُقال ذلك بصدق بدل نجاح كاذب */
+                  fbLastSig = null;
+                  fbSyncBusy = false;
+                  fbSyncFailToast();
+                });
+              } catch (e) {
+                fbLastSig = null;
+                fbSyncBusy = false;
+                fbSyncFailToast();
+              }
             };
             if (first) {
               /* أول مزامنة في الجلسة: نعتمد elo المستند إن لم يكن عندنا محليًا بعد،
@@ -15619,7 +15665,11 @@
                         if (lvlTitleById(id) && myLvlTitles.indexOf(id) === -1) { myLvlTitles.push(id); achChanged = true; }
                       });
                     }
-                    if (!myTitle && typeof d.achTitle === "string" && (myAch.indexOf(d.achTitle) !== -1 || myLvlTitles.indexOf(d.achTitle) !== -1)) { myTitle = d.achTitle; achChanged = true; }
+                    if (!myTitle && typeof d.achTitle === "string" && (myAch.indexOf(d.achTitle) !== -1 || myLvlTitles.indexOf(d.achTitle) !== -1 || titleUnlocked(d.achTitle))) { myTitle = d.achTitle; achChanged = true; }
+                    /* تفضيلات الإشعارات محفوظة في المستند أيضًا (تُكتب في كل
+                       مزامنة) لكنها لم تُستعَد منه أبدًا — فتُستعاد هنا حتى
+                       تبقى كما اختارها اللاعب عند تغيير الهاتف أو المتصفح */
+                    applyNotifPrefsObj(d.notifPrefs);
                     if (achChanged) {
                       payload.achievements = myAch.slice();
                       payload.lvlTitles = myLvlTitles.slice();
@@ -15906,6 +15956,7 @@
             cupChampWeek: (typeof d.cupChampWeek === "string" && d.cupChampWeek) ? d.cupChampWeek : null,
             ach: Array.isArray(d.achievements) ? d.achievements.slice() : [],
             achTitle: (typeof d.achTitle === "string") ? d.achTitle : null,
+            notifPrefs: (d.notifPrefs && typeof d.notifPrefs === "object") ? d.notifPrefs : null,
             wins: (typeof d.wins === "number" && d.wins > 0) ? Math.floor(d.wins) : 0,
             losses: (typeof d.losses === "number" && d.losses > 0) ? Math.floor(d.losses) : 0,
             lvlTitles: Array.isArray(d.lvlTitles) ? d.lvlTitles.slice() : [],
@@ -15931,6 +15982,7 @@
           accountName = savedObj.username;
           accountDob = null;
           restoreAvatar(savedObj);
+          applyNotifPrefsObj(savedObj.notifPrefs);
           if (Array.isArray(d.friends)) frMyFriends = d.friends.slice();
           if (Array.isArray(d.friendReqIn)) frMyReqIn = d.friendReqIn.slice();
           if (Array.isArray(d.friendReqOut)) frMyReqOut = d.friendReqOut.slice();
