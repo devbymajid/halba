@@ -3547,7 +3547,7 @@
       }
       .pf-stat .sv { display: block; font-size: 1.14rem; font-weight: 900; font-variant-numeric: tabular-nums; }
       .pf-stat .sk { display: block; color: #aca5d4; font-size: 0.76rem; font-weight: 700; margin-top: 1px; }
-      .pf-actions { display: flex; gap: 9px; margin-top: 13px; }
+      .pf-actions { display: flex; flex-direction: column; align-items: stretch; gap: 9px; margin-top: 13px; }
       .pf-actions .fr-chal { flex: 1; min-height: 50px; font-size: 1.02rem; }
       .pf-friendbtn {
         flex: 1;
@@ -4931,8 +4931,8 @@
               <div class="pf-stat"><span class="sv" id="pfLosses">—</span><span class="sk">الهزائم</span></div>
             </div>
             <div class="pf-actions">
-              <button type="button" class="fr-chal" id="pfChallenge">تحدٍّ</button>
               <button type="button" class="fr-msg" id="pfMsg">طلب صداقة</button>
+              <button type="button" class="fr-chal" id="pfChallenge">تحدٍّ</button>
               <button type="button" class="pf-friendbtn" id="pfFriendBtn" hidden>إزالة صديق</button>
             </div>
             <button type="button" class="hm-sheet-close" id="pfCloseBtn">إغلاق</button>
