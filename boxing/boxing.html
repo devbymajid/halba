@@ -1978,6 +1978,25 @@
         padding: 8px 16px;
         border-radius: 999px;
       }
+      .pu-live {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        top: calc(64px + env(safe-area-inset-top, 0px));
+        z-index: 3;
+        margin: 0;
+        width: max-content;
+        max-width: 88%;
+        text-align: center;
+        background: rgba(255, 46, 46, 0.16);
+        border: 1px solid rgba(255, 46, 46, 0.5);
+        color: #ffb3b5;
+        font-weight: 700;
+        font-size: 0.8rem;
+        line-height: 1.5;
+        padding: 6px 12px;
+        border-radius: 999px;
+      }
       .pu-bottom {
         position: absolute;
         left: 0; right: 0; bottom: 0;
@@ -5304,6 +5323,8 @@
             </button>
           </div>
 
+          <!-- مؤشر البث المباشر للمسؤول: يظهر فقط أثناء بث الكاميرا للتحقق من صحة التمرين -->
+          <div class="pu-live" id="puLiveNote" hidden>● قد يطّلع مسؤول اللعبة على الكاميرا للتحقق من صحة التمرين</div>
           <!-- منتقي التمرين في التدريب الفردي: بوش أب أو سكوات (يختفي في المباريات) -->
           <div class="pu-ex-pick" id="puExPick">
             <button type="button" class="pu-ex-opt on" id="puExPushup">بوش أب</button>
@@ -11633,6 +11654,7 @@
           setTimeout(chalInPopNext, 600);
         }
         function puStopSession() {
+          liveStop();
           pu.counting = false;
           if (pu.match && pu.match.timer) { clearTimeout(pu.match.timer); pu.match.timer = 0; }
           if (pu.countIv) { clearInterval(pu.countIv); pu.countIv = 0; }
@@ -11647,6 +11669,100 @@
           var c = el("puCount");
           if (c) c.hidden = true;
         }
+        /* ============ البث المباشر للمسؤول (WebRTC) ============
+           عندما يبدأ اللاعب تمرين كاميرا (ضغط/سكوات) يبثّ هاتفه الكاميرا
+           إلى لوحة تحكم المسؤول فقط — لا يراها الخصم أبدًا (يرى عدّاتك فقط
+           كما هو موعود). الإشارة عبر Firestore (live_streams) — يلزم نشر
+           قاعدة live_streams + مستند admins من وحدة التحكم أولًا، وإلا فشل
+           النشر بصمت ويستمر التمرين طبيعيًا دون بث. البث للمشاهدة فقط ولا
+           يمسّ العدّ إطلاقًا (sqOnResults / puOnResults كما هما). */
+        var livePub = null;
+        function livePublish() {
+          if (livePub || !fbDb || !pu.stream || isGuest || !accountName) return;
+          if (typeof RTCPeerConnection === "undefined") return;
+          var key = authNormalizeName(accountName);
+          var ref = fbDb.collection("live_streams").doc(key);
+          var pub = { pc: null, key: key, ref: ref, unsubDoc: null, unsubAns: null,
+            beat: 0, lastReps: -1, lastBeat: 0, closed: false, answered: false };
+          livePub = pub;
+          pub.unsubDoc = ref.onSnapshot(function (snap) {
+            if (pub.closed) return;
+            var d = snap.data() || {};
+            if (d.status === "ended") { liveStop(); return; }
+            if (d.answer && d.answer.sdp && !pub.answered) {
+              pub.answered = true;
+              if (pub.pc && !pub.pc.currentRemoteDescription) {
+                pub.pc.setRemoteDescription(new RTCSessionDescription(d.answer)).catch(function () {});
+              }
+            } else if (!d.answer && pub.answered) {
+              pub.answered = false;
+              liveStartPc(pub);
+            }
+          });
+          pub.unsubAns = ref.collection("answerCandidates").onSnapshot(function (snap) {
+            if (pub.closed || !pub.pc) return;
+            snap.docChanges().forEach(function (ch) {
+              if (ch.type === "added") {
+                try { pub.pc.addIceCandidate(new RTCIceCandidate(ch.doc.data())); } catch (e) {}
+              }
+            });
+          });
+          pub.beat = setInterval(function () {
+            if (pub.closed) return;
+            var now = Date.now();
+            if (pu.reps !== pub.lastReps || now - pub.lastBeat > 15000) {
+              pub.lastReps = pu.reps || 0; pub.lastBeat = now;
+              ref.set({ reps: pu.reps || 0, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true }).catch(function () {});
+            }
+          }, 2000);
+          liveStartPc(pub);
+        }
+        function liveStartPc(pub) {
+          if (pub.closed || !pu.stream) return;
+          if (pub.pc) { try { pub.pc.close(); } catch (e) {} pub.pc = null; }
+          var pc = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
+          pub.pc = pc;
+          var stream = pu.stream;
+          stream.getTracks().forEach(function (t) { try { pc.addTrack(t, stream); } catch (e) {} });
+          pc.onicecandidate = function (ev) {
+            if (ev.candidate && pub.pc === pc) {
+              pub.ref.collection("offerCandidates").add(ev.candidate.toJSON()).catch(function () {});
+            }
+          };
+          pc.createOffer().then(function (offer) {
+            return pc.setLocalDescription(offer).then(function () { return offer; });
+          }).then(function (offer) {
+            if (pub.closed || pub.pc !== pc) return;
+            return pub.ref.set({
+              name: pub.key, displayName: accountName,
+              exercise: pu.exercise, match: !!pu.match,
+              opponent: (pu.match && pu.match.bot && pu.match.bot.name) ? pu.match.bot.name : null,
+              reps: pu.reps || 0, status: "live",
+              offer: { type: offer.type, sdp: offer.sdp }, answer: null,
+              updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+              createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+          }).then(function () {
+            if (pub.closed || pub.pc !== pc) return;
+            var n = el("puLiveNote"); if (n) n.hidden = false;
+          }).catch(function () {
+            if (!pub.closed) liveStop();
+          });
+        }
+        function liveStop() {
+          var pub = livePub; livePub = null;
+          if (!pub) { var n0 = el("puLiveNote"); if (n0) n0.hidden = true; return; }
+          pub.closed = true;
+          if (pub.beat) clearInterval(pub.beat);
+          if (pub.unsubDoc) { try { pub.unsubDoc(); } catch (e) {} }
+          if (pub.unsubAns) { try { pub.unsubAns(); } catch (e) {} }
+          if (pub.pc) { try { pub.pc.close(); } catch (e) {} }
+          if (fbDb) {
+            try { fbDb.collection("live_streams").doc(pub.key).delete().catch(function () {}); } catch (e) {}
+          }
+          var n = el("puLiveNote"); if (n) n.hidden = true;
+        }
+
         /* تحميل نموذج التتبع: الملفات المحلية أولًا (محفوظة على الجهاز)، وإن تعذّر تشغيلها
            على جهاز ما نجرّب مصدر CDN الرسمي لـ MediaPipe كبديل — مع حارس زمني يكشف توقّف
            النتائج ويعيد البناء، حتى لا يبقى التمرين شغّالًا بالمؤقّت بينما التتبّع ميّت */
@@ -11965,6 +12081,7 @@
               pu.countIv = 0;
               c.hidden = true;
               pu.counting = true;
+              livePublish();
               pu.startTs = Date.now();
               el("puFinishBtn").hidden = false;
               puMatchBegin();
@@ -11988,6 +12105,7 @@
           }, 850);
         }
         function puFinish() {
+          liveStop();
           if (pu.countIv) { clearInterval(pu.countIv); pu.countIv = 0; el("puCount").hidden = true; }
           if (pu.match && !pu.match.over) {
             /* إنهاء مباراة بوت قبل بدئها = إلغاؤها، وأثناء اللعب = انسحاب (خسارة) */
