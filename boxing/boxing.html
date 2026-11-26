@@ -15485,6 +15485,7 @@
         var frMyPlayed = [];     /* أسماء من لعبت معهم كما في مستندي */
         var fbBeatTimer = null;
         var fbLastSig = null;
+        var fbAdminEmailSig = null;
         var fbSyncBusy = false; /* كتابة مزامنة جارية — لا كتابة متزامنة ثانية فوقها */
         var fbSyncFailAt = 0; /* آخر مرة أظهرنا فيها تنبيه فشل المزامنة (يُقيَّد التكرار) */
         /* تنبيه صادق عند فشل حفظ التقدّم في الخادم: لا يُعرض نجاح كاذب
@@ -15529,6 +15530,20 @@
           /* هوية جلسة Firebase الحية هي المرجع (لغير الضيوف): أي uid قديم من حفظ
              محلي سابق لا يعلو على الحساب المسجَّل فعليًا، وإلا تخطّى الحارس كتاباته */
           if (!isGuest && fbAuth && fbAuth.currentUser && fbAuth.currentUser.uid && accountUid !== fbAuth.currentUser.uid) accountUid = fbAuth.currentUser.uid;
+          /* بريد اللاعب للمسؤول فقط: يُكتب في admin_users/<uid> (لا في
+             مستند اللاعب العام) ليراه المسؤول في لوحة التحكم — أفضل جهد:
+             فشل الكتابة لا يكسر الدخول ولا اللعب أبدًا، وتُعاد المحاولة
+             في المزامنة التالية حتى تنجح */
+          try {
+            var emSig = (accountUid || "") + "|" + (accountEmail || "") + "|" + key;
+            if (accountUid && accountEmail && emSig !== fbAdminEmailSig) {
+              fbDb.collection("admin_users").doc(accountUid).set({
+                email: accountEmail,
+                name: key,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+              }, { merge: true }).then(function () { fbAdminEmailSig = emSig; }).catch(function () {});
+            }
+          } catch (e) {}
           var sig = key + "|" + xp + "|" + xpLevel() + "|" + myElo + "|" + AV.char + "|" + (isGuest ? "g" : "u") + "|" + (termsApproved ? "t" : "-") + "|" + myCupTitles + "|" + (myCupChampWeek || "") + "|" + trainDays.join(",") + "|" + JSON.stringify(trainLog) + "|" + myWins + "|" + myLosses + "|" + myAch.join(",") + "|" + (myTitle || "") + "|" + myLvlTitles.join(",") + "|" + (accountUid || "") + "|" + (pushToken || "-") + "|" + JSON.stringify(notifPrefsNow());
           if (sig !== fbLastSig) {
             if (fbSyncBusy) return; /* كتابة جارية — تُعاد المحاولة في المزامنة التالية */
