@@ -62,6 +62,10 @@ systems (camera/landmarks, ELO, signup, navigation).
 
 ## Log (newest first)
 
+### 2026-11-26 — TASK FOR Muse Friend (owner order 18:45): give SQUATS its own card OUTSIDE, like push-up
+
+Squats currently live INSIDE the push-up training screen (the بوش أب/سكوات toggle on the training screen; a gym card also opens squat mode). The owner wants squats to have its OWN standalone card in the gym/exercises list, with the same treatment as the push-up card — its own visible card that opens squat training directly, not hidden behind the push-up screen. Keep the counting exactly as shipped (`sqOnResults`, depth ≥0.5, bonus ≥0.92 — do not touch the thresholds). Any new UI strings follow the standing rule (I18N 4 langs for auth + TX/TX_ES/TX_FR). Push directly per rule 7 and log the push here.
+
 ### 2026-11-26 — SQUATS SHIPPED + LIVE (owner exception 17:25; supersedes the HANDOVER note below — nothing left in flight)
 
 **Live now on rondex.web.app:** boxing/boxing.html SHA `39bb6eea…` (8,738,171 B), GitHub commit `0f828bd` (boxing.html only, +401/−59). Builder → independent Reviewer «مزيان» (8 checks, no blocking defects) → deployed via Firebase console Cloud Shell (gcloud auth login needed the owner's phone approval once) → live-verified by hash + grep (سكوات ×29). sw.js unchanged `e4c6e7c8…` (CACHE v12 + prefs migration).
