@@ -2011,6 +2011,35 @@
         font-size: 0.98rem;
         cursor: pointer;
       }
+      /* منتقي التمرين في التدريب الفردي: بوش أب أو سكوات — يختفي في المباريات */
+      .pu-ex-pick {
+        position: absolute;
+        top: calc(78px + env(safe-area-inset-top, 0px));
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 3;
+        display: flex;
+        gap: 8px;
+        background: rgba(13, 10, 32, 0.72);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 999px;
+        padding: 5px;
+      }
+      .pu-ex-opt {
+        min-height: 40px;
+        padding: 0 20px;
+        border: none;
+        border-radius: 999px;
+        background: transparent;
+        color: #cdc6ec;
+        font-weight: 900;
+        font-size: 0.98rem;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .pu-ex-opt.on { background: linear-gradient(90deg, #ffb020, #ff7a00); color: #1a0d00; }
+      .pu-ex-pick[hidden] { display: none !important; }
+      #puPage.in-match .pu-ex-pick { display: none !important; }
       .pu-count {
         position: absolute;
         inset: 0;
@@ -4991,11 +5020,16 @@
             <p class="sheet-sub" id="chalPickSub">اختر نوع التحدي</p>
 
             <div id="chalPickType" hidden>
-              <div class="cp-grid three">
+              <div class="cp-grid">
                 <button type="button" class="cp-opt" data-chal-type="pushup">
                   <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17h16M6 17v-3a6 6 0 0 1 12 0v3"/><path d="M12 8V5M9 5h6"/></svg>
                   <span class="cp-nm">بوش أب</span>
                   <span class="cp-sb">الأول إلى 20 عدّة</span>
+                </button>
+                <button type="button" class="cp-opt" data-chal-type="squat">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="4" r="1.8"/><path d="M12 7v4M12 11l-4 2-1 6M12 11l4 2 1 6M8 9l4 2 4-2"/></svg>
+                  <span class="cp-nm">سكوات</span>
+                  <span class="cp-sb">الأول إلى 30 عدّة</span>
                 </button>
                 <button type="button" class="cp-opt" data-chal-type="walk">
                   <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="13" cy="4.5" r="1.8"/><path d="M13 8l-2 5 3 3v5M11 13l-3 2-1 5M14 16l3 2 1 4"/></svg>
@@ -5212,12 +5246,12 @@
                 </div>
                 <span class="ex-chip hot">ابدأ</span>
               </div>
-              <div class="ex-row">
+              <div class="ex-row featured pu-open-tap" id="sqOpenCard" role="button" tabindex="0" aria-label="تمرين السكوات — اضغط لفتح التمرين بالكاميرا">
                 <div class="ex-tx">
                   <span class="ex-nm">القرفصاء <span class="en">· Squat</span></span>
-                  <span class="ex-sb">قوّة الساقين والتوازن — نزول كامل وطلوع كامل</span>
+                  <span class="ex-sb">قوّة الساقين والتوازن — نزول كامل وطلوع كامل، عدّات صحيحة بالكاميرا — اضغط للبدء</span>
                 </div>
-                <span class="ex-chip">ساقين</span>
+                <span class="ex-chip hot">ابدأ</span>
               </div>
               <div class="ex-row">
                 <div class="ex-tx">
@@ -5258,22 +5292,28 @@
             </button>
           </div>
 
+          <!-- منتقي التمرين في التدريب الفردي: بوش أب أو سكوات (يختفي في المباريات) -->
+          <div class="pu-ex-pick" id="puExPick">
+            <button type="button" class="pu-ex-opt on" id="puExPushup">بوش أب</button>
+            <button type="button" class="pu-ex-opt" id="puExSquat">سكوات</button>
+          </div>
+
           <!-- لوحة مباراة الخصم: شريطا العدّات جنبًا إلى جنب (بلا أفاتار — بطلب المستخدم) -->
           <div class="pu-match" id="puMatch" hidden>
             <div class="pm-bars">
               <div class="pm-side">
                 <span class="pm-nm"><span id="pmMyName">أنت</span><span id="pmMyRank"></span></span>
-                <span class="pm-reps"><b id="pmMyReps">0</b> <small>/ 20 عدّة</small></span>
+                <span class="pm-reps"><b id="pmMyReps">0</b> <small id="pmMyGoal">/ 20 عدّة</small></span>
                 <div class="pm-bar"><div class="pm-fill me" id="pmMyBar"></div></div>
               </div>
               <span class="pm-vs">VS</span>
               <div class="pm-side">
                 <span class="pm-nm"><span id="pmBotName">الخصم</span><span id="pmBotRank"></span></span>
-                <span class="pm-reps"><b id="pmBotReps">0</b> <small>/ 20 عدّة</small></span>
+                <span class="pm-reps"><b id="pmBotReps">0</b> <small id="pmBotGoal">/ 20 عدّة</small></span>
                 <div class="pm-bar"><div class="pm-fill bot" id="pmBotBar"></div></div>
               </div>
             </div>
-            <p class="pm-goal">الأول إلى 20 عدّة يفوز — وإذا انتهى الوقت فالأكثر عدّات يفوز</p>
+            <p class="pm-goal" id="pmGoal">الأول إلى 20 عدّة يفوز — وإذا انتهى الوقت فالأكثر عدّات يفوز</p>
           </div>
 
           <div class="pu-reps">
@@ -5318,6 +5358,25 @@
                 <li>الفيديو لا يُسجَّل ولا يُرفع أبدًا: التتبّع يحدث على هاتفك فقط.</li>
               </ul>
               <button type="button" class="pu-sheet-close" id="puRulesClose">فهمت</button>
+            </div>
+          </div>
+
+          <div class="pu-sheet" id="sqRules" hidden>
+            <div class="pu-sheet-card">
+              <h4>تعليمات تمرين السكوات</h4>
+              <p class="pu-privacy">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.6 10.6 0 0 1 12 19c-7 0-10-7-10-7a17.6 17.6 0 0 1 4.06-4.94M9.9 4.24A9.5 9.5 0 0 1 12 5c7 0 10 7 10 7a17.7 17.7 0 0 1-2.16 3.19M14.12 14.12A3 3 0 1 1 9.88 9.88"/><path d="M2 2l20 20"/></svg>
+                <span><strong>خصمك لا يراك أبدًا:</strong> لا تصله صورتك ولا أيٌّ من لقطات الكاميرا، فكل ما يطّلع عليه منك هو عدد عدّاتك فحسب.</span>
+              </p>
+              <ul>
+                <li>ضع الهاتف أمامك والكاميرا نحوك، وقف بحيث يظهر جسمك كاملًا من الرأس إلى القدمين داخل الإطار.</li>
+                <li>الخطوط على جسمك تبدّل لونها مع حركتك: خضراء نعناعية وأنت واقف، وحمراء وأنت في الأسفل.</li>
+                <li>انزل بجسمك حتى يتجاوز شريط العمق الخط الأبيض في النصف (50%) على الأقل لكي تُحسب العدّة: +10 XP.</li>
+                <li>النزول حتى العمق الكامل (92%) — وركاك عند مستوى ركبتيك أو أسفل منهما — يضيف +10 XP أخرى، ثم ارجع إلى الوقوف لإكمال العدّة.</li>
+                <li>يجب أن تبقى ساقاك ظاهرتين داخل الإطار طوال العدّة — اختفاء ساق وسط العدّة يلغيها.</li>
+                <li>الفيديو لا يُسجَّل ولا يُرفع أبدًا: التتبّع يحدث على هاتفك فقط.</li>
+              </ul>
+              <button type="button" class="pu-sheet-close" id="sqRulesClose">فهمت</button>
             </div>
           </div>
 
@@ -6945,7 +7004,27 @@
           "أيام متتالية": "day streak",
           "عدّة": "reps",
           "جلسة": "sessions",
-          "مباراة": "match"
+          "مباراة": "match",
+          "سكوات": "Squats",
+          "الأول إلى 30 عدّة": "First to 30 reps",
+          "/ 30 عدّة": "/ 30 reps",
+          "الأول إلى 30 عدّة يفوز — وإذا انتهى الوقت فالأكثر عدّات يفوز": "First to 30 reps wins — if time runs out, the player with more reps wins",
+          "أكمل 30 عدّة سكوات اليوم": "Complete 30 squat reps today",
+          "ضع الهاتف أمامك والكاميرا نحوك، ثم قف مستقيمًا وابدأ النزول": "Place the phone in front of you with the camera facing you, then stand straight and start going down",
+          "ساقاك غير ظاهرتين بالكامل — ابتعد حتى يظهر جسمك كاملًا داخل الإطار": "Your legs aren't fully visible — move back until your whole body is in frame",
+          "قف مستقيمًا لحظة حتى تتم المعايرة": "Stand straight for a moment while calibration completes",
+          "أُلغيت العدّة — ارجع إلى الوقوف وساقاك ظاهرتان": "Rep cancelled — return to standing with your legs visible",
+          "أحسنت! ارجع إلى الوقوف لإكمال العدّة": "Well done! Return to standing to complete the rep",
+          "قف أمام الكاميرا حتى يظهر جسمك كاملًا من الرأس إلى القدمين": "Stand in front of the camera until your whole body is visible from head to feet",
+          "استعد… قف مستقيمًا": "Get ready… stand straight",
+          "تعليمات تمرين السكوات": "Squat exercise instructions",
+          "ضع الهاتف أمامك والكاميرا نحوك، وقف بحيث يظهر جسمك كاملًا من الرأس إلى القدمين داخل الإطار.": "Place the phone in front of you with the camera facing you, and stand so your whole body is visible from head to feet in the frame.",
+          "الخطوط على جسمك تبدّل لونها مع حركتك: خضراء نعناعية وأنت واقف، وحمراء وأنت في الأسفل.": "The lines on your body change color with your movement: mint green while standing, red when you're down.",
+          "انزل بجسمك حتى يتجاوز شريط العمق الخط الأبيض في النصف (50%) على الأقل لكي تُحسب العدّة: +10 XP.": "Lower your body until the depth bar passes the white line at the halfway mark (50%) at least for the rep to count: +10 XP.",
+          "النزول حتى العمق الكامل (92%) — وركاك عند مستوى ركبتيك أو أسفل منهما — يضيف +10 XP أخرى، ثم ارجع إلى الوقوف لإكمال العدّة.": "Going down to full depth (92%) — hips at or below knee level — adds another +10 XP, then return to standing to complete the rep.",
+          "يجب أن تبقى ساقاك ظاهرتين داخل الإطار طوال العدّة — اختفاء ساق وسط العدّة يلغيها.": "Your legs must stay visible in the frame throughout the rep — a leg disappearing mid-rep cancels it.",
+          "تمرين السكوات — اضغط لفتح التمرين بالكاميرا": "Squat exercise — tap to open the camera exercise",
+          "قوّة الساقين والتوازن — نزول كامل وطلوع كامل، عدّات صحيحة بالكاميرا — اضغط للبدء": "Leg strength and balance — full down and full up, correct reps by camera — tap to start"
         };
 
         var TX_ES = {
@@ -7498,7 +7577,27 @@
           "أيام متتالية": "días de racha",
           "عدّة": "repeticiones",
           "جلسة": "sesiones",
-          "مباراة": "combate"
+          "مباراة": "combate",
+          "سكوات": "Sentadillas",
+          "الأول إلى 30 عدّة": "El primero en llegar a 30 repeticiones",
+          "/ 30 عدّة": "/ 30 repeticiones",
+          "الأول إلى 30 عدّة يفوز — وإذا انتهى الوقت فالأكثر عدّات يفوز": "Gana el primero en llegar a 30 repeticiones — si se acaba el tiempo, gana quien tenga más repeticiones",
+          "أكمل 30 عدّة سكوات اليوم": "Completa 30 sentadillas hoy",
+          "ضع الهاتف أمامك والكاميرا نحوك، ثم قف مستقيمًا وابدأ النزول": "Coloca el teléfono frente a ti con la cámara hacia ti, ponte de pie recto y empieza a bajar",
+          "ساقاك غير ظاهرتين بالكامل — ابتعد حتى يظهر جسمك كاملًا داخل الإطار": "Tus piernas no se ven por completo — aléjate hasta que todo tu cuerpo entre en el encuadre",
+          "قف مستقيمًا لحظة حتى تتم المعايرة": "Quédate de pie recto un momento mientras se completa la calibración",
+          "أُلغيت العدّة — ارجع إلى الوقوف وساقاك ظاهرتان": "Repetición anulada — vuelve a ponerte de pie con las piernas visibles",
+          "أحسنت! ارجع إلى الوقوف لإكمال العدّة": "¡Bien hecho! Vuelve a ponerte de pie para completar la repetición",
+          "قف أمام الكاميرا حتى يظهر جسمك كاملًا من الرأس إلى القدمين": "Ponte frente a la cámara hasta que se vea todo tu cuerpo, de la cabeza a los pies",
+          "استعد… قف مستقيمًا": "Prepárate… ponte de pie recto",
+          "تعليمات تمرين السكوات": "Instrucciones del ejercicio de sentadillas",
+          "ضع الهاتف أمامك والكاميرا نحوك، وقف بحيث يظهر جسمك كاملًا من الرأس إلى القدمين داخل الإطار.": "Coloca el teléfono frente a ti con la cámara hacia ti, y ponte de pie de modo que todo tu cuerpo se vea, de la cabeza a los pies, en el encuadre.",
+          "الخطوط على جسمك تبدّل لونها مع حركتك: خضراء نعناعية وأنت واقف، وحمراء وأنت في الأسفل.": "Las líneas sobre tu cuerpo cambian de color con tu movimiento: verde menta de pie, rojo cuando estás abajo.",
+          "انزل بجسمك حتى يتجاوز شريط العمق الخط الأبيض في النصف (50%) على الأقل لكي تُحسب العدّة: +10 XP.": "Baja tu cuerpo hasta que la barra de profundidad supere al menos la línea blanca de la mitad (50%) para que la repetición cuente: +10 XP.",
+          "النزول حتى العمق الكامل (92%) — وركاك عند مستوى ركبتيك أو أسفل منهما — يضيف +10 XP أخرى، ثم ارجع إلى الوقوف لإكمال العدّة.": "Bajar hasta la profundidad completa (92%) — caderas al nivel de las rodillas o por debajo — suma otros +10 XP; luego vuelve a ponerte de pie para completar la repetición.",
+          "يجب أن تبقى ساقاك ظاهرتين داخل الإطار طوال العدّة — اختفاء ساق وسط العدّة يلغيها.": "Tus piernas deben permanecer visibles en el encuadre durante toda la repetición — si una pierna desaparece en medio, la repetición se anula.",
+          "تمرين السكوات — اضغط لفتح التمرين بالكاميرا": "Ejercicio de sentadillas — toca para abrir el ejercicio con cámara",
+          "قوّة الساقين والتوازن — نزول كامل وطلوع كامل، عدّات صحيحة بالكاميرا — اضغط للبدء": "Fuerza de piernas y equilibrio — bajada completa y subida completa, repeticiones correctas con cámara — toca para empezar"
         };
         var TX_FR = {
           "الإعدادات": "Paramètres",
@@ -8050,7 +8149,27 @@
           "أيام متتالية": "jours de série",
           "عدّة": "répétitions",
           "جلسة": "séances",
-          "مباراة": "match"
+          "مباراة": "match",
+          "سكوات": "Squats",
+          "الأول إلى 30 عدّة": "Le premier à 30 répétitions",
+          "/ 30 عدّة": "/ 30 répétitions",
+          "الأول إلى 30 عدّة يفوز — وإذا انتهى الوقت فالأكثر عدّات يفوز": "Le premier à 30 répétitions gagne — si le temps s'écoule, celui qui a le plus de répétitions gagne",
+          "أكمل 30 عدّة سكوات اليوم": "Fais 30 squats aujourd'hui",
+          "ضع الهاتف أمامك والكاميرا نحوك، ثم قف مستقيمًا وابدأ النزول": "Place le téléphone devant toi, caméra face à toi, tiens-toi droit et commence à descendre",
+          "ساقاك غير ظاهرتين بالكامل — ابتعد حتى يظهر جسمك كاملًا داخل الإطار": "Tes jambes ne sont pas entièrement visibles — recule jusqu'à ce que tout ton corps soit dans le cadre",
+          "قف مستقيمًا لحظة حتى تتم المعايرة": "Tiens-toi droit un instant le temps de la calibration",
+          "أُلغيت العدّة — ارجع إلى الوقوف وساقاك ظاهرتان": "Répétition annulée — reviens debout avec les jambes visibles",
+          "أحسنت! ارجع إلى الوقوف لإكمال العدّة": "Bien joué ! Reviens debout pour terminer la répétition",
+          "قف أمام الكاميرا حتى يظهر جسمك كاملًا من الرأس إلى القدمين": "Place-toi face à la caméra jusqu'à ce que tout ton corps soit visible, de la tête aux pieds",
+          "استعد… قف مستقيمًا": "Prépare-toi… tiens-toi droit",
+          "تعليمات تمرين السكوات": "Instructions de l'exercice de squat",
+          "ضع الهاتف أمامك والكاميرا نحوك، وقف بحيث يظهر جسمك كاملًا من الرأس إلى القدمين داخل الإطار.": "Place le téléphone devant toi, caméra face à toi, et tiens-toi de façon à ce que tout ton corps soit visible, de la tête aux pieds, dans le cadre.",
+          "الخطوط على جسمك تبدّل لونها مع حركتك: خضراء نعناعية وأنت واقف، وحمراء وأنت في الأسفل.": "Les lignes sur ton corps changent de couleur avec ton mouvement : vert menthe debout, rouge quand tu es en bas.",
+          "انزل بجسمك حتى يتجاوز شريط العمق الخط الأبيض في النصف (50%) على الأقل لكي تُحسب العدّة: +10 XP.": "Descends ton corps jusqu'à ce que la barre de profondeur dépasse au moins la ligne blanche à mi-hauteur (50%) pour que la répétition compte : +10 XP.",
+          "النزول حتى العمق الكامل (92%) — وركاك عند مستوى ركبتيك أو أسفل منهما — يضيف +10 XP أخرى، ثم ارجع إلى الوقوف لإكمال العدّة.": "Descendre jusqu'à la profondeur complète (92%) — hanches au niveau des genoux ou en dessous — ajoute +10 XP supplémentaires, puis reviens debout pour terminer la répétition.",
+          "يجب أن تبقى ساقاك ظاهرتين داخل الإطار طوال العدّة — اختفاء ساق وسط العدّة يلغيها.": "Tes jambes doivent rester visibles dans le cadre pendant toute la répétition — une jambe qui disparaît en cours de répétition l'annule.",
+          "تمرين السكوات — اضغط لفتح التمرين بالكاميرا": "Exercice de squat — touche pour ouvrir l'exercice caméra",
+          "قوّة الساقين والتوازن — نزول كامل وطلوع كامل، عدّات صحيحة بالكاميرا — اضغط للبدء": "Force des jambes et équilibre — descente complète et remontée complète, répétitions correctes par caméra — touche pour commencer"
         };
 
         /* ---------- أنماط الجمل المركّبة (فيها أرقام أو أسماء) ---------- */
@@ -9118,15 +9237,17 @@
                 var r = Math.floor(+v.r) || 0; if (r < 0) r = 0;
                 var x = Math.floor(+v.x) || 0; if (x < 0) x = 0;
                 /* حقول تحدي اليوم داخل إدخال اليوم نفسه: خطوات اليوم (st)
-                   وانتصاراته (w) وختم استلام المكافأة (dc) — تُحفظ كما هي
-                   عبر التطبيع حتى لا تضيع عند التحميل أو الدمج */
+                   وانتصاراته (w) وعدّات سكواته (sq) وختم استلام المكافأة (dc)
+                   — تُحفظ كما هي عبر التطبيع حتى لا تضيع عند التحميل أو الدمج */
                 var st = Math.floor(+v.st) || 0; if (st < 0) st = 0;
                 var w = Math.floor(+v.w) || 0; if (w < 0) w = 0;
+                var sqn = Math.floor(+v.sq) || 0; if (sqn < 0) sqn = 0;
                 if (!out[nk] || s > out[nk].s) out[nk] = { s: s, r: r, x: x };
-                /* الخطوات والانتصارات تُدمج بالأكبر وختم الاستلام بأيٍّ منهما،
-                   أيًّا كانت النسخة الفائزة بالجلسات */
+                /* الخطوات والانتصارات وعدّات السكوات تُدمج بالأكبر وختم
+                   الاستلام بأيٍّ منهما، أيًّا كانت النسخة الفائزة بالجلسات */
                 if (st > (out[nk].st || 0)) out[nk].st = st;
                 if (w > (out[nk].w || 0)) out[nk].w = w;
+                if (sqn > (out[nk].sq || 0)) out[nk].sq = sqn;
                 if (v.dc) out[nk].dc = 1;
               } else if (v.lg) {
                 if (!out[nk]) out[nk] = { s: 0, r: 0, x: 0, lg: 1 };
@@ -9160,11 +9281,12 @@
           Object.keys(nb).forEach(function (k) {
             if (!out[k] || nb[k].s > out[k].s || (nb[k].s === out[k].s && nb[k].r > out[k].r)) out[k] = nb[k];
             /* حقول تحدي اليوم تُدمج دائمًا أيًّا كانت النسخة الفائزة:
-               الخطوات والانتصارات بالأكبر، وختم الاستلام إن وُجد في أيٍّ منهما
-               فلا تُستلم المكافأة مرتين من هاتفين */
+               الخطوات والانتصارات وعدّات السكوات بالأكبر، وختم الاستلام إن
+               وُجد في أيٍّ منهما فلا تُستلم المكافأة مرتين من هاتفين */
             if (out[k]) {
               if ((nb[k].st || 0) > (out[k].st || 0)) out[k].st = nb[k].st;
               if ((nb[k].w || 0) > (out[k].w || 0)) out[k].w = nb[k].w;
+              if ((nb[k].sq || 0) > (out[k].sq || 0)) out[k].sq = nb[k].sq;
               if (nb[k].dc) out[k].dc = 1;
             }
           });
@@ -9259,7 +9381,7 @@
            نهاية مباراة puMatchEnd — لا مستدعي آخر لها في التطبيق كله): تُسجَّل
            الجلسة في سجلّ اليوم (جلسات/عدّات/XP) فيدخل اليوم العدّ مرة واحدة
            مهما تكررت جلساته، وتُشتق قائمة الأيام من السجلّ مباشرة */
-        function markTrainingDay(reps, xpGain, steps, won) {
+        function markTrainingDay(reps, xpGain, steps, won, sqReps) {
           var k = todayKey();
           var e = trainLog[k] || { s: 0, r: 0, x: 0 };
           e.s += 1;
@@ -9267,11 +9389,13 @@
           e.r += Math.max(0, Math.floor(+reps) || 0);
           e.x += Math.max(0, Math.floor(+xpGain) || 0);
           /* عدّادات تحدي اليوم داخل إدخال اليوم نفسه: خطوات جلسات المشي/الجري
-             (st) وانتصارات مباريات اليوم (w) — معاملان اختياريان، فالمستدعون
-             القدامى بلا تغيير */
+             (st) وانتصارات مباريات اليوم (w) وعدّات السكوات (sq) — معاملات
+             اختيارية، فالمستدعون القدامى بلا تغيير */
           var stp = Math.max(0, Math.floor(+steps) || 0);
           if (stp > 0) e.st = (e.st || 0) + stp;
           if (won) e.w = (e.w || 0) + 1;
+          var sqp = Math.max(0, Math.floor(+sqReps) || 0);
+          if (sqp > 0) e.sq = (e.sq || 0) + sqp;
           trainLog[k] = e;
           trainDays = tdLogDays(trainLog);
           persist();
@@ -9280,10 +9404,11 @@
         }
 
         /* ---------- تحدي اليوم والسلسلة ----------
-           مهمة واحدة كل يوم بتوقيت مدريد، تدور حتميًا برقم اليوم بين أربع
+           مهمة واحدة كل يوم بتوقيت مدريد، تدور حتميًا برقم اليوم بين خمس
            مهام مبنية فقط على عدّادات يعدّها التطبيق فعلًا (عدّات البوش أب r،
-           خطوات المشي/الجري st، انتصارات اليوم w، جلسات اليوم s — كلها داخل
-           إدخال اليوم في trainLog، فلا حقل جديد في مستند اللاعب إطلاقًا).
+           خطوات المشي/الجري st، انتصارات اليوم w، جلسات اليوم s، عدّات
+           السكوات sq — كلها داخل إدخال اليوم في trainLog، فلا حقل جديد في
+           مستند اللاعب إطلاقًا).
            المكافأة +50 XP تُستلم مرة واحدة وتُختم بعلم dc داخل إدخال اليوم
            نفسه، فينتقل الختم مع المزامنة ولا تُستلم مرتين من هاتفين.
            السلسلة هي tdStreak نفسها (أيام متتالية تنتهي اليوم أو أمس). */
@@ -9292,7 +9417,8 @@
           { id: "reps30", text: "أكمل 30 عدّة بوش أب اليوم", target: 30, unit: "عدّة", field: "r" },
           { id: "steps500", text: "امشِ أو اجرِ 500 خطوة اليوم", target: 500, unit: "خطوة", field: "st" },
           { id: "win1", text: "اربح مباراة واحدة اليوم", target: 1, unit: "مباراة", field: "w" },
-          { id: "sess2", text: "أنهِ جلستَي تدريب اليوم", target: 2, unit: "جلسة", field: "s" }
+          { id: "sess2", text: "أنهِ جلستَي تدريب اليوم", target: 2, unit: "جلسة", field: "s" },
+          { id: "squat30", text: "أكمل 30 عدّة سكوات اليوم", target: 30, unit: "عدّة", field: "sq" }
         ];
         function dcMissionToday() {
           var ms = tdKeyToMs(todayKey());
@@ -11176,8 +11302,178 @@
           reps: 0, sessionXp: 0, smooth: null, topY: null, wristY: null, elbowTop: null, depth: 0,
           counted: false, fullGiven: false, voided: false, lastStatus: "", flashTimer: 0,
           poseReady: false, poseLoading: false, poseSrc: "", poseScriptSrc: "", poseInitTs: 0,
-          lastResultTs: 0, watchdog: 0, stallFixed: false
+          lastResultTs: 0, watchdog: 0, stallFixed: false, exercise: "pushup"
         };
+
+        /* ================= تمرين السكوات: عدّ بالكاميرا بنفس قواعد الضغط =================
+           العدّ من إشارتين معًا والعمق هو الأصغر منهما: (1) انحناء الركبتين من
+           مرجع الوقوف المستقيم، (2) نزول منتصف الوركين من مرجع الوقوف نحو مستوى
+           الركبتين — فلا تُحسب عدّة إلا بنزول حقيقي: النصف نزلة تبقى دون الخط
+           الأبيض فلا تُحسب أبدًا، وثني الركبتين دون نزول الوركين (أو العكس) لا
+           يُحسب أيضًا. 50% = عدّة +10 XP، والعمق الكامل 92% = +10 XP أخرى،
+           والرجوع إلى أقل من 15% يكمل الدورة — نفس شريط العمق وألوان الهيكل. */
+        var sq = {
+          smooth: null, depth: 0,
+          counted: false, fullGiven: false, voided: false,
+          hipTopY: null, kneeTop: null, thighLen: 0
+        };
+        function sqResetState() {
+          sq.smooth = null;
+          sq.depth = 0;
+          sq.counted = false;
+          sq.fullGiven = false;
+          sq.voided = false;
+          sq.hipTopY = null;
+          sq.kneeTop = null;
+          sq.thighLen = 0;
+        }
+        /* موزّع نتائج التتبّع: نفس نموذج Pose ونفس الكاميرا — التمرين المختار
+           (بوش أب أو سكوات) يقرّر أي عدّاد يعالج الإطار */
+        function puPoseResults(res) {
+          if (pu.exercise === "squat") sqOnResults(res);
+          else puOnResults(res);
+        }
+        function sqOnResults(res) {
+          if (!pu.open) return;
+          pu.poseReady = true;
+          pu.lastResultTs = Date.now();
+          var cv = el("puCanvas");
+          if (!cv) return;
+          var cw = cv.clientWidth, chh = cv.clientHeight;
+          if (!cw || !chh) return;
+          var dpr = Math.min(window.devicePixelRatio || 1, 2);
+          var bw = Math.round(cw * dpr), bh = Math.round(chh * dpr);
+          if (cv.width !== bw || cv.height !== bh) { cv.width = bw; cv.height = bh; }
+          var ctx = cv.getContext("2d");
+          ctx.clearRect(0, 0, bw, bh);
+          var lm = res && res.poseLandmarks;
+          if (!lm) {
+            sq.smooth = null;
+            sq.depth += (0 - sq.depth) * 0.12;
+            puDrawDepth(sq.depth, false);
+            puSetStatus("اقترب من الكاميرا حتى تظهر الخطوط على جسمك");
+            return;
+          }
+          var v = el("puVideo");
+          var vw = (v && v.videoWidth) || 640, vh = (v && v.videoHeight) || 480;
+          var scale = Math.max(bw / vw, bh / vh);
+          var dw = vw * scale, dh = vh * scale, ox = (bw - dw) / 2, oy = (bh - dh) / 2;
+          if (!sq.smooth) sq.smooth = {};
+          var P = {}, byIdx = {};
+          PU_KEYS.forEach(function (k) {
+            var src = lm[PU_IDX[k]];
+            var rx = bw - (ox + src.x * dw);
+            var ry = oy + src.y * dh;
+            var rv = typeof src.visibility === "number" ? src.visibility : 1;
+            var s = sq.smooth[k];
+            if (!s) { s = sq.smooth[k] = { x: rx, y: ry, vis: rv }; }
+            else { s.x += (rx - s.x) * 0.55; s.y += (ry - s.y) * 0.55; s.vis = rv; }
+            P[k] = s;
+            byIdx[PU_IDX[k]] = s;
+          });
+
+          var hipMid = { x: (P.hipL.x + P.hipR.x) / 2, y: (P.hipL.y + P.hipR.y) / 2 };
+          var kneeMid = { x: (P.kneeL.x + P.kneeR.x) / 2, y: (P.kneeL.y + P.kneeR.y) / 2 };
+          var ankMid = { x: (P.ankL.x + P.ankR.x) / 2, y: (P.ankL.y + P.ankR.y) / 2 };
+          var hipsOk = P.hipL.vis >= 0.5 && P.hipR.vis >= 0.5;
+          var kneesOk = P.kneeL.vis >= 0.5 && P.kneeR.vis >= 0.5;
+          var anklesOk = P.ankL.vis >= 0.5 && P.ankR.vis >= 0.5;
+          var legsOk = hipsOk && kneesOk && anklesOk;
+
+          var kneeAvg = (puAngle(P.hipL, P.kneeL, P.ankL) + puAngle(P.hipR, P.kneeR, P.ankR)) / 2;
+          var standing = legsOk && kneeAvg >= 155 && hipMid.y < kneeMid.y && kneeMid.y < ankMid.y;
+
+          /* المعايرة في الوقوف: مرجع الوركين وزاوية الركبتين وطول الفخذ العمودي */
+          if (standing) {
+            var thigh = kneeMid.y - hipMid.y;
+            if (sq.hipTopY == null) {
+              sq.hipTopY = hipMid.y; sq.kneeTop = kneeAvg; sq.thighLen = thigh;
+            } else if (sq.depth < 0.12) {
+              sq.hipTopY += (hipMid.y - sq.hipTopY) * 0.08;
+              sq.kneeTop += (kneeAvg - sq.kneeTop) * 0.08;
+              sq.thighLen += (thigh - sq.thighLen) * 0.08;
+            }
+          }
+          var calibrated = sq.hipTopY != null && sq.kneeTop != null && sq.kneeTop > 140 && sq.thighLen > bh * 0.06;
+
+          if (legsOk && calibrated) {
+            /* العمق = الأصغر من إشارتين: انحناء الركبتين من مرجع الوقوف (مع هامش
+               8 درجات حتى لا يقرأ ثبات الوقوف عمقًا وهميًا) ونزول الوركين من
+               مرجع الوقوف نحو مستوى الركبتين — في العدّة الصحيحة تتحركان معًا،
+               وأخذ الأصغر يمنع حساب أي نزلة ناقصة مهما تحركت إحدى الإشارتين */
+            var kneeRaw = (sq.kneeTop - 8 - kneeAvg) / (sq.kneeTop - 78);
+            var hipRaw = (hipMid.y - sq.hipTopY) / (sq.thighLen * 0.85);
+            var raw = Math.min(kneeRaw, hipRaw);
+            raw = Math.max(0, Math.min(1, raw));
+            if (raw > sq.depth) sq.depth += (raw - sq.depth) * 0.6;
+            else sq.depth += (raw - sq.depth) * 0.16;
+          } else if (!legsOk) {
+            if (pu.counting && sq.depth > 0.2 && !sq.counted) sq.voided = true;
+          } else {
+            sq.depth += (0 - sq.depth) * 0.08;
+          }
+          puDrawDepth(sq.depth, legsOk);
+
+          if (pu.counting) {
+            if (legsOk && calibrated) {
+              if (sq.depth < 0.15) { sq.counted = false; sq.fullGiven = false; sq.voided = false; }
+              if (!sq.voided) {
+                if (!sq.counted && sq.depth >= 0.5) {
+                  sq.counted = true;
+                  pu.reps++;
+                  el("puRepNum").textContent = pu.reps;
+                  puGainXp(10);
+                  puFlash("+10 XP");
+                  puMatchOnRep();
+                }
+                if (sq.counted && !sq.fullGiven && sq.depth >= 0.92) {
+                  sq.fullGiven = true;
+                  puGainXp(10);
+                  puFlash("عمق كامل +10 XP");
+                }
+              }
+            }
+            if (!legsOk) puSetStatus("ساقاك غير ظاهرتين بالكامل — ابتعد حتى يظهر جسمك كاملًا داخل الإطار");
+            else if (!calibrated) puSetStatus("قف مستقيمًا لحظة حتى تتم المعايرة");
+            else if (sq.voided) puSetStatus("أُلغيت العدّة — ارجع إلى الوقوف وساقاك ظاهرتان");
+            else if (sq.counted) puSetStatus("أحسنت! ارجع إلى الوقوف لإكمال العدّة");
+            else puSetStatus("انزل حتى يتجاوز العمق الخط الأبيض");
+          } else {
+            if (!legsOk) puSetStatus("قف أمام الكاميرا حتى يظهر جسمك كاملًا من الرأس إلى القدمين");
+            else puSetStatus("وضعية صحيحة — اضغط «بدء التمرين» وابدأ النزول");
+          }
+
+          /* نفس رسم الضغط تمامًا: هيكل بلون واحد يتبدّل عند حدّ الـ50% نفسه */
+          var col = sq.depth >= 0.5 ? PU_RED : PU_GREEN;
+          ctx.save();
+          ctx.lineCap = "round";
+          ctx.lineJoin = "round";
+          ctx.shadowBlur = 0;
+          ctx.strokeStyle = col;
+          ctx.lineWidth = Math.max(2, bw * 0.0075);
+          ctx.beginPath();
+          PU_LINES.forEach(function (pr) {
+            var a = byIdx[pr[0]], b = byIdx[pr[1]];
+            if (!a || !b) return;
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+          });
+          ctx.stroke();
+          ctx.strokeStyle = "rgba(255,255,255,0.9)";
+          ctx.lineWidth = Math.max(1, bw * 0.0028);
+          PU_KEYS.forEach(function (k) {
+            var p = P[k];
+            if (p.x < -bw * 0.02 || p.x > bw * 1.02 || p.y < -bh * 0.02 || p.y > bh * 1.02) return;
+            var leg = k === "kneeL" || k === "kneeR" || k === "ankL" || k === "ankR";
+            var r = bw * (leg ? 0.0125 : 0.019);
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+            ctx.fillStyle = col;
+            ctx.fill();
+            ctx.stroke();
+          });
+          ctx.restore();
+        }
 
         function puSetStatus(t) {
           if (t === pu.lastStatus) return;
@@ -11229,6 +11525,7 @@
           pu.counted = false;
           pu.fullGiven = false;
           pu.voided = false;
+          sqResetState();
           el("puRepNum").textContent = "0";
           el("puXpNum").textContent = "+0";
           el("puTimer").textContent = "00:00";
@@ -11237,12 +11534,30 @@
           el("puCount").hidden = true;
           el("puSummary").hidden = true;
           el("puRules").hidden = true;
+          var sqr = el("sqRules"); if (sqr) sqr.hidden = true;
           var exr = el("exRules"); if (exr) exr.hidden = true;
           puDrawDepth(0, false);
           puMatchResetUi();
+          puExPickSync();
           if (pu.match && pu.match.real) puSetStatus("مباراة ضد " + pu.match.bot.name + " — ستبدأ تلقائيًا بعد العدّ التنازلي");
           else if (pu.match) puSetStatus("مباراة ضد " + pu.match.bot.name + " — اضغط «بدء المباراة» حين تكون جاهزًا");
+          else if (pu.exercise === "squat") puSetStatus("ضع الهاتف أمامك والكاميرا نحوك، ثم قف مستقيمًا وابدأ النزول");
           else puSetStatus("ضع الهاتف أمامك على الأرض والكاميرا نحوك، ثم خذ وضعية الضغط");
+        }
+        /* منتقي التمرين (بوش أب/سكوات) في التدريب الفردي فقط — يختفي في المباريات
+           وأثناء العدّ، وتبديله يعيد الجلسة من الصفر بالعدّاد الصحيح */
+        function puExPickSync() {
+          var pk = el("puExPick");
+          if (pk) pk.hidden = !!pu.match;
+          var bp = el("puExPushup"), bs = el("puExSquat");
+          if (bp) bp.classList.toggle("on", pu.exercise !== "squat");
+          if (bs) bs.classList.toggle("on", pu.exercise === "squat");
+        }
+        function puSetExercise(ex) {
+          if (pu.match || pu.counting || pu.countIv) return;
+          if (pu.exercise === ex) return;
+          pu.exercise = ex;
+          puResetSession();
         }
         /* ---------- خيار إخفاء رسالة «قواعد تمارين» عند فتح التمارين ----------
            مفتاح مستقل (halba_exercise_rules_hide_v1) يحكم رسالة القواعد العامة
@@ -11284,7 +11599,7 @@
           pu.open = false;
           /* مغادرة مباراة حقيقية جارية = إنهاء محلي: تُكتب النتيجة في المستند
              ويبقى المستمع حيًا ليحسم المكافآت عند انتهاء الخصم */
-          if (chalReal && !chalReal.over && chalReal.type === "pushup") chalRealLocalEnd("loss");
+          if (chalReal && !chalReal.over && (chalReal.type === "pushup" || chalReal.type === "squat")) chalRealLocalEnd("loss");
           puStopSession();
           pu.match = null;
           botGlStop();
@@ -11356,7 +11671,7 @@
             try {
               var inst = new Pose({ locateFile: function (f) { return base + f; } });
               inst.setOptions({ modelComplexity: 0, smoothLandmarks: true, enableSegmentation: false, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
-              inst.onResults(puOnResults);
+              inst.onResults(puPoseResults);
               pu.pose = inst;
               pu.poseInitTs = Date.now();
               puStartWatchdog();
@@ -11615,11 +11930,12 @@
             return;
           }
           el("puStartBtn").hidden = true;
+          var pk0 = el("puExPick"); if (pk0) pk0.hidden = true;
           var c = el("puCount");
           var n = 3;
           c.hidden = false;
           c.textContent = n;
-          puSetStatus("استعد… خذ وضعية الضغط");
+          puSetStatus(pu.exercise === "squat" ? "استعد… قف مستقيمًا" : "استعد… خذ وضعية الضغط");
           pu.countIv = setInterval(function () {
             n--;
             if (n <= 0) {
@@ -11669,7 +11985,8 @@
           el("puSumTime").textContent = puFmtTime(pu.elapsed);
           el("puSummary").hidden = false;
           setWinShareBtn("puShareWinBtn", false);
-          markTrainingDay(pu.reps, pu.sessionXp);
+          if (pu.exercise === "squat") markTrainingDay(0, pu.sessionXp, 0, false, pu.reps);
+          else markTrainingDay(pu.reps, pu.sessionXp);
           achEvaluate();
         }
 
@@ -11699,6 +12016,10 @@
           el("pmBotName").textContent = m.bot.name;
           fillRankBadge(el("pmMyRank"), myElo, false);
           fillRankBadge(el("pmBotRank"), lbElo(m.bot), false);
+          var tgt = m.target || PU_MATCH_TARGET;
+          el("pmMyGoal").textContent = "/ " + tgt + " عدّة";
+          el("pmBotGoal").textContent = "/ " + tgt + " عدّة";
+          el("pmGoal").textContent = "الأول إلى " + tgt + " عدّة يفوز — وإذا انتهى الوقت فالأكثر عدّات يفوز";
           el("puStartBtn").textContent = "بدء المباراة";
           el("puFinishBtn").textContent = "إنهاء المباراة";
           puMatchUi();
@@ -11706,10 +12027,11 @@
         function puMatchUi() {
           var m = pu.match;
           if (!m) return;
+          var tgt = m.target || PU_MATCH_TARGET;
           el("pmMyReps").textContent = pu.reps;
           el("pmBotReps").textContent = m.botReps;
-          el("pmMyBar").style.width = Math.min(100, pu.reps / PU_MATCH_TARGET * 100) + "%";
-          el("pmBotBar").style.width = Math.min(100, m.botReps / PU_MATCH_TARGET * 100) + "%";
+          el("pmMyBar").style.width = Math.min(100, pu.reps / tgt * 100) + "%";
+          el("pmBotBar").style.width = Math.min(100, m.botReps / tgt * 100) + "%";
         }
         /* ==== CHALLENGE WAIT (pure) ==== */
         /* مدة انتظار قبول الخصم للتحدي: عشوائية بالكامل في كل مرة بين 3 و15
@@ -11750,7 +12072,7 @@
             chalWaitTimer = 0;
             el("chalWait").hidden = true;
             showToast("قبل الخصم التحدي — استعد!");
-            startBotMatch(p);
+            startBotMatch(p, false, type);
             if (after) after();
           }, chalWaitMs());
         }
@@ -11774,8 +12096,8 @@
            حيًا. الأول إلى الهدف يفوز، ومن انتهى وقته/جلسته يعلّم done فتُحسم
            النتيجة للأعلى عند اكتمال الطرفين. التحديات المعلّقة الأقدم من
            10 دقائق منتهية وتُتجاهل عند القراءة. */
-        var CHAL_TARGETS = { pushup: 20, walk: 300, run: 600 };
-        var CHAL_TYPE_AR = { pushup: "بوش أب", walk: "مشي", run: "جري" };
+        var CHAL_TARGETS = { pushup: 20, squat: 30, walk: 300, run: 600 };
+        var CHAL_TYPE_AR = { pushup: "بوش أب", squat: "سكوات", walk: "مشي", run: "جري" };
         var CHAL_PENDING_MS = 10 * 60 * 1000;
         var chalPick = { opp: null, mode: "known", after: null, oppKind: null };
         var chalRealWait = null;   /* {id, unsub, expTimer, opp, type, after} أثناء انتظار قبول الخصم */
@@ -11892,7 +12214,7 @@
             startBotStepsMatch(botPlayer, type, true);
             chalWkAutoStart();
           } else {
-            startBotMatch(botPlayer, true);
+            startBotMatch(botPlayer, true, type);
             chalAutoStartPu();
           }
           if (after) after();
@@ -12194,7 +12516,7 @@
             var chEl = el("chalInChar");
             chEl.hidden = !ch;
             if (ch) chEl.textContent = "الشخصية: " + ch.name;
-            el("chalInSub").textContent = (CHAL_TYPE_AR[c.type] || c.type) + " — الأول إلى " + (CHAL_TARGETS[c.type] || 0) + (c.type === "pushup" ? " عدّة" : " خطوة");
+            el("chalInSub").textContent = (CHAL_TYPE_AR[c.type] || c.type) + " — الأول إلى " + (CHAL_TARGETS[c.type] || 0) + ((c.type === "pushup" || c.type === "squat") ? " عدّة" : " خطوة");
             el("chalInPop").hidden = false;
             return;
           }
@@ -12255,8 +12577,9 @@
               chalRealOnDoc(snap.data() || {});
             }, function () {});
           } catch (e) {}
-          if (d.type === "pushup") {
-            pu.match = { bot: opp, botReps: 0, started: false, over: false, timer: 0, startTs: 0, real: true, chalId: id };
+          if (d.type === "pushup" || d.type === "squat") {
+            pu.exercise = d.type;
+            pu.match = { bot: opp, botReps: 0, started: false, over: false, timer: 0, startTs: 0, real: true, chalId: id, type: d.type, target: CHAL_TARGETS[d.type] };
             openPuPage();
             chalAutoStartPu();
           } else {
@@ -12318,7 +12641,7 @@
           var oppScore = typeof d[r.oppField] === "number" ? d[r.oppField] : 0;
           r.oppScore = oppScore;
           r.oppDone = !!d[r.oppDoneField];
-          if (r.type === "pushup") {
+          if (r.type === "pushup" || r.type === "squat") {
             if (pu.match && pu.match.real) { pu.match.botReps = oppScore; puMatchUi(); }
           } else if (wk.match && wk.match.real) {
             wk.match.botSteps = oppScore;
@@ -12371,14 +12694,14 @@
           if (!r || r.over) return;
           if (!r.myDone) {
             r.myDone = true;
-            var score = r.type === "pushup" ? pu.reps : wk.steps;
+            var score = (r.type === "pushup" || r.type === "squat") ? pu.reps : wk.steps;
             var upd = { updatedAt: chalServerTs() };
             upd[r.myField] = score;
             upd[r.myDoneField] = true;
             r.lastScore = score;
             try { chalDocRef(r.id).update(upd).catch(function () {}); } catch (e) {}
           }
-          if (r.type === "pushup") {
+          if (r.type === "pushup" || r.type === "squat") {
             pu.counting = false;
             if (pu.timerInt) { clearInterval(pu.timerInt); pu.timerInt = 0; }
             el("puFinishBtn").hidden = true;
@@ -12399,7 +12722,7 @@
           var opp = r.opp || {};
           var oppName = opp.name || r.oppKey;
           var oppElo = typeof opp.elo === "number" ? opp.elo : 1200;
-          var myScore = r.type === "pushup" ? pu.reps : wk.steps;
+          var myScore = (r.type === "pushup" || r.type === "squat") ? pu.reps : wk.steps;
           var oppScore = r.oppScore;
           if (d && typeof d[r.myField] === "number") myScore = d[r.myField];
           if (d && typeof d[r.oppField] === "number") oppScore = d[r.oppField];
@@ -12411,7 +12734,7 @@
           if (result === "loss") myLosses++;
           var line = "النتيجة: أنت " + myScore + " — " + oppScore + " " + oppName +
             " · ELO " + (delta >= 0 ? "+" : "") + delta + " (أصبح " + myElo + ")";
-          if (r.type === "pushup") {
+          if (r.type === "pushup" || r.type === "squat") {
             if (pu.match && pu.match.real) pu.match.over = true;
             pu.counting = false;
             if (pu.timerInt) { clearInterval(pu.timerInt); pu.timerInt = 0; }
@@ -12432,14 +12755,15 @@
               sm.hidden = false;
               sm.textContent = line;
               el("puSummary").hidden = false;
-              if (result === "win") noteWin(oppName, myScore, oppScore, "pushup");
+              if (result === "win") noteWin(oppName, myScore, oppScore, r.type);
               setWinShareBtn("puShareWinBtn", result === "win");
               puSetStatus(result === "win" ? "أحسنت! فزت على " + oppName : "انتهت المباراة");
             } else {
               showToast(result === "win" ? "فزت بتحدي " + oppName + "!" : "انتهى تحدي " + oppName);
             }
             if (window.HALBA) HALBA.sfx(result === "win" ? "win" : "lose");
-            markTrainingDay(pu.reps, pu.sessionXp, 0, result === "win");
+            if (r.type === "squat") markTrainingDay(0, pu.sessionXp, 0, result === "win", pu.reps);
+            else markTrainingDay(pu.reps, pu.sessionXp, 0, result === "win");
             achEvaluate();
           } else {
             if (wk.match && wk.match.real) wk.match.over = true;
@@ -12581,9 +12905,11 @@
 
         /* بدء مباراة الخصم: بوت أو لاعب حقيقي — نفس الشاشة ونفس القواعد،
            والخصم يُعرَّف من كائن اللاعب نفسه (شخصيته، مستواه، نقاطه) */
-        function startBotMatch(botPlayer, autoCd) {
+        function startBotMatch(botPlayer, autoCd, type) {
           var bot = botById(botPlayer.botId) || botPlayer;
-          pu.match = { bot: bot, botReps: 0, started: false, over: false, timer: 0, startTs: 0, autoCd: !!autoCd };
+          type = type === "squat" ? "squat" : "pushup";
+          pu.exercise = type;
+          pu.match = { bot: bot, botReps: 0, started: false, over: false, timer: 0, startTs: 0, autoCd: !!autoCd, type: type, target: CHAL_TARGETS[type] };
           openPuPage();
         }
         function puMatchBegin() {
@@ -12594,17 +12920,18 @@
           /* المباراة الحقيقية: عدّات الخصم تأتي من مستند التحدي لا من مؤقّت محلي */
           if (!m.real) puBotSchedule();
         }
-        /* عدّات البوت: كل عدّة بعد إيقاع مستواه × (0.8 إلى 1.3) عشوائيًا */
+        /* عدّات البوت: كل عدّة بعد إيقاع مستواه × (0.8 إلى 1.3) عشوائيًا —
+           والسكوات أسرع من الضغط (×0.6) لأن عدّتها أقصر زمنيًا */
         function puBotSchedule() {
           var m = pu.match;
           if (!m || m.over || !m.started) return;
-          var delay = oppPaceMs(m.bot) * (0.8 + Math.random() * 0.5);
+          var delay = oppPaceMs(m.bot) * (m.type === "squat" ? 0.6 : 1) * (0.8 + Math.random() * 0.5);
           m.timer = setTimeout(function () {
             if (!pu.match || pu.match !== m || m.over || !pu.counting) return;
             m.botReps++;
             botGlDip();
             puMatchUi();
-            if (m.botReps >= PU_MATCH_TARGET) { puMatchEnd("loss"); return; }
+            if (m.botReps >= (m.target || PU_MATCH_TARGET)) { puMatchEnd("loss"); return; }
             puBotSchedule();
           }, delay);
         }
@@ -12613,7 +12940,7 @@
           if (!m) return;
           puMatchUi();
           if (m.real) { if (m.started && !m.over) chalRealScore(pu.reps); return; }
-          if (m.started && !m.over && pu.reps >= PU_MATCH_TARGET) puMatchEnd("win");
+          if (m.started && !m.over && pu.reps >= (m.target || PU_MATCH_TARGET)) puMatchEnd("win");
         }
         function puMatchEnd(result) {
           var m = pu.match;
@@ -12652,11 +12979,12 @@
           sm.textContent = "النتيجة: أنت " + pu.reps + " — " + m.botReps + " " + m.bot.name +
             " · ELO " + (delta >= 0 ? "+" : "") + delta + " (أصبح " + myElo + ")";
           el("puSummary").hidden = false;
-          if (result === "win") noteWin(m.bot.name, pu.reps, m.botReps, "pushup");
+          if (result === "win") noteWin(m.bot.name, pu.reps, m.botReps, m.type || "pushup");
           setWinShareBtn("puShareWinBtn", result === "win");
           if (window.HALBA) HALBA.sfx(result === "win" ? "win" : "lose");
           puSetStatus(result === "win" ? "أحسنت! فزت على " + m.bot.name : "انتهت المباراة");
-          markTrainingDay(pu.reps, pu.sessionXp, 0, result === "win");
+          if (m.type === "squat") markTrainingDay(0, pu.sessionXp, 0, result === "win", pu.reps);
+          else markTrainingDay(pu.reps, pu.sessionXp, 0, result === "win");
           achEvaluate();
           /* مباراة بطولة أسبوعية؟ تُسجَّل النتيجة في الجدول وتتقدّم البطولة */
           if (typeof m.cupIdx === "number") cupOnMatchEnd(m.cupIdx, result, pu.reps, m.botReps);
@@ -12791,7 +13119,7 @@
           ctx.fillText(win.oppName, W / 2 + 215, 1475);
           ctx.font = "800 44px Cairo, sans-serif";
           ctx.fillStyle = "#9a94c4";
-          ctx.fillText(win.type === "pushup" ? "عدّة" : "خطوة", W / 2, 1555);
+          ctx.fillText((win.type === "pushup" || win.type === "squat") ? "عدّة" : "خطوة", W / 2, 1555);
           ctx.font = "900 54px Cairo, sans-serif";
           ctx.fillStyle = tc[2];
           ctx.fillText(tier.name + " · ELO " + win.elo, W / 2, 1635);
@@ -13026,13 +13354,24 @@
 
         var puCardEl = el("puOpenCard");
         if (puCardEl) {
-          puCardEl.addEventListener("click", openPuPage);
+          puCardEl.addEventListener("click", function () { pu.exercise = "pushup"; openPuPage(); });
           puCardEl.addEventListener("keydown", function (e) {
-            if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openPuPage(); }
+            if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pu.exercise = "pushup"; openPuPage(); }
           });
         }
         var puGymBtnEl = el("gymStartPuBtn");
-        if (puGymBtnEl) puGymBtnEl.addEventListener("click", openPuPage);
+        if (puGymBtnEl) puGymBtnEl.addEventListener("click", function () { pu.exercise = "pushup"; openPuPage(); });
+        var sqCardEl = el("sqOpenCard");
+        if (sqCardEl) {
+          sqCardEl.addEventListener("click", function () { pu.exercise = "squat"; openPuPage(); });
+          sqCardEl.addEventListener("keydown", function (e) {
+            if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pu.exercise = "squat"; openPuPage(); }
+          });
+        }
+        var puExPuEl = el("puExPushup");
+        if (puExPuEl) puExPuEl.addEventListener("click", function () { puSetExercise("pushup"); });
+        var puExSqEl = el("puExSquat");
+        if (puExSqEl) puExSqEl.addEventListener("click", function () { puSetExercise("squat"); });
         el("puCloseBtn").addEventListener("click", function () {
           if (pu.counting || pu.countIv) puFinish();
           else closePuPage();
@@ -13041,11 +13380,14 @@
         el("puFinishBtn").addEventListener("click", puFinish);
         el("puSummaryDone").addEventListener("click", closePuPage);
         el("puRulesBtn").addEventListener("click", function () {
-          /* زر «القواعد» داخل صفحة الضغط يفتح تعليمات هذا التمرين الخاصة به */
-          el("puRules").hidden = false;
+          /* زر «القواعد» داخل صفحة التمرين يفتح تعليمات التمرين الحالي الخاصة به */
+          el(pu.exercise === "squat" ? "sqRules" : "puRules").hidden = false;
         });
         el("puRulesClose").addEventListener("click", function () {
           el("puRules").hidden = true;
+        });
+        el("sqRulesClose").addEventListener("click", function () {
+          el("sqRules").hidden = true;
         });
         el("exRulesApprove").addEventListener("click", function () {
           /* موافقة رسالة فتح التمارين: تفعيل الخيار يحفظ الإخفاء فلا تعود
@@ -13680,7 +14022,7 @@
           var reps = 0, sessions = 0;
           for (var k in trainLog) {
             var e = trainLog[k];
-            if (e) { reps += e.r || 0; sessions += e.s || 0; }
+            if (e) { reps += (e.r || 0) + (e.sq || 0); sessions += e.s || 0; }
           }
           return { reps: reps, sessions: sessions, days: trainDays.length, streak: achBestStreak(), wins: myWins, xp: xp };
         }
