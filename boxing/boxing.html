@@ -2885,7 +2885,9 @@
       .lb-pod.second .p-medal { background: #cfd4dc; }
       .lb-pod.third .p-medal { background: #e0a075; }
       .lb-pod .p-nm { margin-top: 13px; font-weight: 900; font-size: 0.98rem; line-height: 1.3; max-width: 100%; display: flex; align-items: center; justify-content: center; gap: 4px; flex-wrap: wrap; }
-      .lb-pod .p-xp { color: #bcb6de; font-weight: 700; font-size: 0.82rem; }
+      .lb-pod .p-xp { display: flex; flex-direction: column; align-items: center; gap: 1px; margin-top: 2px; color: #bcb6de; font-weight: 700; font-size: 0.82rem; }
+      .lb-pod .p-xp-s { white-space: nowrap; font-size: 0.74rem; }
+      @media (max-width: 360px) { .lb-podium { gap: 6px; } .lb-pod .p-xp-s { font-size: 0.68rem; } }
       .lb-pod .p-bar {
         margin-top: 8px;
         width: 100%;
@@ -2943,7 +2945,7 @@
       }
       .lb-row .r-tx { flex: 1; min-width: 0; }
       .lb-row .r-nm { display: flex; align-items: center; gap: 7px; font-weight: 900; font-size: 1rem; line-height: 1.3; }
-      .lb-row .r-nm .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .lb-row .r-nm .nm { flex: 1 1 auto; min-width: 0; unicode-bidi: plaintext; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .lb-row .you {
         background: linear-gradient(90deg, #ffb020, #ff7a00);
         color: #1a0d00;
@@ -2953,7 +2955,9 @@
         border-radius: 999px;
         flex: none;
       }
-      .lb-row .r-sb { color: #aca5d4; font-weight: 700; font-size: 0.82rem; }
+      .lb-row .r-sb { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 2px; color: #aca5d4; font-weight: 700; font-size: 0.82rem; }
+      .lb-row .r-sb .title-badge, .lb-row .r-sb .rank-badge { margin-inline-start: 0; }
+      .elo-g { white-space: nowrap; }
       .lb-row .r-xp { font-weight: 900; font-size: 0.98rem; color: #f0f0f5; white-space: nowrap; font-variant-numeric: tabular-nums; }
       .lb-row .r-xp small { color: #aca5d4; font-weight: 700; font-size: 0.78rem; }
       /* صفوف التصنيف والمنصة وبطاقة «رتبتك» قابلة للضغط: كل ضغطة تفتح ملف اللاعب */
@@ -3007,7 +3011,7 @@
       .fr-row {
         display: flex;
         align-items: center;
-        gap: 11px;
+        gap: 9px;
         background: #251a4d;
         border: 1px solid #3d3191;
         border-radius: 14px;
@@ -3048,7 +3052,8 @@
       }
       .fr-row .f-tx { flex: 1; min-width: 0; }
       .fr-row .f-nm { display: block; font-weight: 900; font-size: 1rem; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-      .fr-row .f-sb { display: block; color: #aca5d4; font-weight: 700; font-size: 0.82rem; margin-top: 1px; }
+      .fr-row .f-sb { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; color: #aca5d4; font-weight: 700; font-size: 0.82rem; margin-top: 2px; }
+      .fr-row .f-sb .title-badge { margin-inline-start: 0; }
       .fr-row .f-sb .on-tx { color: #8be89a; }
       .fr-chal {
         flex: none;
@@ -3057,8 +3062,9 @@
         color: #1a0d00;
         font-weight: 900;
         font-size: 0.88rem;
+        line-height: 1.6;
         border-radius: 999px;
-        padding: 8px 15px;
+        padding: 8px 12px;
         cursor: pointer;
         font-family: inherit;
         min-height: 40px;
@@ -3155,7 +3161,8 @@
       }
       .fr-dbempty[hidden] { display: none; }
       .fr-row .f-nmrow { display: flex; align-items: center; gap: 8px; min-width: 0; }
-      .fr-row .f-nmrow .f-nm { min-width: 0; }
+      .fr-row .f-nmrow .f-nm { flex: 1 1 auto; min-width: 0; unicode-bidi: plaintext; }
+      .fr-row .f-nmrow .rank-badge { margin-inline-start: 0; }
       .fr-row .f-st {
         flex: none;
         display: inline-flex;
@@ -3566,8 +3573,9 @@
         font-family: inherit;
         font-weight: 900;
         font-size: 0.86rem;
+        line-height: 1.5;
         border-radius: 999px;
-        padding: 8px 13px;
+        padding: 8px 11px;
         cursor: pointer;
         min-height: 40px;
       }
@@ -13342,7 +13350,7 @@
             appendRankBadge(nm, lbElo(p));
             var x = document.createElement("span");
             x.className = "p-xp";
-            x.textContent = p.xp + " XP · مستوى " + lbLevel(p.xp) + " · ELO " + lbElo(p);
+            x.innerHTML = '<span class="p-xp-n">' + p.xp + ' XP</span><span class="p-xp-s">مستوى ' + lbLevel(p.xp) + ' · <span class="elo-g">ELO ' + lbElo(p) + "</span></span>";
             var bar = document.createElement("span");
             bar.className = "p-bar";
             d.appendChild(ava); d.appendChild(nm); d.appendChild(x); d.appendChild(bar);
@@ -13379,11 +13387,13 @@
               nmRow.appendChild(you);
             }
             if (isReigningChamp(p)) nmRow.appendChild(champBadgeEl());
-            appendTitleBadge(nmRow, p);
-            appendRankBadge(nmRow, lbElo(p));
             var sb = document.createElement("span");
             sb.className = "r-sb";
-            sb.textContent = "المستوى " + lbLevel(p.xp) + " · ELO " + lbElo(p);
+            var sbTx = document.createElement("span");
+            sbTx.innerHTML = "المستوى " + lbLevel(p.xp) + ' · <span class="elo-g">ELO ' + lbElo(p) + "</span>";
+            sb.appendChild(sbTx);
+            appendTitleBadge(sb, p);
+            appendRankBadge(sb, lbElo(p));
             tx.appendChild(nmRow); tx.appendChild(sb);
             var xv = document.createElement("span");
             xv.className = "r-xp";
@@ -14891,17 +14901,19 @@
           nm.textContent = p.name;
           nmRow.appendChild(nm);
           if (isReigningChamp(p)) nmRow.appendChild(champBadgeEl());
-          appendTitleBadge(nmRow, p);
           appendRankBadge(nmRow, lbElo(p));
+          var sb = document.createElement("span");
+          sb.className = "f-sb";
+          appendTitleBadge(sb, p);
           if (typeof p.online === "boolean") {
             var st = document.createElement("span");
             st.className = "f-st" + (p.online ? " on" : "");
             st.textContent = p.online ? "متصل" : "غير متصل";
-            nmRow.appendChild(st);
+            sb.appendChild(st);
           }
-          var sb = document.createElement("span");
-          sb.className = "f-sb";
-          sb.innerHTML = subHtml;
+          var sbTx = document.createElement("span");
+          sbTx.innerHTML = subHtml;
+          sb.appendChild(sbTx);
           tx.appendChild(nmRow); tx.appendChild(sb);
           var btn = document.createElement("button");
           btn.type = "button";
@@ -14945,15 +14957,17 @@
           nm.textContent = p.name;
           nmRow.appendChild(nm);
           if (isReigningChamp(p)) nmRow.appendChild(champBadgeEl());
-          appendTitleBadge(nmRow, p);
           appendRankBadge(nmRow, lbElo(p));
+          var sb = document.createElement("span");
+          sb.className = "f-sb";
+          appendTitleBadge(sb, p);
           var st = document.createElement("span");
           st.className = "f-st" + (p.online ? " on" : "");
           st.textContent = p.online ? "متصل" : "غير متصل";
-          nmRow.appendChild(st);
-          var sb = document.createElement("span");
-          sb.className = "f-sb";
-          sb.textContent = frSub(p);
+          sb.appendChild(st);
+          var sbTx = document.createElement("span");
+          sbTx.textContent = frSub(p);
+          sb.appendChild(sbTx);
           tx.appendChild(nmRow); tx.appendChild(sb);
           /* المقترحون: لا مراسلة فورية ولا إضافة فورية — زر الحالة الواحد فقط:
              «طلب صداقة» أولًا، ولا تُفتح المراسلة إلا بعد قبول الطلب */
@@ -15159,17 +15173,19 @@
           nm.textContent = p.name;
           nmRow.appendChild(nm);
           if (isReigningChamp(p)) nmRow.appendChild(champBadgeEl());
-          appendTitleBadge(nmRow, p);
           appendRankBadge(nmRow, lbElo(p));
+          var sb = document.createElement("span");
+          sb.className = "f-sb";
+          appendTitleBadge(sb, p);
           if (typeof p.online === "boolean") {
             var st = document.createElement("span");
             st.className = "f-st" + (p.online ? " on" : "");
             st.textContent = p.online ? "متصل" : "غير متصل";
-            nmRow.appendChild(st);
+            sb.appendChild(st);
           }
-          var sb = document.createElement("span");
-          sb.className = "f-sb";
-          sb.textContent = frSub(p);
+          var sbTx = document.createElement("span");
+          sbTx.textContent = frSub(p);
+          sb.appendChild(sbTx);
           tx.appendChild(nmRow); tx.appendChild(sb);
           var btns = document.createElement("span");
           btns.className = "fr-req-btns";
