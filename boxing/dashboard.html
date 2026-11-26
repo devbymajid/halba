@@ -119,6 +119,9 @@
   .sheet.open { display: block; }
   .sheet h3 { margin: 2px 0 8px; font-size: 18px; }
   .kv { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,.06); font-size: 14px; }
+  .pwchange { margin-top: 14px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 12px; }
+  .pwchange h4 { margin: 0 0 4px; font-size: 15px; }
+  .pwchange input { margin-top: 8px; }
   .kv span { color: #9a9ab8; }
   .kv b { text-align: left; }
   .toast {
@@ -240,6 +243,15 @@
 <div class="sheet" id="playerSheet">
   <h3 id="psName">—</h3>
   <div id="psBody"></div>
+  <div class="pwchange" id="pwChangeBox">
+    <h4>تغيير كلمة المرور</h4>
+    <p class="muted">تعيين كلمة مرور جديدة لهذا اللاعب مباشرة — لن ترى كلمة مروره الحالية أبدًا، بل تُستبدل بجديدة.</p>
+    <input type="password" id="pwNew1" placeholder="كلمة المرور الجديدة" autocomplete="new-password" />
+    <input type="password" id="pwNew2" placeholder="تأكيد كلمة المرور الجديدة" autocomplete="new-password" />
+    <button class="btn" id="pwChangeBtn">تغيير كلمة المرور</button>
+    <div class="warn hidden" id="pwErr"></div>
+    <div class="ok hidden" id="pwOk"></div>
+  </div>
   <button class="btn danger" id="psDeleteBtn">حذف الحساب</button>
   <button class="btn ghost" id="psCloseBtn">إغلاق</button>
 </div>
@@ -501,16 +513,107 @@
       kv("أيام التدريب", String(days)) +
       kv("اللقب", esc(p.achTitle || "—")) +
       kv("البطولات", String((p.cupTitles || []).length)) +
-      kv("المعرّف", esc(p.uid || "—"));
+      kv("المعرّف", esc(p.uid || "—")) +
+      kv("البريد الإلكتروني", "<span id=\"psEmail\" dir=\"ltr\">جارٍ التحميل…</span>");
+    resetPwForm();
+    loadPlayerEmail(p);
     el("playerSheet").classList.add("open");
   }
   function kv(k, v) { return "<div class=\"kv\"><span>" + esc(k) + "</span><b>" + v + "</b></div>"; }
+
+  var pwUnsub = null;
+  function resetPwForm() {
+    if (pwUnsub) { try { pwUnsub(); } catch (e) {} pwUnsub = null; }
+    var a = el("pwNew1"), b = el("pwNew2");
+    if (a) a.value = "";
+    if (b) b.value = "";
+    var btn = el("pwChangeBtn");
+    if (btn) { btn.disabled = false; btn.textContent = "تغيير كلمة المرور"; }
+    var e = el("pwErr"); if (e) { e.textContent = ""; e.classList.add("hidden"); }
+    var o = el("pwOk"); if (o) { o.textContent = ""; o.classList.add("hidden"); }
+  }
+  function pwShowErr(msg) {
+    var e = el("pwErr"); if (!e) return;
+    e.textContent = msg; e.classList.remove("hidden");
+    var o = el("pwOk"); if (o) o.classList.add("hidden");
+  }
+  function pwShowOk(msg) {
+    var o = el("pwOk"); if (!o) return;
+    o.textContent = msg; o.classList.remove("hidden");
+    var e = el("pwErr"); if (e) e.classList.add("hidden");
+  }
+  /* بريد اللاعب من admin_users/<uid> (للمسؤول فقط — لا يظهر في
+     مستند اللاعب العام). غياب المستند = اللاعب لم يسجّل بريده بعد
+     أو القواعد لم تُنشر بعد — تُعرض شرطة بلا خطأ. */
+  function loadPlayerEmail(p) {
+    var span = el("psEmail");
+    if (!span) return;
+    if (!p || !p.uid) { span.textContent = "—"; return; }
+    db.collection("admin_users").doc(p.uid).get().then(function (snap) {
+      if (!snap.exists) { span.textContent = "—"; return; }
+      var d = snap.data() || {};
+      span.textContent = (typeof d.email === "string" && d.email) ? d.email : "—";
+    }).catch(function () { span.textContent = "—"; });
+  }
+  /* تغيير كلمة مرور لاعب مباشرة (بيد المسؤول): تُكتب كلمة المرور
+     الجديدة في admin_requests، ويغيّرها عامل الخادم ثم يحذفها من
+     المستند — فلا تبقى كلمة مرور نصية في قاعدة البيانات. */
+  function requestPasswordChange() {
+    if (!currentPlayer || !currentPlayer.uid) { pwShowErr("لا يمكن تغيير كلمة المرور لهذا اللاعب: لا معرّف حساب له."); return; }
+    var p1 = el("pwNew1").value || "";
+    var p2 = el("pwNew2").value || "";
+    if (p1.length < 6) { pwShowErr("كلمة المرور الجديدة قصيرة — يجب أن تكون 6 أحرف على الأقل."); return; }
+    if (p1 !== p2) { pwShowErr("كلمتا المرور غير متطابقتين — أعد كتابتهما."); return; }
+    var btn = el("pwChangeBtn");
+    btn.disabled = true; btn.textContent = "جارٍ الإرسال…";
+    var req = {
+      type: "setPassword",
+      targetUid: currentPlayer.uid,
+      targetName: currentPlayer.name,
+      newPassword: p1,
+      requestedBy: (adminUser && adminUser.uid) || adminName || "",
+      status: "pending",
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    el("pwNew1").value = "";
+    el("pwNew2").value = "";
+    db.collection("admin_requests").add(req).then(function (ref) {
+      btn.textContent = "جارٍ التنفيذ…";
+      pwShowOk("تم إرسال الطلب — سيتم تغيير كلمة المرور خلال دقائق.");
+      if (pwUnsub) { try { pwUnsub(); } catch (e) {} }
+      pwUnsub = ref.onSnapshot(function (snap) {
+        if (!snap.exists) return;
+        var d = snap.data() || {};
+        if (d.status === "done") {
+          btn.disabled = false; btn.textContent = "تغيير كلمة المرور";
+          pwShowOk("تم تغيير كلمة المرور بنجاح.");
+          if (pwUnsub) { try { pwUnsub(); } catch (e) {} pwUnsub = null; }
+        } else if (d.status === "failed") {
+          btn.disabled = false; btn.textContent = "تغيير كلمة المرور";
+          pwShowErr("تعذّر تغيير كلمة المرور: " + (d.error || "خطأ غير معروف") + " — أعد المحاولة.");
+          if (pwUnsub) { try { pwUnsub(); } catch (e) {} pwUnsub = null; }
+        }
+      }, function () {
+        btn.disabled = false; btn.textContent = "تغيير كلمة المرور";
+        pwShowErr("تعذّر متابعة حالة الطلب — تحقّق من الاتصال وأعد فتح تفاصيل اللاعب.");
+      });
+    }).catch(function (err) {
+      btn.disabled = false; btn.textContent = "تغيير كلمة المرور";
+      var code = (err && err.code) || "";
+      if (code === "permission-denied") {
+        pwShowErr("رفض الطلب: قواعد قاعدة البيانات لم تُحدَّث بعد لهذه الميزة — أخبر المطوّر ليحدّث القواعد.");
+      } else {
+        pwShowErr("تعذّر إرسال الطلب: " + code);
+      }
+    });
+  }
 
   /* ===== حذف الحساب ===== */
   function askDelete() {
     if (!currentPlayer) return;
     el("cfName").textContent = (currentPlayer.displayName || currentPlayer.name) + " (@" + currentPlayer.name + ")";
     el("playerSheet").classList.remove("open");
+    resetPwForm();
     el("confirmSheet").classList.add("open");
   }
   function doDelete() {
@@ -907,8 +1010,9 @@
     el("logoutBtn1").addEventListener("click", doLogout);
     el("logoutBtn2").addEventListener("click", doLogout);
     el("playerSearch").addEventListener("input", renderPlayers);
-    el("psCloseBtn").addEventListener("click", function () { el("playerSheet").classList.remove("open"); });
+    el("psCloseBtn").addEventListener("click", function () { el("playerSheet").classList.remove("open"); resetPwForm(); });
     el("psDeleteBtn").addEventListener("click", askDelete);
+    el("pwChangeBtn").addEventListener("click", requestPasswordChange);
     el("cfNoBtn").addEventListener("click", function () { el("confirmSheet").classList.remove("open"); });
     el("cfYesBtn").addEventListener("click", doDelete);
     var tabs = document.querySelectorAll(".tab");
