@@ -3323,6 +3323,8 @@
       .chal-title { font-size: 1.32rem; font-weight: 900; margin: 0 0 7px; }
       .chal-sub { color: #c9c3ea; font-weight: 700; font-size: 1rem; margin: 0 0 5px; }
       .chal-name { color: var(--orange-soft); font-weight: 900; font-size: 1.14rem; margin: 0 0 26px; }
+      .chal-count { color: #ffb020; font-weight: 900; font-size: 1.5rem; margin: -18px 0 22px; font-variant-numeric: tabular-nums; }
+      .chal-count[hidden] { display: none; }
       .chal-cancel {
         border: 1px solid #57489f;
         background: #241a52;
@@ -4965,18 +4967,21 @@
         </div>
 
         <!-- شاشة انتظار قبول التحدي: قرص دوّار ورسالة حتى يوافق الخصم —
-             للبوتات مدة عشوائية، وللاعبين الحقيقيين انتظار فعلي لقبولهم -->
+             للبوتات مدة عشوائية، وللاعبين الحقيقيين انتظار فعلي لقبولهم،
+             وفي البحث العشوائي تعرض عدّاد مهلة البحث (20 ثانية) -->
         <div id="chalWait" hidden role="dialog" aria-label="جارٍ إرسال التحدي">
           <div class="chal-card">
             <div class="chal-disc" aria-hidden="true"></div>
-            <p class="chal-title">جارٍ إرسال التحدي…</p>
+            <p class="chal-title" id="chalWaitTitle">جارٍ إرسال التحدي…</p>
             <p class="chal-sub" id="chalWaitSub">بانتظار موافقة الخصم</p>
             <p class="chal-name" id="chalWaitName"></p>
+            <p class="chal-count" id="chalWaitCount" hidden></p>
             <button type="button" class="chal-cancel" id="chalWaitCancel">إلغاء</button>
           </div>
         </div>
 
-        <!-- منتقي التحدي: اختيار الخصم (بوت/لاعب حقيقي) ثم نوع التحدي (بوش أب/مشي/جري) -->
+        <!-- منتقي التحدي: نوع التحدي فقط (بوش أب/مشي/جري) — لا اختيار بوت/حقيقي:
+             النظام يبحث عن لاعب حقيقي عشوائي متصل، والبوت بديل عند غيابه -->
         <div class="hm-sheet-wrap" id="chalPickSheet" hidden>
           <div class="hm-sheet" role="dialog" aria-label="إعداد التحدي">
             <button type="button" class="hm-sheet-x" data-close-sheet="chalPickSheet" aria-label="إغلاق">
@@ -4984,27 +4989,6 @@
             </button>
             <h3 id="chalPickTitle">إعداد التحدي</h3>
             <p class="sheet-sub" id="chalPickSub">اختر نوع التحدي</p>
-
-            <div id="chalPickOpp" hidden>
-              <div class="cp-grid">
-                <button type="button" class="cp-opt" id="chalPickBot">
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 8V4M8 4h8"/><circle cx="9" cy="14" r="1.2" fill="currentColor" stroke="none"/><circle cx="15" cy="14" r="1.2" fill="currentColor" stroke="none"/></svg>
-                  <span class="cp-nm">بوت</span>
-                  <span class="cp-sb">مباراة فورية ضد خصم آلي</span>
-                </button>
-                <button type="button" class="cp-opt" id="chalPickReal">
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7.5" r="3.5"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M15.5 4.13a3.5 3.5 0 0 1 0 6.74"/></svg>
-                  <span class="cp-nm">لاعب حقيقي</span>
-                  <span class="cp-sb">تحدَّ صديقًا وانتظر قبوله</span>
-                </button>
-              </div>
-            </div>
-
-            <div id="chalPickFriend" hidden>
-              <div class="cp-friend-list" id="chalPickFriendList"></div>
-              <p class="cp-empty" id="chalPickFriendEmpty" hidden>لا يوجد أصدقاء حقيقيون بعد — أضف أصدقاء من صفحة الأصدقاء أولًا</p>
-              <button type="button" class="cp-back" id="chalPickBack1">رجوع</button>
-            </div>
 
             <div id="chalPickType" hidden>
               <div class="cp-grid three">
@@ -5024,7 +5008,6 @@
                   <span class="cp-sb">الأول إلى 600 خطوة</span>
                 </button>
               </div>
-              <button type="button" class="cp-back" id="chalPickBack2" hidden>رجوع</button>
             </div>
 
             <button type="button" class="hm-sheet-close" data-close-sheet="chalPickSheet">إغلاق</button>
@@ -6636,6 +6619,11 @@
           "قبول": "Accept",
           "رفض": "Decline",
           "جارٍ إرسال التحدي…": "Sending the challenge…",
+          "جارٍ البحث عن لاعب…": "Searching for a player…",
+          "نبحث عن لاعب حقيقي متصل الآن": "Looking for a real player online now",
+          "لم نجد لاعبًا متاحًا — ستلعب ضد بوت": "No player found — you'll play against a bot",
+          "استعد…": "Get ready…",
+          "استعد… ستبدأ المباراة تلقائيًا بعد العدّ التنازلي": "Get ready… the match will start automatically after the countdown",
           "بانتظار موافقة الخصم": "Waiting for your opponent to accept",
           "إلغاء": "Cancel",
           "طلب الصداقة بانتظار القبول": "Your friend request is awaiting acceptance",
@@ -7185,6 +7173,11 @@
           "قبول": "Aceptar",
           "رفض": "Rechazar",
           "جارٍ إرسال التحدي…": "Enviando el desafío…",
+          "جارٍ البحث عن لاعب…": "Buscando un jugador…",
+          "نبحث عن لاعب حقيقي متصل الآن": "Buscando un jugador real en línea ahora",
+          "لم نجد لاعبًا متاحًا — ستلعب ضد بوت": "No se encontró ningún jugador — jugarás contra un bot",
+          "استعد…": "Prepárate…",
+          "استعد… ستبدأ المباراة تلقائيًا بعد العدّ التنازلي": "Prepárate… el partido empezará automáticamente tras la cuenta atrás",
           "بانتظار موافقة الخصم": "Esperando a que tu oponente acepte",
           "إلغاء": "Cancelar",
           "طلب الصداقة بانتظار القبول": "Tu solicitud de amistad está esperando aceptación",
@@ -7732,6 +7725,11 @@
           "قبول": "Accepter",
           "رفض": "Refuser",
           "جارٍ إرسال التحدي…": "Envoi du défi…",
+          "جارٍ البحث عن لاعب…": "Recherche d'un joueur…",
+          "نبحث عن لاعب حقيقي متصل الآن": "Recherche d'un joueur réel en ligne",
+          "لم نجد لاعبًا متاحًا — ستلعب ضد بوت": "Aucun joueur trouvé — vous jouerez contre un bot",
+          "استعد…": "Prépare-toi…",
+          "استعد… ستبدأ المباراة تلقائيًا بعد العدّ التنازلي": "Prépare-toi… le match commencera automatiquement après le compte à rebours",
           "بانتظار موافقة الخصم": "En attente de l'acceptation de ton adversaire",
           "إلغاء": "Annuler",
           "طلب الصداقة بانتظار القبول": "Ta demande d'ami est en attente d'acceptation",
@@ -11742,8 +11740,11 @@
             return;
           }
           cancelChallengeWait();
+          el("chalWaitTitle").textContent = "جارٍ إرسال التحدي…";
           el("chalWaitName").textContent = p.name;
           el("chalWaitSub").textContent = "بانتظار موافقة الخصم";
+          var wc3 = el("chalWaitCount");
+          if (wc3) wc3.hidden = true;
           el("chalWait").hidden = false;
           chalWaitTimer = setTimeout(function () {
             chalWaitTimer = 0;
@@ -11754,10 +11755,13 @@
           }, chalWaitMs());
         }
         function cancelChallengeWait() {
+          if (chalSearch) { chalCancelSearch(); return; }
           if (chalRealWait) { chalCancelRealWait(); return; }
           if (chalWaitTimer) { clearTimeout(chalWaitTimer); chalWaitTimer = 0; }
           var w = el("chalWait");
           if (w) w.hidden = true;
+          var c = el("chalWaitCount");
+          if (c) c.hidden = true;
         }
         el("chalWaitCancel").addEventListener("click", cancelChallengeWait);
 
@@ -11781,6 +11785,30 @@
         var chalInSeen = {};       /* معرفات تحديات ظهرت نافذتها في هذه الجلسة — لا تتكرر النافذة */
         var chalInQueue = [];      /* تحديات واردة بانتظار عرض نافذتها (واحدة تلو الأخرى) */
         var chalInPopCur = null;   /* التحدي المعروض حاليًا في نافذة التحدي الوارد */
+        var chalSearch = null;     /* بحث عشوائي جارٍ {type, deadline, tried, curId, curOpp, unsub, tickIv, emptyTimer} */
+        var CHAL_SEARCH_MS = 20000;        /* مهلة البحث عن لاعب حقيقي قبل البوت الاحتياطي */
+        var CHAL_SEARCH_EMPTY_MS = 3000;   /* لا لاعب متصل أصلًا: لحظة بحث قصيرة ثم بوت */
+
+        /* ==== MATCHMAKING (pure) ==== */
+        /* اختيار لاعب حقيقي عشوائي متصل من قائمة اللاعبين: يستثني الذات
+           والبوتات وغير المتصلين ومن جُرّبوا في هذا البحث. null = لا مرشح */
+        function chalMmPick(pool, myKey, tried, rng) {
+          var cands = (pool || []).filter(function (p) {
+            return !!(p && p.key && !p.bot && !p.botId && String(p.key).indexOf("bot:") !== 0 &&
+              p.online === true && p.key !== myKey && !(tried && tried[p.key]));
+          });
+          if (!cands.length) return null;
+          var r = typeof rng === "function" ? rng() : Math.random();
+          if (r < 0) r = 0;
+          if (r > 0.999999) r = 0.999999;
+          return cands[Math.floor(r * cands.length)];
+        }
+        /* المتبقي من مهلة البحث بالمللي ثانية (لا يقل عن صفر) — صفر يعني البوت */
+        function chalMmLeft(deadline, now) {
+          var left = deadline - now;
+          return left > 0 ? left : 0;
+        }
+        /* ==== /MATCHMAKING ==== */
 
         function chalIsRealPlayer(p) {
           return !!(p && p.key && !p.bot && !p.botId && String(p.key).indexOf("bot:") !== 0);
@@ -11829,12 +11857,11 @@
           }).catch(function () { cb(local); });
         }
 
-        /* ---------- منتقي التحدي: الخصم ثم النوع ---------- */
+        /* ---------- منتقي التحدي: النوع فقط — لا اختيار بوت/لاعب حقيقي ----------
+           بعد اختيار النوع يبحث النظام عن لاعب حقيقي عشوائي متصل (20 ثانية)،
+           فإن لم يجده لعب اللاعب ضد بوت — وكل مباراة تبدأ بعدّ تنازلي 3-2-1 */
         function chalPickShow(step) {
-          el("chalPickOpp").hidden = step !== "opp";
-          el("chalPickFriend").hidden = step !== "friend";
           el("chalPickType").hidden = step !== "type";
-          el("chalPickBack2").hidden = !(step === "type" && chalPick.mode === "arena");
         }
         function openChallengePicker(p, after) {
           if (!p) return;
@@ -11847,80 +11874,154 @@
         function openArenaPicker() {
           chalPick = { opp: null, mode: "arena", after: null, oppKind: null };
           el("chalPickTitle").textContent = "تحدٍّ جديد";
-          el("chalPickSub").textContent = "اختر خصمك أولًا";
-          chalPickShow("opp");
+          el("chalPickSub").textContent = "اختر نوع التحدي";
+          chalPickShow("type");
           openSheet("chalPickSheet");
+          /* تحديث حالة اتصال اللاعبين قبل البحث العشوائي */
+          try { frLoadLive(); } catch (e) {}
         }
-        function chalPickRenderFriends() {
-          var list = el("chalPickFriendList");
-          list.innerHTML = "";
-          var friends = FR_FRIENDS.filter(chalIsRealPlayer);
-          el("chalPickFriendEmpty").hidden = friends.length > 0;
-          friends.forEach(function (p) {
-            var b = document.createElement("button");
-            b.type = "button";
-            b.className = "cp-friend-row";
-            var nm = document.createElement("span");
-            nm.className = "cp-fnm";
-            nm.textContent = p.name;
-            var sb = document.createElement("span");
-            sb.className = "cp-fsb";
-            sb.textContent = "مستوى " + lbLevel(p.xp) + (typeof p.elo === "number" ? " · ELO " + p.elo : "");
-            b.appendChild(nm); b.appendChild(sb);
-            b.addEventListener("click", function () {
-              chalPick.opp = p;
-              chalPick.oppKind = "real";
-              el("chalPickTitle").textContent = "تحدي " + p.name;
-              el("chalPickSub").textContent = "اختر نوع التحدي";
-              chalPickShow("type");
-            });
-            list.appendChild(b);
-          });
+        function chalRandomBot() {
+          var pool = BOT_PLAYERS.filter(function (b) { return b.online; });
+          if (!pool.length) pool = BOT_PLAYERS;
+          return pool[Math.floor(Math.random() * pool.length)];
+        }
+        /* مباراة بوت من مسار التحدي: تبدأ تلقائيًا بعد العدّ التنازلي 3-2-1
+           (الضغط عبر puStart، والخطوات عبر chalWkCountdown) دون ضغطة بدء */
+        function chalStartBotWithCountdown(botPlayer, type, after) {
+          if (type === "walk" || type === "run") {
+            startBotStepsMatch(botPlayer, type, true);
+            chalWkAutoStart();
+          } else {
+            startBotMatch(botPlayer, true);
+            chalAutoStartPu();
+          }
+          if (after) after();
         }
         function chalPickChooseType(type) {
           var p = chalPick.opp;
           var after = chalPick.after;
+          var mode = chalPick.mode;
           closeSheet("chalPickSheet");
+          if (mode === "arena") { chalArenaStart(type); return; }
           if (!p) return;
-          if (chalIsRealPlayer(p)) sendRealChallenge(p, type, after);
-          else requestBotChallenge(p, after, type);
+          if (chalIsRealPlayer(p)) sendRealChallenge(p, type, after, true);
+          else chalStartBotWithCountdown(p, type, after);
         }
-        el("chalPickBot").addEventListener("click", function () {
-          var pool = BOT_PLAYERS.filter(function (b) { return b.online; });
-          if (!pool.length) pool = BOT_PLAYERS;
-          chalPick.opp = pool[Math.floor(Math.random() * pool.length)];
-          chalPick.oppKind = "bot";
-          el("chalPickTitle").textContent = "تحدي " + chalPick.opp.name;
-          el("chalPickSub").textContent = "اختر نوع التحدي";
-          chalPickShow("type");
-        });
-        el("chalPickReal").addEventListener("click", function () {
-          chalPickRenderFriends();
-          el("chalPickSub").textContent = "اختر صديقًا لتحدّيه";
-          chalPickShow("friend");
-        });
-        el("chalPickBack1").addEventListener("click", function () {
-          el("chalPickSub").textContent = "اختر خصمك أولًا";
-          chalPickShow("opp");
-        });
-        el("chalPickBack2").addEventListener("click", function () {
-          if (chalPick.oppKind === "real") {
-            chalPickRenderFriends();
-            el("chalPickSub").textContent = "اختر صديقًا لتحدّيه";
-            chalPickShow("friend");
-          } else {
-            el("chalPickSub").textContent = "اختر خصمك أولًا";
-            chalPickShow("opp");
+        /* مدخل التحدي الرئيسي: ضيف/بلا اتصال = بوت مباشرة مع العدّ التنازلي،
+           ومسجّل = بحث عشوائي عن لاعب حقيقي متصل ثم بوت عند غيابه */
+        function chalArenaStart(type) {
+          if (chalRealWait || chalReal || chalSearch) { showToast("لديك تحدٍّ جارٍ بالفعل"); return; }
+          if (isGuest || !fbDb || !fbMyKey()) { chalStartBotWithCountdown(chalRandomBot(), type); return; }
+          chalStartSearch(type);
+        }
+        /* ---------- البحث العشوائي: لاعب حقيقي متصل خلال 20 ثانية أو بوت ---------- */
+        function chalStartSearch(type) {
+          chalSearch = { type: type, deadline: Date.now() + CHAL_SEARCH_MS, tried: {}, curId: null, curOpp: null, unsub: null, tickIv: 0, emptyTimer: 0 };
+          el("chalWaitTitle").textContent = "جارٍ البحث عن لاعب…";
+          el("chalWaitSub").textContent = "نبحث عن لاعب حقيقي متصل الآن";
+          el("chalWaitName").textContent = "";
+          el("chalWait").hidden = false;
+          chalSearchTick();
+          chalSearch.tickIv = setInterval(chalSearchTick, 250);
+          chalSearchTryNext();
+        }
+        function chalSearchTick() {
+          var s = chalSearch;
+          if (!s) return;
+          var left = chalMmLeft(s.deadline, Date.now());
+          var c = el("chalWaitCount");
+          if (c) { c.hidden = false; c.textContent = Math.ceil(left / 1000); }
+          if (left <= 0) chalSearchToBot();
+        }
+        function chalSearchTryNext() {
+          var s = chalSearch;
+          if (!s) return;
+          var myKey = fbMyKey();
+          var opp = chalMmPick(FR_ALL, myKey, s.tried);
+          if (!opp) {
+            /* لا لاعب متصل متاح: لحظة بحث قصيرة ثم بوت — لا انتظار فارغًا */
+            if (!s.emptyTimer) {
+              s.emptyTimer = setTimeout(function () {
+                if (chalSearch === s) chalSearchToBot();
+              }, CHAL_SEARCH_EMPTY_MS);
+            }
+            return;
           }
-        });
+          s.tried[opp.key] = true;
+          s.curOpp = opp;
+          var doc = {
+            from: myKey, to: opp.key, type: s.type, status: "pending",
+            fromScore: 0, toScore: 0, fromDone: false, toDone: false,
+            winner: null, createdAt: chalServerTs(), updatedAt: chalServerTs()
+          };
+          fbDb.collection("challenges").add(doc).then(function (ref) {
+            if (chalSearch !== s) {
+              /* أُلغي البحث أثناء الإرسال: ألغِ المستند حتى لا يصل تحدٍّ يتيم */
+              try { chalDocRef(ref.id).update({ status: "cancelled", updatedAt: chalServerTs() }).catch(function () {}); } catch (e) {}
+              return;
+            }
+            s.curId = ref.id;
+            try {
+              s.unsub = chalDocRef(ref.id).onSnapshot(function (snap) {
+                if (chalSearch !== s || s.curId !== ref.id) return;
+                var d = snap.data() || {};
+                if (d.status === "accepted") {
+                  var opp2 = s.curOpp;
+                  chalClearSearch();
+                  showToast("قبل الخصم التحدي — استعد!");
+                  chalEnterMatch(ref.id, d, opp2, null);
+                } else if (d.status === "declined" || d.status === "cancelled") {
+                  if (s.unsub) { try { s.unsub(); } catch (e) {} s.unsub = null; }
+                  s.curId = null; s.curOpp = null;
+                  /* رفض مرشح: جرّب آخر ما دام في المهلة وقت، وإلا البوت */
+                  if (chalMmLeft(s.deadline, Date.now()) > 0) chalSearchTryNext();
+                  else chalSearchToBot();
+                }
+              }, function () {});
+            } catch (e) {}
+          }).catch(function () {
+            if (chalSearch === s) chalSearchToBot();
+          });
+        }
+        function chalClearSearch() {
+          var s = chalSearch;
+          if (!s) return;
+          if (s.unsub) { try { s.unsub(); } catch (e) {} }
+          if (s.tickIv) clearInterval(s.tickIv);
+          if (s.emptyTimer) clearTimeout(s.emptyTimer);
+          chalSearch = null;
+          el("chalWait").hidden = true;
+          var c = el("chalWaitCount");
+          if (c) c.hidden = true;
+          setTimeout(chalInPopNext, 600);
+        }
+        function chalCancelSearch() {
+          var s = chalSearch;
+          if (!s) return;
+          var id = s.curId;
+          chalClearSearch();
+          if (id) { try { chalDocRef(id).update({ status: "cancelled", updatedAt: chalServerTs() }).catch(function () {}); } catch (e) {} }
+        }
+        function chalSearchToBot() {
+          var s = chalSearch;
+          if (!s) return;
+          var type = s.type;
+          var id = s.curId;
+          chalClearSearch();
+          if (id) { try { chalDocRef(id).update({ status: "cancelled", updatedAt: chalServerTs() }).catch(function () {}); } catch (e) {} }
+          showToast("لم نجد لاعبًا متاحًا — ستلعب ضد بوت");
+          chalStartBotWithCountdown(chalRandomBot(), type);
+        }
         document.querySelectorAll("[data-chal-type]").forEach(function (b) {
           b.addEventListener("click", function () { chalPickChooseType(b.getAttribute("data-chal-type")); });
         });
 
-        /* ---------- إرسال تحدٍّ حقيقي وانتظار القبول فعليًا ---------- */
-        function sendRealChallenge(p, type, after) {
+        /* ---------- إرسال تحدٍّ حقيقي وانتظار القبول فعليًا ----------
+           botFallback: رفض الخصم أو 20 ثانية دون رد = إلغاء المستند ولعب
+           ضد بوت مع العدّ التنازلي — لا يبقى اللاعب معلّقًا في الانتظار */
+        function sendRealChallenge(p, type, after, botFallback) {
           if (!chalGuardOnline()) return;
-          if (chalRealWait || chalReal) { showToast("لديك تحدٍّ جارٍ بالفعل"); return; }
+          if (chalRealWait || chalReal || chalSearch) { showToast("لديك تحدٍّ جارٍ بالفعل"); return; }
           var myKey = fbMyKey();
           if (!p.key || p.key === myKey) return;
           var doc = {
@@ -11929,15 +12030,18 @@
             winner: null, createdAt: chalServerTs(), updatedAt: chalServerTs()
           };
           fbDb.collection("challenges").add(doc).then(function (ref) {
-            chalWaitReal(ref.id, p, type, after);
+            chalWaitReal(ref.id, p, type, after, botFallback);
           }).catch(function () {
             showToast("تعذّر إرسال التحدي — تحقق من الاتصال وحاول مجددًا");
           });
         }
-        function chalWaitReal(id, p, type, after) {
-          chalRealWait = { id: id, opp: p, type: type, after: after || null, unsub: null, expTimer: 0 };
+        function chalWaitReal(id, p, type, after, botFallback) {
+          chalRealWait = { id: id, opp: p, type: type, after: after || null, unsub: null, expTimer: 0, fbTimer: 0, botFallback: !!botFallback };
+          el("chalWaitTitle").textContent = "جارٍ إرسال التحدي…";
           el("chalWaitName").textContent = p.name;
           el("chalWaitSub").textContent = "بانتظار موافقة الخصم — " + CHAL_TYPE_AR[type];
+          var wc = el("chalWaitCount");
+          if (wc) wc.hidden = true;
           el("chalWait").hidden = false;
           try {
             chalRealWait.unsub = chalDocRef(id).onSnapshot(function (snap) {
@@ -11949,8 +12053,10 @@
                 showToast("قبل الخصم التحدي — استعد!");
                 chalEnterMatch(id, d, w.opp, w.after);
               } else if (d.status === "declined") {
+                var wf = chalRealWait;
                 chalClearRealWait();
                 showToast("رفض الخصم التحدي");
+                if (wf.botFallback) chalStartBotWithCountdown(chalRandomBot(), wf.type, wf.after);
               } else if (d.status === "cancelled") {
                 chalClearRealWait();
               } else if (d.status === "pending" && chalExpired(d, Date.now())) {
@@ -11961,13 +12067,26 @@
           chalRealWait.expTimer = setTimeout(function () {
             if (chalRealWait && chalRealWait.id === id) chalExpireRealWait();
           }, CHAL_PENDING_MS + 1000);
+          if (botFallback) {
+            chalRealWait.fbTimer = setTimeout(function () {
+              if (!chalRealWait || chalRealWait.id !== id) return;
+              var wf2 = chalRealWait;
+              chalClearRealWait();
+              try { chalDocRef(id).update({ status: "cancelled", updatedAt: chalServerTs() }).catch(function () {}); } catch (e) {}
+              showToast("لم نجد لاعبًا متاحًا — ستلعب ضد بوت");
+              chalStartBotWithCountdown(chalRandomBot(), wf2.type, wf2.after);
+            }, CHAL_SEARCH_MS);
+          }
         }
         function chalClearRealWait() {
           if (!chalRealWait) return;
           if (chalRealWait.unsub) { try { chalRealWait.unsub(); } catch (e) {} }
           if (chalRealWait.expTimer) clearTimeout(chalRealWait.expTimer);
+          if (chalRealWait.fbTimer) clearTimeout(chalRealWait.fbTimer);
           chalRealWait = null;
           el("chalWait").hidden = true;
+          var wc2 = el("chalWaitCount");
+          if (wc2) wc2.hidden = true;
           /* فرغ اللاعب من الانتظار: اعرض أي نافذة تحدي وارد مؤجلة (بعد مهلة قصيرة
              حتى يستقر دخول المباراة عند القبول فلا تظهر النافذة فوقها) */
           setTimeout(chalInPopNext, 600);
@@ -12059,7 +12178,7 @@
         function chalInPopNext() {
           if (chalInPopCur) return;
           /* لا نقاطع مباراة/انتظار/تمرينًا جاريًا — تبقى النافذة في الطابور حتى يفرغ اللاعب */
-          if (chalReal || chalRealWait || pu.open || wk.open) return;
+          if (chalReal || chalRealWait || chalSearch || pu.open || wk.open) return;
           while (chalInQueue.length) {
             var c = chalInQueue.shift();
             var still = chalInList.some(function (x) { return x.id === c.id; });
@@ -12101,7 +12220,7 @@
         el("chalInPop").addEventListener("click", function (e) { if (e.target === el("chalInPop")) chalInPopClose(); });
         function chalAccept(c) {
           if (!chalGuardOnline()) return;
-          if (chalReal || chalRealWait) { showToast("لديك تحدٍّ جارٍ بالفعل"); return; }
+          if (chalReal || chalRealWait || chalSearch) { showToast("لديك تحدٍّ جارٍ بالفعل"); return; }
           var ref = chalDocRef(c.id);
           ref.get().then(function (snap) {
             var d = snap.data() || {};
@@ -12148,17 +12267,18 @@
           }
           if (after) after();
         }
-        /* ---------- بدء تلقائي للمباراة الحقيقية: عدّ تنازلي ثم بدء العدّ فورًا ----------
+        /* ---------- بدء تلقائي للمباراة: عدّ تنازلي ثم بدء العدّ فورًا ----------
            لا ينتظر اللاعب ضغطة «بدء المباراة»: عند جاهزية الكاميرا/الحساسات يعمل
-           العدّ التنازلي (٣ ٢ ١) ثم يبدأ العدّ عند الطرفين. إن تعذّر الإذن يبقى زر
-           البدء خيارًا يدويًا — لا طريق مسدودًا أبدًا. مباريات البوت كما هي تمامًا. */
+           العدّ التنازلي (٣ ٢ ١) ثم يبدأ العدّ. يسري على المباريات الحقيقية وعلى
+           مباريات بوت التحدي (autoCd) — أما مباريات البطولة فتبقى بضغطة بدء يدوية.
+           إن تعذّر الإذن يبقى زر البدء خيارًا يدويًا — لا طريق مسدودًا أبدًا. */
         function chalAutoStartPu() {
           var m0 = pu.match;
           var tries = 0;
           var iv = setInterval(function () {
             tries++;
             var m = pu.match;
-            if (!m || m !== m0 || !m.real || m.over || m.started || pu.counting || pu.countIv || !pu.open) { clearInterval(iv); return; }
+            if (!m || m !== m0 || (!m.real && !m.autoCd) || m.over || m.started || pu.counting || pu.countIv || !pu.open) { clearInterval(iv); return; }
             var exr = el("exRules");
             if (pu.stream && pu.poseReady && (!exr || exr.hidden)) { clearInterval(iv); puStart(); return; }
             if (tries >= 120) clearInterval(iv);  /* ~60 ثانية: يبقى زر البدء خيارًا يدويًا */
@@ -12172,7 +12292,7 @@
           chalWkCdIv = setInterval(function () {
             tries++;
             var m = wk.match;
-            if (!m || m !== m0 || !m.real || m.over || m.started || wk.counting || !wk.open) { clearInterval(chalWkCdIv); chalWkCdIv = 0; return; }
+            if (!m || m !== m0 || (!m.real && !m.autoCd) || m.over || m.started || wk.counting || !wk.open) { clearInterval(chalWkCdIv); chalWkCdIv = 0; return; }
             var wr = el("walkRules");
             if (wk.mode && (!wr || wr.hidden)) { clearInterval(chalWkCdIv); chalWkCdIv = 0; chalWkCountdown(); return; }
             if (tries >= 120) { clearInterval(chalWkCdIv); chalWkCdIv = 0; }
@@ -12186,7 +12306,7 @@
           wkSetStatus("استعد…");
           var iv = setInterval(function () {
             var m = wk.match;
-            if (!m || m !== m0 || !m.real || m.over || wk.counting || !wk.open) { clearInterval(iv); if (c) c.hidden = true; return; }
+            if (!m || m !== m0 || (!m.real && !m.autoCd) || m.over || wk.counting || !wk.open) { clearInterval(iv); if (c) c.hidden = true; return; }
             n--;
             if (n <= 0) { clearInterval(iv); if (c) c.hidden = true; wkStart(); }
             else if (c) c.textContent = n;
@@ -12354,9 +12474,9 @@
         }
 
         /* ---------- مباريات المشي/الجري ضد البوت: إيقاع خطوات محاكى ---------- */
-        function startBotStepsMatch(botPlayer, type) {
+        function startBotStepsMatch(botPlayer, type, autoCd) {
           var bot = botById(botPlayer.botId) || botPlayer;
-          wk.match = { bot: bot, botSteps: 0, botStepsFloat: 0, over: false, started: false, real: false, type: type, target: CHAL_TARGETS[type], timerInt: 0 };
+          wk.match = { bot: bot, botSteps: 0, botStepsFloat: 0, over: false, started: false, real: false, autoCd: !!autoCd, type: type, target: CHAL_TARGETS[type], timerInt: 0 };
           openWalkPage();
           wkChooseMode(type);
         }
@@ -12461,9 +12581,9 @@
 
         /* بدء مباراة الخصم: بوت أو لاعب حقيقي — نفس الشاشة ونفس القواعد،
            والخصم يُعرَّف من كائن اللاعب نفسه (شخصيته، مستواه، نقاطه) */
-        function startBotMatch(botPlayer) {
+        function startBotMatch(botPlayer, autoCd) {
           var bot = botById(botPlayer.botId) || botPlayer;
-          pu.match = { bot: bot, botReps: 0, started: false, over: false, timer: 0, startTs: 0 };
+          pu.match = { bot: bot, botReps: 0, started: false, over: false, timer: 0, startTs: 0, autoCd: !!autoCd };
           openPuPage();
         }
         function puMatchBegin() {
@@ -13184,8 +13304,8 @@
             el("walkModePick").hidden = true;
             el("walkSession").hidden = false;
             wkUpdateUi();
-            if (wk.match && wk.match.real) {
-              /* مباراة حقيقية: تبدأ تلقائيًا بعد العدّ التنازلي دون ضغطة بدء */
+            if (wk.match && (wk.match.real || wk.match.autoCd)) {
+              /* مباراة حقيقية أو بوت تحدٍّ: تبدأ تلقائيًا بعد العدّ التنازلي دون ضغطة بدء */
               wkSetStatus("استعد… ستبدأ المباراة تلقائيًا بعد العدّ التنازلي");
               chalWkAutoStart();
             } else {
