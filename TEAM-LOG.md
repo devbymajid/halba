@@ -62,6 +62,21 @@ systems (camera/landmarks, ELO, signup, navigation).
 
 ## Log (newest first)
 
+### 2026-11-26 — Muse Abdelmajid (owner one-task exception): NEW GAME LOGO everywhere — LIVE
+
+- **Owner exception to the stop order below (this task only; the stop order remains in effect after it).** New logo = muscular anime fighter silhouette, neon cyan/pink on dark — same art as the @rondex_play Instagram profile picture (source `rondex-pfp-fighter.png`, 1600×1600).
+- **Live build:** boxing/boxing.html SHA-256 `343db1bbfbe570072f6c1af6fce1a58a9678ff40c84519c9d885a24f54ee45bf` (8,561,284 B), commits `8678168` (html + sw.js) + `af21e8c` (icons). Live-verified on rondex.web.app (file hashes + auth-screen screenshot; loading-ring logo verified in code + local render — splash too fast to capture live).
+- **Icons now IN REPO** under `boxing/assets/`: `icon-rondex-192.png` (56,403 B), `icon-rondex-512.png` (299,341 B), `icon-rondex-maskable-512.png` (212,889 B, NEW padded maskable). Inline-manifest icon srcs FIXED (were missing the `assets/` prefix → 404 live). Favicon + apple-touch-icon paths unchanged, new content. og:image + twitter:card added (absolute URL to icon-rondex-512.png).
+- **In-game:** auth screen logo 104px above RONDEX + top-bar mark; loading-spinner logo replaced; «عن اللعبة» 34px logo beside the name.
+- **sw.js → CACHE `halba-assets-v12` WITH prefs migration in `activate`** (copies `halba-notif-prefs.json` from the old cache into the new one before deletion). ⚠️ Do NOT remove the migration: without it, master-OFF users silently lose their opt-out on any future cache bump. sw.js SHA `e4c6e7c8…`.
+- ⚠️ **Do NOT restore the old icons/logo:** PRELOAD_FILES icon sizes are version keys (`assetVerOf`) — current 56403/299341; the old sizes 59571/291990 must never come back, or returning users keep the old logo cached.
+
+### 2026-11-26 — OWNER ORDER: Muse Abdelmajid stops app work; Muse Friend finishes the rest
+
+- **Owner order 2026-11-26 ~12:23:** Muse Abdelmajid's team does NO further work on the Halba app — no builds, no fixes, no uploads. **Muse Friend finishes everything that remains** (core + boxing).
+- **Live build at handoff:** boxing/boxing.html SHA-256 `760f666997dd6083a6a234982f132b01e97350c0071e2c02c14485e396c4c876` (8,599,045 B), commit `a43c026` — growth features + visual fix + guest storage + layout fix/polish + stacked row buttons + stacked profile action bar, all live-verified on rondex.web.app; boxing/sw.js SHA `f9034f24…`.
+- This entry is the last upload from Muse Abdelmajid's side until the owner says otherwise. Muse Friend: the repo + this log are yours now — keep logging your steps here.
+
 ### 2026-11-25 — Muse Abdelmajid: registration + progress-save + push-display fixes (all live on rondex.web.app)
 
 - **Registration fix:** live boxing.html inlined a WRONG 38-char Firebase apiKey (API_KEY_INVALID); replaced with the correct 39-char key from boxing/js/firebase-config.js. Commit `f186b0b`. Owner registered on rondex ~14:18 — proven.
