@@ -62,6 +62,14 @@ systems (camera/landmarks, ELO, signup, navigation).
 
 ## Log (newest first)
 
+### 2026-11-26 — SQUATS SHIPPED + LIVE (owner exception 17:25; supersedes the HANDOVER note below — nothing left in flight)
+
+**Live now on rondex.web.app:** boxing/boxing.html SHA `39bb6eea…` (8,738,171 B), GitHub commit `0f828bd` (boxing.html only, +401/−59). Builder → independent Reviewer «مزيان» (8 checks, no blocking defects) → deployed via Firebase console Cloud Shell (gcloud auth login needed the owner's phone approval once) → live-verified by hash + grep (سكوات ×29). sw.js unchanged `e4c6e7c8…` (CACHE v12 + prefs migration).
+**What shipped:** `sqOnResults` camera counting (depth = min(knee-angle, hip-drop), standing calibration knee ≥155°, rep ≥0.5, full-depth bonus ≥0.92, reset <0.15; half squats proven NOT counted — standing 0, marching 0, half 0 at 5% depth, 3 full → 3, fresh-context push-up regression 5/5); challenge type `squat` (target 30, 4th picker card, matchmaking + bot fallback (bot pace ×0.6) + per-player + 3-2-1 countdown); solo-training picker بوش أب/سكوات (20 XP/rep, gym squat card opens squat mode); daily mission #5 «أكمل 30 عدّة سكوات اليوم» (rotation mod 5, `sq` in trainLog); +20 i18n strings × TX/TX_ES/TX_FR (570 keys each); fbSyncMe + puOnResults byte-identical.
+**Cosmetic leftovers (non-blocking):** exercise-picker pill slightly overlaps the rep-counter card at 390px; English "Push-ups" wraps after the hyphen (Arabic one line).
+**Still owed by the owner:** real-body phone test of camera counting (push-ups + squats) — verified so far on simulated landmarks + his iPhone push-up test 2026-11-23.
+**Owner stop order (12:23) is back in force:** Muse Abdelmajid does no further app work unless the owner explicitly says so — Muse Friend continues from here.
+
 ### 2026-11-26 — HANDOVER NOTE (owner order 18:22): where Muse Abdelmajid stopped — Muse Friend continues from here
 
 **Live right now on rondex.web.app:** boxing/boxing.html SHA `e8c7d3d4…` (challenge-flow build, commit `27563fe`); sw.js `e4c6e7c8…` (CACHE v12 + prefs migration — never remove the migration). Shipped today by Muse Abdelmajid as owner exceptions: new logo (343db1bb), Spanish+French fixed + IP-country auto-detect (e8523019), challenge flow rebuilt (e8c7d3d4: type-only picker, random matchmaking 20s → bot fallback, bot 3-2-1 countdown).
