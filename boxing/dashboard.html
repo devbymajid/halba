@@ -127,6 +127,21 @@
     padding: 11px 16px; border-radius: 999px; font-size: 14px; z-index: 80; display: none;
     max-width: 92vw; text-align: center; box-shadow: 0 8px 30px rgba(0,0,0,.5);
   }
+  .camview {
+    position: fixed; inset: 0; z-index: 100;
+    background: #000; display: none; flex-direction: column;
+  }
+  .camview.open { display: flex; }
+  .camview video { flex: 1; width: 100%; object-fit: contain; background: #000; }
+  .camhead {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: calc(12px + env(safe-area-inset-top, 0px)) 14px 10px;
+    background: #0d0d20; border-bottom: 1px solid rgba(255,255,255,.12);
+  }
+  .camhead b { font-size: 15px; }
+  .camhead span { font-size: 12px; color: #9a9ab8; display: block; margin-top: 2px; }
+  .camhead .btn { width: auto; margin-top: 0; padding: 8px 14px; font-size: 13px; }
+  .camstatus { padding: 10px 14px; font-size: 13px; color: #c9c9e2; background: #0d0d20; text-align: center; }
   .hidden { display: none !important; }
   .score { font-size: 22px; font-weight: 800; color: #ffb35c; }
   .score small { font-size: 13px; color: #9a9ab8; font-weight: 500; }
@@ -204,11 +219,17 @@
 
     <!-- مباشر -->
     <div class="card hidden" id="tab-live">
-      <h2>مباشر — من يلعب الآن</h2>
-      <p class="muted">تحديات حية من قاعدة البيانات (تُحدَّث كل 5 ثوانٍ). التدريب الفردي دون تحدٍّ لا يظهر هنا، لأن اللعبة لا ترسل حالة التدريب الفردي إلى الخادم — يظهر فقط من يلعب تحديًا.</p>
+      <h2>مباشر — ماذا يفعل اللاعبون الآن</h2>
+      <p class="muted">تُحدَّث هذه الصفحة كل 5 ثوانٍ من قاعدة البيانات.</p>
       <p class="muted">ملاحظة عن الكاميرا: اللعبة لا تبثّ الكاميرا لأي شخص — الخصم لا يرى صورتك أبدًا، بل يرى عدد عدّاتك فقط. لذلك لا توجد هنا مشاهدة كاميرا مباشرة في هذه النسخة؛ تُعرض بيانات المباراة الحية (العدّات والسرعة)، ويُعلَّم أي إيقاع مستحيل بشريًا على أنه «مشتبه به» ليراجعه المسؤول.</p>
+      <h2 style="margin-top:14px">متصلون الآن</h2>
+      <div id="liveOnline"><p class="muted">جارٍ التحميل…</p></div>
+      <h2 style="margin-top:14px">تحديات حية</h2>
       <div id="liveList"><p class="muted">جارٍ تحميل المباريات الحية…</p></div>
+      <h2 style="margin-top:14px">النشاط الأخير</h2>
+      <div id="liveRecent"><p class="muted">جارٍ تحميل النشاط الأخير…</p></div>
       <div class="warn hidden" id="liveErr"></div>
+      <p class="muted" id="liveUpdated" style="margin-top:10px"></p>
     </div>
 
     <button class="btn ghost" id="logoutBtn2">تسجيل الخروج</button>
@@ -233,6 +254,15 @@
 </div>
 
 <div class="toast" id="toast"></div>
+<!-- ===== مشاهدة كاميرا لاعب مباشرة ===== -->
+<div class="camview" id="camView">
+  <div class="camhead">
+    <div><b id="camName">—</b><span id="camInfo">—</span></div>
+    <button class="btn ghost" id="camCloseBtn">إغلاق</button>
+  </div>
+  <video id="camVideo" autoplay playsinline></video>
+  <div class="camstatus" id="camStatus">جارٍ الاتصال بالكاميرا…</div>
+</div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -621,21 +651,38 @@
       }
     });
   }
+  var livePlayersFetchedAt = 0;
+  function refreshPlayersCache() {
+    return db.collection("players").get().then(function (snap) {
+      playersCache = [];
+      snap.forEach(function (doc) { var d = doc.data() || {}; d.__id = doc.id; playersCache.push(d); });
+      playersCache.sort(function (a, b) { return (b.elo || 0) - (a.elo || 0); });
+      renderPlayers();
+      renderStats();
+    });
+  }
   function refreshLive() {
     if (!db) return;
     setErr("liveErr", "");
-    db.collection("challenges").orderBy("createdAt", "desc").limit(50).get().then(function (snap) {
-      var now = Date.now();
-      var rows = [];
+    var now = Date.now();
+    var pPlayers = (now - livePlayersFetchedAt > 30000)
+      ? refreshPlayersCache().then(function () { livePlayersFetchedAt = Date.now(); }).catch(function () { /* يبقى الكاش القديم */ })
+      : Promise.resolve();
+    var pChal = db.collection("challenges").orderBy("createdAt", "desc").limit(50).get();
+    Promise.all([pPlayers, pChal]).then(function (res) {
+      var snap = res[1];
+      var now2 = Date.now();
+      var live = [], recent = [];
       snap.forEach(function (doc) {
         var d = doc.data() || {};
-        if (d.status !== "pending" && d.status !== "accepted") return;
         var created = d.createdAt && d.createdAt.toMillis ? d.createdAt.toMillis() : (d.createdAt || 0);
-        if (created && now - created > 30 * 60 * 1000) return;
         d.__id = doc.id; d.__created = created;
-        rows.push(d);
+        if ((d.status === "pending" || d.status === "accepted") && (!created || now2 - created <= 30 * 60 * 1000)) live.push(d);
+        else if (d.status === "done" || d.status === "declined" || d.status === "cancelled") recent.push(d);
       });
-      renderLive(rows, now);
+      recent.sort(function (a, b) { return (b.__created || 0) - (a.__created || 0); });
+      recent = recent.slice(0, 10);
+      renderLiveScreen(live, recent, now2);
     }).catch(function (err) {
       el("liveList").innerHTML = "";
       var code = (err && err.code) || "";
@@ -648,10 +695,65 @@
       }
     });
   }
-  function renderLive(rows, now) {
+  function challengeStatusLabel(s) {
+    return s === "done" ? "انتهت" : s === "declined" ? "رُفض" : s === "cancelled" ? "أُلغي" : (s || "—");
+  }
+  function renderLiveScreen(live, recent, now) {
+    /* 1) متصلون الآن — من مستندات اللاعبين (آخر ظهور خلال 3 دقائق) */
+    var online = playersCache.filter(isOnline);
+    var onBox = el("liveOnline");
+    if (!online.length) {
+      onBox.innerHTML = "<p class=\"muted\">لا يوجد أي لاعب متصل الآن.</p>";
+    } else {
+      var oh = "";
+      online.forEach(function (p) {
+        oh += "<div class=\"row\" data-watch=\"" + esc(p.name) + "\" style=\"cursor:pointer\"><div class=\"avatar\">" + esc(String(p.displayName || p.name || "?").charAt(0)) + "</div>" +
+          "<div class=\"meta\"><b>" + esc(p.displayName || p.name) + "</b>" +
+          "<span>@" + esc(p.name) + " · مستوى " + (p.level || 1) + " · ELO " + (p.elo || 1000) + "</span></div>" +
+          "<span class=\"dot on\"></span></div>";
+      });
+      onBox.innerHTML = oh;
+    }
+    onBox.querySelectorAll("[data-watch]").forEach(function (r) {
+      r.addEventListener("click", function () {
+        var k = r.getAttribute("data-watch");
+        var pp = null;
+        playersCache.forEach(function (x) { if (normName(x.name) === k) pp = x; });
+        watchPlayer(k, pp ? (pp.displayName || pp.name) : k);
+      });
+    });
+    /* 2) تحديات حية */
+    renderLiveRows(live, now);
+    /* 3) النشاط الأخير — آخر المباريات المنتهية + آخر اللاعبين نشاطًا */
+    var recentPlayers = playersCache.filter(function (p) { return !isOnline(p) && lastSeenMs(p) > 0; })
+      .sort(function (a, b) { return lastSeenMs(b) - lastSeenMs(a); }).slice(0, 5);
+    var rcBox = el("liveRecent");
+    var rh = "";
+    recent.forEach(function (c) {
+      var win = c.winner ? " · الفائز: " + esc(c.winner) : "";
+      rh += "<div class=\"card\" style=\"margin:10px 0\">" +
+        "<div style=\"display:flex;justify-content:space-between;align-items:center;gap:8px\">" +
+        "<b>" + esc(c.from) + " × " + esc(c.to) + "</b><span class=\"livebadge wait\">" + challengeStatusLabel(c.status) + "</span></div>" +
+        "<p class=\"muted\">" + esc(typeLabel(c.type)) + " · " + (c.fromScore || 0) + " – " + (c.toScore || 0) + " عدّة" + win + " · منذ " + timeAgo(c.__created) + "</p></div>";
+    });
+    recentPlayers.forEach(function (p) {
+      rh += "<div class=\"row\" style=\"cursor:default\"><div class=\"avatar\">" + esc(String(p.displayName || p.name || "?").charAt(0)) + "</div>" +
+        "<div class=\"meta\"><b>" + esc(p.displayName || p.name) + "</b>" +
+        "<span>@" + esc(p.name) + " · آخر ظهور: منذ " + timeAgo(lastSeenMs(p)) + "</span></div>" +
+        "<span class=\"dot\"></span></div>";
+    });
+    if (!rh) rcBox.innerHTML = "<p class=\"muted\">لا يوجد نشاط أخير بعد.</p>";
+    else rcBox.innerHTML = rh;
+    /* 4) إن لم يوجد شيء إطلاقًا — رسالة صريحة بدل الفراغ */
+    if (!online.length && !live.length && !recent.length && !recentPlayers.length) {
+      onBox.innerHTML = "<p class=\"muted\">لا يوجد أي لاعب متصل الآن — ستظهر هنا التحديات واللاعبون فور بدء اللعب.</p>";
+    }
+    el("liveUpdated").textContent = "آخر تحديث: " + new Date(now).toLocaleTimeString("ar-u-nu-latn", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  }
+  function renderLiveRows(rows, now) {
     var box = el("liveList");
     if (!rows.length) {
-      box.innerHTML = "<p class=\"muted\">لا توجد مباريات حية الآن. عندما يبدأ لاعبون تحديًا، يظهرون هنا مع عدّاتهم الحية.</p>";
+      box.innerHTML = "<p class=\"muted\">لا توجد تحديات حية الآن — ستظهر هنا فور بدء تحدٍّ جديد.</p>";
       return;
     }
     var html = "";
@@ -683,6 +785,8 @@
         (susp ? "<p class=\"warn\" style=\"margin:10px 0 0\">إيقاع عدّات مستحيل بشريًا (أكثر من عدّتين في الثانية). راجع هذا التحدي — قد يكون غشًا.</p>" : "") +
         (isFlagged(c.from) || isFlagged(c.to) ? "<p class=\"warn\" style=\"margin:10px 0 0\">هذا التحدي فيه لاعب مُبلَّغ عنه.</p>" : "") +
         "<div style=\"display:flex;gap:8px;margin-top:12px\">" +
+        "<button class=\"btn small\" data-watch=\"" + esc(c.from) + "\">مشاهدة " + esc(c.from) + "</button>" +
+        "<button class=\"btn small\" data-watch=\"" + esc(c.to) + "\">مشاهدة " + esc(c.to) + "</button>" +
         "<button class=\"btn small ghost\" data-flag=\"" + esc(c.from) + "\">إبلاغ عن " + esc(c.from) + "</button>" +
         "<button class=\"btn small ghost\" data-flag=\"" + esc(c.to) + "\">إبلاغ عن " + esc(c.to) + "</button>" +
         "<button class=\"btn small ghost\" data-rmcup=\"" + esc(c.from) + "\">إزالة من البطولة</button>" +
@@ -695,11 +799,110 @@
     box.querySelectorAll("[data-rmcup]").forEach(function (b) {
       b.addEventListener("click", function () { removeFromCup(b.getAttribute("data-rmcup")); });
     });
+    box.querySelectorAll("[data-watch]").forEach(function (b) {
+      b.addEventListener("click", function () { watchPlayer(b.getAttribute("data-watch"), b.getAttribute("data-watch")); });
+    });
+  }
+
+  /* ===== مشاهدة كاميرا لاعب مباشرة (WebRTC) ===== */
+  var camSub = null;
+  function setCamStatus(msg) { el("camStatus").textContent = msg; }
+  function watchPlayer(name, displayName) {
+    closeCam();
+    var key = normName(name);
+    el("camName").textContent = displayName || name;
+    el("camInfo").textContent = "—";
+    setCamStatus("جارٍ الاتصال بالكاميرا…");
+    el("camView").classList.add("open");
+    if (typeof RTCPeerConnection === "undefined") { setCamStatus("الكاميرا غير متاحة الآن — هذا المتصفح لا يدعم الاتصال المباشر."); return; }
+    if (!db) { setCamStatus("الكاميرا غير متاحة الآن — تعذّر الوصول إلى قاعدة البيانات."); return; }
+    var ref = db.collection("live_streams").doc(key);
+    var sub = { pc: null, key: key, unsubOff: null, timer: 0, poll: 0, done: false };
+    camSub = sub;
+    ref.get().then(function (snap) {
+      if (sub.done) return;
+      var d = snap.data() || {};
+      if (!snap.exists || d.status !== "live" || !d.offer || !d.offer.sdp) {
+        setCamStatus("الكاميرا غير متاحة الآن — اللاعب لا يبثّ حاليًا.");
+        return;
+      }
+      var upd = d.updatedAt && d.updatedAt.toMillis ? d.updatedAt.toMillis() : 0;
+      if (upd && Date.now() - upd > 60000) {
+        setCamStatus("الكاميرا غير متاحة الآن — انتهى البث.");
+        return;
+      }
+      el("camInfo").textContent = (d.exercise === "squat" ? "سكوات" : "تمرين ضغط") + (d.match ? " · في مباراة" : " · تدريب فردي") + " · " + (d.reps || 0) + " عدّة";
+      var pc = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
+      sub.pc = pc;
+      pc.ontrack = function (ev) {
+        var v = el("camVideo");
+        if (ev.streams && ev.streams[0]) { v.srcObject = ev.streams[0]; }
+        setCamStatus("مباشر — تشاهد كاميرا اللاعب الآن.");
+      };
+      pc.onicecandidate = function (ev) {
+        if (ev.candidate) {
+          ref.collection("answerCandidates").add(ev.candidate.toJSON()).catch(function () {});
+        }
+      };
+      sub.unsubOff = ref.collection("offerCandidates").onSnapshot(function (snap2) {
+        if (sub.done || !sub.pc) return;
+        snap2.docChanges().forEach(function (ch) {
+          if (ch.type === "added") {
+            try { sub.pc.addIceCandidate(new RTCIceCandidate(ch.doc.data())); } catch (e) {}
+          }
+        });
+      });
+      pc.setRemoteDescription(new RTCSessionDescription(d.offer)).then(function () {
+        return pc.createAnswer();
+      }).then(function (answer) {
+        return pc.setLocalDescription(answer).then(function () { return answer; });
+      }).then(function (answer) {
+        if (sub.done) return;
+        return ref.set({ answer: { type: answer.type, sdp: answer.sdp } }, { merge: true });
+      }).then(function () {
+        sub.poll = setInterval(function () {
+          if (sub.done) return;
+          ref.get().then(function (s) {
+            if (sub.done) return;
+            var dd = s.data() || {};
+            if (!s.exists || dd.status !== "live") { setCamStatus("انتهى البث."); return; }
+            el("camInfo").textContent = (dd.exercise === "squat" ? "سكوات" : "تمرين ضغط") + (dd.match ? " · في مباراة" : " · تدريب فردي") + " · " + (dd.reps || 0) + " عدّة";
+          }).catch(function () {});
+        }, 5000);
+      }).catch(function () {
+        if (!sub.done) setCamStatus("الكاميرا غير متاحة الآن — تعذّر الاتصال.");
+      });
+      sub.timer = setTimeout(function () {
+        if (sub.done) return;
+        var v = el("camVideo");
+        if (!v.srcObject) setCamStatus("الكاميرا غير متاحة الآن — لم يصل البث.");
+      }, 15000);
+    }).catch(function () {
+      if (!sub.done) setCamStatus("الكاميرا غير متاحة الآن — تعذّر الوصول إلى قاعدة البيانات.");
+    });
+  }
+  function closeCam() {
+    var sub = camSub; camSub = null;
+    if (sub) {
+      sub.done = true;
+      if (sub.timer) clearTimeout(sub.timer);
+      if (sub.poll) clearInterval(sub.poll);
+      if (sub.unsubOff) { try { sub.unsubOff(); } catch (e) {} }
+      if (sub.pc) { try { sub.pc.close(); } catch (e) {} }
+      if (db) {
+        try { db.collection("live_streams").doc(sub.key).set({ answer: null }, { merge: true }).catch(function () {}); } catch (e) {}
+      }
+    }
+    var v = el("camVideo");
+    if (v) { try { v.srcObject = null; } catch (e) {} }
+    var cv = el("camView");
+    if (cv) cv.classList.remove("open");
   }
 
   /* ===== الربط ===== */
   function bind() {
     el("loginBtn").addEventListener("click", doLogin);
+    el("camCloseBtn").addEventListener("click", closeCam);
     el("loginPass").addEventListener("keydown", function (e) { if (e.key === "Enter") doLogin(); });
     el("logoutBtn1").addEventListener("click", doLogout);
     el("logoutBtn2").addEventListener("click", doLogout);
