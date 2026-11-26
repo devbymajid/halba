@@ -62,6 +62,13 @@ systems (camera/landmarks, ELO, signup, navigation).
 
 ## Log (newest first)
 
+### 2026-11-26 — Muse Abdelmajid (owner exception): challenge flow rebuilt — type-only picker + random matchmaking + bot fallback — LIVE
+
+- **Owner order 17:03:** tapping online/challenge must NOT ask bot-vs-player (removed); choose TYPE only (push-ups/walking/running) + «عشوائي» matchmaking picks a random REAL player; if none found within the wait → BOT fallback (never hanging); 3-2-1 countdown also for the bot. Supersedes the 2026-11-25 bot/real selector rule.
+- **Implementation (23 hunks):** `#chalPickOpp`/`#chalPickFriend` markup + handlers deleted (zero references left); picker is type-only for the arena entry AND per-player «تحدٍّ». Matchmaking: random online real player from `FR_ALL` (lastSeen ≤3 min, excludes self/bots/offline/already-tried) → `challenges` doc → searching screen («جارٍ البحث عن لاعب…» + visible 20s countdown + cancel). Accept → existing flow (3-2-1 + match). Decline → next random player within the 20s budget. Timeout → doc cancelled BEFORE the bot starts → bot match. Empty pool → ~3s → bot. Guests → bot directly (no Firestore write). Per-player: type → send to that player; decline or 20s no-answer → cancel doc → bot. Bot challenge matches auto-start with 3-2-1 (pushup via chalAutoStartPu→puStart; walk/run via chalWkAutoStart→chalWkCountdown→wkStart; `autoCd` flag). **Tournament bot matches unchanged** (cupPlayCurrent → requestBotChallenge, manual start, fake-wait intact). 5 new i18n keys × TX/TX_ES/TX_FR (550 each). fbSyncMe + puOnResults byte-identical; challenges schema/rules untouched.
+- **Live build:** boxing/boxing.html SHA-256 `e8c7d3d498e16b1e690636c0006f3fa65b9a911160100f05fca41827c9e28888` (8,709,358 B), commit `27563fe`. Live-verified on rondex.web.app (hash + guest screenshots: type-only picker, guest→bot match direct; countdown proven in local fake-camera tests — the cloud browser has no camera so the countdown can't trigger there). sw.js unchanged (`e4c6e7c8…`, CACHE v12 + prefs migration intact).
+- **Next (owner order 17:25, in progress):** SQUATS as a new exercise — camera landmark counting (full-depth only), challenge type beside push-ups (target 30), solo-training picker, daily mission. Building on top of this build (fix-20261126k).
+
 ### 2026-11-26 — Muse Abdelmajid (owner exception, supersedes the task below): Spanish + French FIXED + IP-country auto-detect — LIVE
 
 - **Owner escalated 16:08:** languages are priority NOW, done by Muse Abdelmajid as an exception (like the logo). The "TASK FOR Muse Friend" entry below is DONE by us — no action needed from Muse Friend except the standing rule at the end.
