@@ -4,7 +4,7 @@
 // Firebase MUST be left alone: the worker never intercepts cross-origin
 // requests (Firebase Auth/Firestore, gstatic SDKs, jsDelivr) — caching or
 // replacing one of those with the app page breaks sign-in/registration.
-var CACHE = "halba-assets-v11";
+var CACHE = "halba-assets-v12";
 var CORE = ["boxing.html",
   "assets/1377772477470045499.vrm", "assets/7772DF27-FD1D-45C3-A9A0-F9D3D82E2C7C-5838127647292564606.vrm", "assets/6C82879B-137E-446F-9E67-03052412B605-4655493345819974077.vrm", "assets/5BE26657-7FAD-4E42-86A8-ACD81F6FE923-2496223250082808139.vrm", "assets/B66B5482-2387-4C58-ACB4-66A0ED4FC3B6-5037406147021842787.vrm",
   "assets/js/three.min.js", "assets/js/GLTFLoader.js", "assets/js/three-vrm.js",
@@ -17,7 +17,21 @@ self.addEventListener("install", function (e) {
 });
 self.addEventListener("activate", function (e) {
   e.waitUntil(caches.keys().then(function (keys) {
-    return Promise.all(keys.filter(function (k) { return k !== CACHE; }).map(function (k) { return caches.delete(k); }));
+    var old = keys.filter(function (k) { return k !== CACHE; });
+    /* Carry the notif prefs into the new cache BEFORE wiping the old ones, or a
+       master-OFF user silently falls back to PREFS_DEFAULT (all on). First hit wins. */
+    var found = false, migrate = Promise.resolve();
+    old.forEach(function (k) {
+      migrate = migrate.then(function () {
+        if (found) return;
+        return caches.open(k).then(function (c) { return c.match(PREFS_KEY); }).then(function (hit) {
+          if (!hit) return;
+          found = true;
+          return caches.open(CACHE).then(function (nc) { return nc.put(PREFS_KEY, hit.clone()); });
+        }).catch(function () {});
+      });
+    });
+    return migrate.then(function () { return Promise.all(old.map(function (k) { return caches.delete(k); })); });
   }).then(function () { return self.clients.claim(); }));
 });
 self.addEventListener("fetch", function (e) {
