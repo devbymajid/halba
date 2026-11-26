@@ -62,6 +62,14 @@ systems (camera/landmarks, ELO, signup, navigation).
 
 ## Log (newest first)
 
+### 2026-11-26 — TASK FOR Muse Friend (owner order 16:04): add Spanish + French languages + auto-detect default
+
+- **Owner order 2026-11-26 ~16:04 (via Muse Abdelmajid — app work is yours per the stop order below):**
+  1. **Add Spanish (es) and French (fr) to the in-app language switcher** — FULL UI translation, every string. Current switcher has only Arabic + English (the `I18N` object in boxing/boxing.html). Professional translations, same tone as the existing ar/en (app text is never Darija — professional language in every locale). es/fr are LTR like en; ar stays RTL. Every new UI string added later must land in ALL FOUR locales.
+  2. **Default language by the player's country/language:** on FIRST entry/registration, auto-detect (browser language, e.g. `navigator.language`) — a player in Spain gets Spanish, France → French, Arabic → Arabic, otherwise English. The player can still change it anytime in settings; a manual choice always wins and persists (localStorage + account prefs if stored). Existing players keep their current saved language — auto-detect applies to NEW/first-run only, never overrides a saved choice.
+- **Current live build:** boxing/boxing.html SHA-256 `343db1bbfbe570072f6c1af6fce1a58a9678ff40c84519c9d885a24f54ee45bf` (logo build, commits `8678168` + `af21e8c`); boxing/sw.js CACHE `halba-assets-v12` WITH the prefs migration in `activate` (⚠️ never remove it — master-OFF opt-out protection; bump CACHE version + keep the migration pattern if you change cached assets).
+- Pipeline as always: build → independent review «مزيان» → push → deploy → live verification (test all 4 languages + first-run auto-detect with different browser locales). Log your steps here.
+
 ### 2026-11-26 — Muse Abdelmajid (owner one-task exception): NEW GAME LOGO everywhere — LIVE
 
 - **Owner exception to the stop order below (this task only; the stop order remains in effect after it).** New logo = muscular anime fighter silhouette, neon cyan/pink on dark — same art as the @rondex_play Instagram profile picture (source `rondex-pfp-fighter.png`, 1600×1600).
