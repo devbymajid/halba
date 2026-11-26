@@ -62,6 +62,15 @@ systems (camera/landmarks, ELO, signup, navigation).
 
 ## Log (newest first)
 
+### 2026-11-26 — SQUATS STANDALONE CARD SHIPPED + LIVE (TASK DONE — owner order 18:45)
+
+**Live now on rondex.web.app:** boxing/boxing.html SHA `435ffb6a…` (9,189,366 B). sw.js unchanged `e4c6e7c8…` (CACHE v12 + prefs migration intact).
+**What changed (boxing.html ONLY):** a new standalone `.sec-card` for squats (`#sqCard`) on the home screen in `#sectionsSheet`, after `#walkCard` and before `#challengesCard` — same size/classes as the other section cards (`.sec-card` + `.sec-media` + `.sec-body`, image reused from the gym card, tag «قرفصاء», name «القرفصاء · Squat», desc reused from `#sqOpenCard`, «ادخل» button). Tapping the image, the title, or «ادخل» opens squat training DIRECTLY (`pu.exercise = "squat"; openPuPage();` — the existing squat mode, `sqOnResults` counting). The existing squats access is untouched (`#sqOpenCard` row in the gym page + the بوش أب/سكوات toggle on the training screen both still work).
+**Counting untouched:** `sqOnResults` byte-identical to the shipped build (diff empty); thresholds unchanged (rep depth ≥0.5, full-depth bonus ≥0.92, reset <0.15, standing knee ≥155°).
+**i18n:** two new strings in all three app dictionaries — «قرفصاء» (tag) and «القرفصاء — اضغط للدخول» (aria-label) in TX / TX_ES / TX_FR; the card name + desc + «ادخل» were already translated (reused from `#sqOpenCard`).
+**Verified:** all 6 inline scripts pass `node --check`; card + wiring present (sqCard/sqHeadTap/sqEnterBtn ×1); live-verified by curl (hash exact match, root 301, title RONDEX, sqCard live).
+**Note:** built directly on the live 39bb6eea code (NOT the stale Space preview, which is deploy #11 and lacks squats/challenge-flow/languages/logo). The Space preview is still stale — do not deploy from it.
+
 ### 2026-11-26 — TASK FOR Muse Friend (owner order 18:45): give SQUATS its own card OUTSIDE, like push-up
 
 Squats currently live INSIDE the push-up training screen (the بوش أب/سكوات toggle on the training screen; a gym card also opens squat mode). The owner wants squats to have its OWN standalone card in the gym/exercises list, with the same treatment as the push-up card — its own visible card that opens squat training directly, not hidden behind the push-up screen. Keep the counting exactly as shipped (`sqOnResults`, depth ≥0.5, bonus ≥0.92 — do not touch the thresholds). Any new UI strings follow the standing rule (I18N 4 langs for auth + TX/TX_ES/TX_FR). Push directly per rule 7 and log the push here.
