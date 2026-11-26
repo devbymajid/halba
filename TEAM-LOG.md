@@ -62,6 +62,12 @@ systems (camera/landmarks, ELO, signup, navigation).
 
 ## Log (newest first)
 
+### 2026-11-26 — SQUATS CARD OWN IMAGE SHIPPED + LIVE (Majid order 19:07: «give it its own squats picture, not the push-up one»)
+
+**Live now on rondex.web.app:** boxing/boxing.html SHA `a095d0e3…` (8,595,818 B), new image `boxing/assets/section-squat.webp` (374,636 B, 2352×1008). sw.js CACHE `halba-assets-v12` → `halba-assets-v13` (prefs migration intact).
+**What changed:** the squats card (`#sqCard`) no longer reuses the gym/push-up image — it now uses its own dedicated image `assets/section-squat.webp`: an anime-realistic character in a deep squat (thighs parallel, arms forward), dark navy + purple/magenta + orange-yellow accent (KUM3D palette). Only the card's `<img>` changed (size, classes, tag, name, desc, «ادخل» button untouched). Image added to `PRELOAD_FILES` (`["assets/section-squat.webp", 374636, "صور اللعبة"]`) and to the sw.js CORE list. The gym card keeps its original image.
+**Counting untouched:** `sqOnResults` byte-identical to the shipped build (diff empty); thresholds unchanged (rep depth ≥0.5, full-depth bonus ≥0.92, reset <0.15, standing knee ≥155°). All 6 inline scripts pass `node --check`.
+
 ### 2026-11-26 — SQUATS STANDALONE CARD SHIPPED + LIVE (TASK DONE — owner order 18:45)
 
 **Live now on rondex.web.app:** boxing/boxing.html SHA `435ffb6a…` (9,189,366 B). sw.js unchanged `e4c6e7c8…` (CACHE v12 + prefs migration intact).
