@@ -3072,6 +3072,8 @@
         min-height: 40px;
       }
       .fr-chal:active { transform: translateY(2px); }
+      /* عمود أزرار الصفّ: واحد فوق الآخر (طلب صداقة/الرسالة فوق، تحدٍّ تحت) */
+      .fr-acts { flex: none; display: flex; flex-direction: column; gap: 7px; align-items: stretch; }
 
       /* ---------- بحث «أصدقاء جدد» + قسم «لاعبو التطبيق» + كلمة الحالة جنب الاسم ---------- */
       .fr-head::before {
@@ -3246,8 +3248,8 @@
       }
       .fr-add.sent:active { transform: none; }
 
-      /* ---------- طلبات الصداقة الواردة: زرّا قبول/رفض جنب بعضهما ---------- */
-      .fr-req-btns { flex: none; display: flex; gap: 7px; }
+      /* ---------- طلبات الصداقة الواردة: زرّا قبول/رفض واحد فوق الآخر ---------- */
+      .fr-req-btns { flex: none; display: flex; flex-direction: column; gap: 7px; align-items: stretch; }
       .fr-decline {
         flex: none;
         border: 1px solid #463a75;
@@ -14931,8 +14933,12 @@
             closeSheet("friendsSheet");
             openChallengePicker(p);
           });
-          /* زر الحالة الواحد: طلب صداقة ← بانتظار القبول ← إرسال رسالة */
-          row.appendChild(ava); row.appendChild(tx); row.appendChild(frStateBtn(p)); row.appendChild(btn);
+          /* زر الحالة الواحد: طلب صداقة ← بانتظار القبول ← إرسال رسالة.
+             الأزرار مكدّسة عموديًا: زر الحالة فوق، وتحدٍّ تحته */
+          var acts = document.createElement("span");
+          acts.className = "fr-acts";
+          acts.appendChild(frStateBtn(p)); acts.appendChild(btn);
+          row.appendChild(ava); row.appendChild(tx); row.appendChild(acts);
           /* الضغط على البطاقة نفسها (خارج الزر) يفتح ملف اللاعب وأفاتاره */
           row.setAttribute("role", "button");
           row.setAttribute("tabindex", "0");
@@ -14975,8 +14981,12 @@
           sb.appendChild(sbTx);
           tx.appendChild(nmRow); tx.appendChild(sb);
           /* المقترحون: لا مراسلة فورية ولا إضافة فورية — زر الحالة الواحد فقط:
-             «طلب صداقة» أولًا، ولا تُفتح المراسلة إلا بعد قبول الطلب */
-          row.appendChild(ava); row.appendChild(tx); row.appendChild(frStateBtn(p));
+             «طلب صداقة» أولًا، ولا تُفتح المراسلة إلا بعد قبول الطلب.
+             داخل عمود الأزرار نفسه كسائر الصفوف لتوحيد البنية */
+          var acts = document.createElement("span");
+          acts.className = "fr-acts";
+          acts.appendChild(frStateBtn(p));
+          row.appendChild(ava); row.appendChild(tx); row.appendChild(acts);
           /* الضغط على البطاقة نفسها (خارج الزر) يفتح ملف اللاعب وأفاتاره */
           row.setAttribute("role", "button");
           row.setAttribute("tabindex", "0");
