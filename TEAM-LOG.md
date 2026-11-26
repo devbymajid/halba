@@ -62,6 +62,17 @@ systems (camera/landmarks, ELO, signup, navigation).
 
 ## Log (newest first)
 
+### 2026-11-26 ~19:55 CET — كاميرا مباشرة في قسم «مباشر» (لوحة التحكم) — Friend
+
+- **الطلب:** من Majid: في «مباشر» أي لاعب يدخل يظهر هناك، والضغط عليه يفتح كاميرته مباشرة ليرى التمرين (ضغط/سكوات) ويحكم إن كان صحيحًا أم خاطئًا.
+- **التنفيذ:**
+  - **لاعب (boxing.html):** عند بدء تمرين بالكاميرا ينشر اللاعب بثّه عبر WebRTC (STUN مجاني من Google فقط) بإشارة عبر Firestore في `live_streams/<اللاعب>` (عرض/جواب + ICE). البث يذهب إلى لوحة التحكم فقط، **لا يصل أبدًا إلى الخصم** (الخصم يرى العدّادات فقط كما هو موعود). مؤشر صغير صادق أثناء التمرين: «قد يطّلع مسؤول اللعبة على الكاميرا للتحقق من صحة التمرين». لا بث خارج التمرين، ويتوقف عند انتهائه. العدّادات (ضغط + سكوات) لم تُمسّ إطلاقًا — بايت مطابق.
+  - **لوحة التحكم (dashboard.html):** كل صف لاعب متصل وكل زر «مشاهدة» في التحديات الحية يفتح شاشة كاميرا ملء الشاشة: اسم اللاعب + التمرين + العدّادات الحية + زر إغلاق. إن تعذّر البث تظهر «الكاميرا غير متاحة الآن» — لا فيديو مزيّف. قسم «مباشر» (متصلون الآن + تحديات حية + النشاط الأخير + رسالة الفراغ الصادقة) بقي كما هو.
+  - **اختبار:** حزمة محاكاة WebRTC + Firestore (19 فحصًا، كلها ناجحة): النشر ← الاشتراك ← وصول البث إلى فيديو اللوحة ← إغلاق المسؤول يمسح الجواب ويعيد اللاعب العرض بعرض جديد ← اشتراك ثانٍ يعمل ← الإيقاف يحذف المستند ← الضيف لا ينشر.
+- **النشر:** rondex.web.app — boxing.html ‏SHA `405322b2…` (8,749,174 بايت)، dashboard.html ‏SHA `7111c116…` (49,464 بايت)، sw.js ‏v13 بلا تغيير (`aafb1db1…`)، الجذر 301. تم التحقق مباشرة بـ curl.
+- **القانون + المسؤول (تمّا 19:55 CET):** قاعدة `live_streams` + `admins` نُشرت من وحدة تحكم Firestore (النسخة «Today • 7:55 PM»)، ومستند `admins/iNjAiyWRl7hE3CeXPVObvvRLeqY2` أُنشئ بمحتوى `{ name: "dero" }` — UID مؤكد من مصدرين (مستند players/dero + مستخدم Authentication deromajid97@gmail.com). Majid أعاد التسجيل (حساب Dero موجود في الداتابايز + Authentication، آخر ظهور 26 نوفمبر 19:35 CET).
+- **ما زال يلزم:** اختبار حقيقي بهاتف Majid (لاعب يمارس + لوحة تحكم تشاهد) — لم يُختبَر بعد على جهازين حقيقيين. ملاحظة: يعتمد على STUN فقط؛ في بعض الشبكات (NAT متماثل من الطرفين) قد يلزم خادم TURN.
+
 ### 2026-11-26 — WEEKLY TOURNAMENT ENTRY NOW RESTORES FROM FIRESTORE — SHIPPED + LIVE (rule published 19:24 CET, deployed + live-verified 19:31 CET) (Majid bug report 19:11: «registered for the weekly tournament, changed browser, has to register again»)
 
 **ROOT CAUSE — two defects, both confirmed against the LIVE code (boxing.html a095d0e3…) and the PUBLISHED ruleset (c2c07687, updated 2026-11-25 21:08 UTC, fetched via the Firebaserules API):**
