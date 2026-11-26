@@ -4,12 +4,12 @@
 // Firebase MUST be left alone: the worker never intercepts cross-origin
 // requests (Firebase Auth/Firestore, gstatic SDKs, jsDelivr) — caching or
 // replacing one of those with the app page breaks sign-in/registration.
-var CACHE = "halba-assets-v12";
+var CACHE = "halba-assets-v13";
 var CORE = ["boxing.html",
   "assets/1377772477470045499.vrm", "assets/7772DF27-FD1D-45C3-A9A0-F9D3D82E2C7C-5838127647292564606.vrm", "assets/6C82879B-137E-446F-9E67-03052412B605-4655493345819974077.vrm", "assets/5BE26657-7FAD-4E42-86A8-ACD81F6FE923-2496223250082808139.vrm", "assets/B66B5482-2387-4C58-ACB4-66A0ED4FC3B6-5037406147021842787.vrm",
   "assets/js/three.min.js", "assets/js/GLTFLoader.js", "assets/js/three-vrm.js",
   "assets/js/pose.js", "assets/register-bg-boy-girl.jpg", "assets/register-bg.jpg",
-  "assets/icon-rondex-192.png", "assets/icon-rondex-512.png"];
+  "assets/icon-rondex-192.png", "assets/icon-rondex-512.png", "assets/section-squat.webp"];
 self.addEventListener("install", function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) {
     return Promise.all(CORE.map(function (u) { return c.add(u).catch(function () {}); }));
