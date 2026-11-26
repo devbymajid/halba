@@ -6820,6 +6820,7 @@
           "الاشتراك": "Entry",
           "اشترك في بطولة هذا الأسبوع": "Join this week's tournament",
           "اشتركت في بطولة هذا الأسبوع — بالتوفيق!": "You've joined this week's tournament — good luck!",
+          "تعذّر حفظ اشتراكك في الخادم — اشتراكك محفوظ على هذا الجهاز فقط": "Couldn't save your entry on the server — it's saved on this device only",
           "بالاشتراك تدخل جدولًا من 8 لاعبين. إن لم يكتمل العدد بلاعبين حقيقيين، تُملأ الأماكن الباقية بلاعبين من التطبيق حتى لا تبقى البطولة فارغة أبدًا.": "By joining, you enter an 8-player bracket. If real players don't fill it, the remaining spots are filled by players from the app so the tournament is never empty.",
           "ربع النهائي": "Quarterfinal",
           "نصف النهائي": "Semifinal",
@@ -7395,6 +7396,7 @@
           "الاشتراك": "Inscripción",
           "اشترك في بطولة هذا الأسبوع": "Unirse al torneo de esta semana",
           "اشتركت في بطولة هذا الأسبوع — بالتوفيق!": "Te has unido al torneo de esta semana — ¡buena suerte!",
+          "تعذّر حفظ اشتراكك في الخادم — اشتراكك محفوظ على هذا الجهاز فقط": "No se pudo guardar tu inscripción en el servidor — está guardada solo en este dispositivo",
           "بالاشتراك تدخل جدولًا من 8 لاعبين. إن لم يكتمل العدد بلاعبين حقيقيين، تُملأ الأماكن الباقية بلاعبين من التطبيق حتى لا تبقى البطولة فارغة أبدًا.": "Al unirte, entras en un cuadro de 8 jugadores. Si los jugadores reales no lo completan, los puestos restantes los ocupan jugadores de la aplicación para que el torneo nunca esté vacío.",
           "ربع النهائي": "Cuartos de final",
           "نصف النهائي": "Semifinal",
@@ -7969,6 +7971,7 @@
           "الاشتراك": "Inscription",
           "اشترك في بطولة هذا الأسبوع": "Rejoindre le tournoi de cette semaine",
           "اشتركت في بطولة هذا الأسبوع — بالتوفيق!": "Tu as rejoint le tournoi de cette semaine — bonne chance !",
+          "تعذّر حفظ اشتراكك في الخادم — اشتراكك محفوظ على هذا الجهاز فقط": "Impossible d'enregistrer ton inscription sur le serveur — elle est enregistrée uniquement sur cet appareil",
           "بالاشتراك تدخل جدولًا من 8 لاعبين. إن لم يكتمل العدد بلاعبين حقيقيين، تُملأ الأماكن الباقية بلاعبين من التطبيق حتى لا تبقى البطولة فارغة أبدًا.": "En rejoignant, tu entres dans un tableau de 8 joueurs. Si de vrais joueurs ne le remplissent pas, les places restantes sont occupées par des joueurs de l'application pour que le tournoi ne soit jamais vide.",
           "ربع النهائي": "Quart de finale",
           "نصف النهائي": "Demi-finale",
@@ -14426,9 +14429,10 @@
         }
         /* بناء الجدول عند الاشتراك: 7 خصوم ببذرة الأسبوع (خلط ثم الأقوى أولًا في
            المصنّفات)، وموضعي مصنّف عشوائي ثابت لهذا الأسبوع */
-        function cupJoin() {
-          cupEnsure();
-          if (cupState.joined) return;
+        /* بناء جدول البطولة: حتمي — نفس البذرة (الأسبوع + اسم الحساب) تعطي
+           نفس الخصوم ونفس موضعي دائمًا، فيُعاد بناء جدولي نفسه عند استرجاع
+           اشتراكي من Firestore في متصفح أو هاتف جديد. */
+        function cupBuildBracket(me) {
           var rng = botRng(cupHash(cupState.weekId + "|" + (accountName || "لاعب")));
           var pool = BOT_PLAYERS.slice();
           for (var i = pool.length - 1; i > 0; i--) {
@@ -14440,7 +14444,7 @@
           var players = [];
           var bi = 0;
           for (var s = 0; s < 8; s++) {
-            if (s === mySeed) players.push({ name: accountName || "لاعب", xp: xp, elo: myElo, char: AV.char, gender: AV.gender, me: true });
+            if (s === mySeed) players.push({ name: me.name, xp: me.xp, elo: me.elo, char: me.char, gender: me.gender, me: true });
             else { var b = picked[bi++]; players.push({ name: b.name, xp: b.xp, elo: b.elo, char: b.char, gender: b.gender, botId: b.botId }); }
           }
           var pairs = [[0, 7], [3, 4], [2, 5], [1, 6]];
@@ -14449,9 +14453,15 @@
           matches.push({ r: 1, a: -1, b: -1, w: -1, ra: 0, rb: 0 });
           matches.push({ r: 1, a: -1, b: -1, w: -1, ra: 0, rb: 0 });
           matches.push({ r: 2, a: -1, b: -1, w: -1, ra: 0, rb: 0 });
-          cupState.players = players;
-          cupState.matches = matches;
-          cupState.seed = mySeed;
+          return { players: players, matches: matches, seed: mySeed };
+        }
+        function cupJoin() {
+          cupEnsure();
+          if (cupState.joined) return;
+          var b = cupBuildBracket({ name: accountName || "لاعب", xp: xp, elo: myElo, char: AV.char, gender: AV.gender });
+          cupState.players = b.players;
+          cupState.matches = b.matches;
+          cupState.seed = b.seed;
           cupState.joined = true;
           cupSave();
           cupFsJoin();
@@ -14468,8 +14478,36 @@
               name: key, displayName: accountName, xp: xp, elo: myElo,
               character: AV.char, gender: AV.gender,
               at: firebase.firestore.FieldValue.serverTimestamp()
-            }, { merge: true }).catch(function () {});
+            }, { merge: true }).catch(function () {
+              showToast("تعذّر حفظ اشتراكك في الخادم — اشتراكك محفوظ على هذا الجهاز فقط");
+            });
           } catch (e) {}
+        }
+        /* استرجاع اشتراكي من Firestore: إن وُجد مستندي في entries هذا الأسبوع
+           ولم أكن مشتركًا محليًا (متصفح أو هاتف جديد)، أعيد بناء جدولي نفسه
+           (نفس البذرة) وأصبح مشتركًا — فلا أضطر للاشتراك من جديد. تقدّم
+           المباريات نفسها لا يُسترجع (غير محفوظ في المستند)، فيبدأ الجدول
+           من جديد بمباريات لم تُلعب بعد. */
+        function cupFsRestore(docs) {
+          if (!cupState || cupState.joined) return false;
+          var myKey = fbMyKey();
+          if (!myKey) return false;
+          var mine = null;
+          docs.forEach(function (d) { if (d._key === myKey) mine = d; });
+          if (!mine) return false;
+          var b = cupBuildBracket({
+            name: accountName || mine.displayName || "لاعب",
+            xp: (typeof mine.xp === "number" ? mine.xp : xp),
+            elo: (typeof mine.elo === "number" ? mine.elo : myElo),
+            char: mine.character || AV.char,
+            gender: mine.gender || AV.gender
+          });
+          cupState.players = b.players;
+          cupState.matches = b.matches;
+          cupState.seed = b.seed;
+          cupState.joined = true;
+          cupSave();
+          return true;
         }
         /* جلب المشتركين الحقيقيين هذا الأسبوع: العدد يُعرض، ومن اشترك ولم يدخل
            جدولي بعد يأخذ مكان لاعب تعبئة في مباراة ربع نهائي لم تُلعب بعد */
@@ -14484,6 +14522,7 @@
               cupEntriesCount = snap.size;
               var docs = [];
               snap.forEach(function (d) { var v = d.data() || {}; v._key = d.id; docs.push(v); });
+              cupFsRestore(docs);
               if (cupState.joined && cupMergeEntries(docs)) cupSave();
               renderCup();
             }).catch(function () { cupFsState = "err"; renderCup(); });
