@@ -2030,35 +2030,25 @@
         font-size: 0.98rem;
         cursor: pointer;
       }
-      /* منتقي التمرين في التدريب الفردي: بوش أب أو سكوات — يختفي في المباريات */
-      .pu-ex-pick {
+      /* اسم التمرين الحالي في التدريب الفردي: ثابت بلا تبديل — يختفي في المباريات */
+      .pu-ex-label {
         position: absolute;
         top: calc(78px + env(safe-area-inset-top, 0px));
-        left: 50%;
-        transform: translateX(-50%);
+        inset-inline-end: 14px;
         z-index: 3;
         display: flex;
-        gap: 8px;
-        background: rgba(13, 10, 32, 0.72);
-        border: 1px solid rgba(255, 255, 255, 0.14);
-        border-radius: 999px;
-        padding: 5px;
-      }
-      .pu-ex-opt {
+        align-items: center;
         min-height: 40px;
-        padding: 0 20px;
-        border: none;
+        padding: 0 18px;
+        background: linear-gradient(90deg, #ffb020, #ff7a00);
+        color: #1a0d00;
         border-radius: 999px;
-        background: transparent;
-        color: #cdc6ec;
         font-weight: 900;
         font-size: 0.98rem;
-        cursor: pointer;
         white-space: nowrap;
       }
-      .pu-ex-opt.on { background: linear-gradient(90deg, #ffb020, #ff7a00); color: #1a0d00; }
-      .pu-ex-pick[hidden] { display: none !important; }
-      #puPage.in-match .pu-ex-pick { display: none !important; }
+      .pu-ex-label[hidden] { display: none !important; }
+      #puPage.in-match .pu-ex-label { display: none !important; }
       .pu-count {
         position: absolute;
         inset: 0;
@@ -5318,11 +5308,8 @@
 
           <!-- مؤشر البث المباشر للمسؤول: يظهر فقط أثناء بث الكاميرا للتحقق من صحة التمرين -->
           <div class="pu-live" id="puLiveNote" hidden>● قد يطّلع مسؤول اللعبة على الكاميرا للتحقق من صحة التمرين</div>
-          <!-- منتقي التمرين في التدريب الفردي: بوش أب أو سكوات (يختفي في المباريات) -->
-          <div class="pu-ex-pick" id="puExPick">
-            <button type="button" class="pu-ex-opt on" id="puExPushup">بوش أب</button>
-            <button type="button" class="pu-ex-opt" id="puExSquat">سكوات</button>
-          </div>
+          <!-- اسم التمرين الحالي (ثابت بلا تبديل): يحدَّد من نقطة الدخول فقط — يختفي في المباريات -->
+          <div class="pu-ex-label" id="puExLabel">بوش أب</div>
 
           <!-- لوحة مباراة الخصم: شريطا العدّات جنبًا إلى جنب (بلا أفاتار — بطلب المستخدم) -->
           <div class="pu-match" id="puMatch" hidden>
@@ -11574,26 +11561,19 @@
           var exr = el("exRules"); if (exr) exr.hidden = true;
           puDrawDepth(0, false);
           puMatchResetUi();
-          puExPickSync();
+          puExLabelSync();
           if (pu.match && pu.match.real) puSetStatus("مباراة ضد " + pu.match.bot.name + " — ستبدأ تلقائيًا بعد العدّ التنازلي");
           else if (pu.match) puSetStatus("مباراة ضد " + pu.match.bot.name + " — اضغط «بدء المباراة» حين تكون جاهزًا");
           else if (pu.exercise === "squat") puSetStatus("ضع الهاتف أمامك والكاميرا نحوك، ثم قف مستقيمًا وابدأ النزول");
           else puSetStatus("ضع الهاتف أمامك على الأرض والكاميرا نحوك، ثم خذ وضعية الضغط");
         }
-        /* منتقي التمرين (بوش أب/سكوات) في التدريب الفردي فقط — يختفي في المباريات
-           وأثناء العدّ، وتبديله يعيد الجلسة من الصفر بالعدّاد الصحيح */
-        function puExPickSync() {
-          var pk = el("puExPick");
-          if (pk) pk.hidden = !!pu.match;
-          var bp = el("puExPushup"), bs = el("puExSquat");
-          if (bp) bp.classList.toggle("on", pu.exercise !== "squat");
-          if (bs) bs.classList.toggle("on", pu.exercise === "squat");
-        }
-        function puSetExercise(ex) {
-          if (pu.match || pu.counting || pu.countIv) return;
-          if (pu.exercise === ex) return;
-          pu.exercise = ex;
-          puResetSession();
+        /* اسم التمرين الحالي (ثابت بلا تبديل) في التدريب الفردي فقط — يختفي
+           في المباريات؛ نصّه يحدَّد من نقطة الدخول (pu.exercise) */
+        function puExLabelSync() {
+          var lb = el("puExLabel");
+          if (!lb) return;
+          lb.hidden = !!pu.match;
+          lb.textContent = pu.exercise === "squat" ? "سكوات" : "بوش أب";
         }
         /* ---------- خيار إخفاء رسالة «قواعد تمارين» عند فتح التمارين ----------
            مفتاح مستقل (halba_exercise_rules_hide_v1) يحكم رسالة القواعد العامة
@@ -12061,7 +12041,6 @@
             return;
           }
           el("puStartBtn").hidden = true;
-          var pk0 = el("puExPick"); if (pk0) pk0.hidden = true;
           var c = el("puCount");
           var n = 3;
           c.hidden = false;
@@ -13513,10 +13492,6 @@
         if (sqHomeTitleEl) sqHomeTitleEl.addEventListener("click", function () { pu.exercise = "squat"; openPuPage(); });
         var sqHomeEnterEl = el("sqEnterBtn");
         if (sqHomeEnterEl) sqHomeEnterEl.addEventListener("click", function () { pu.exercise = "squat"; openPuPage(); });
-        var puExPuEl = el("puExPushup");
-        if (puExPuEl) puExPuEl.addEventListener("click", function () { puSetExercise("pushup"); });
-        var puExSqEl = el("puExSquat");
-        if (puExSqEl) puExSqEl.addEventListener("click", function () { puSetExercise("squat"); });
         el("puCloseBtn").addEventListener("click", function () {
           if (pu.counting || pu.countIv) puFinish();
           else closePuPage();
